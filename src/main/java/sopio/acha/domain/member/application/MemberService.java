@@ -24,7 +24,6 @@ public class MemberService {
         }
 
         if (member.chkPassword(password, member, bCryptPasswordEncoder)) {
-            //토큰 발행
             return MemberDto.of(member);
         } else {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
