@@ -1,8 +1,10 @@
 package sopio.acha.jwt;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.presentation.dto.MemberDto;
 
 import javax.crypto.SecretKey;
@@ -21,18 +23,9 @@ public class JWTCreator {
         this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 
-    public Boolean isExpired(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getExpiration()
-                .before(new Date());
-    }
-
-    public String createJwt(MemberDto memberDto, Long expiredMs) {
+    public String createJwt(String category, MemberDto memberDto, Long expiredMs) {
         return Jwts.builder()
+                .claim("category", category)
                 .claim("id", memberDto.getId())
                 .claim("password", memberDto.getPassword())
                 .claim("name", memberDto.getName())
@@ -46,4 +39,45 @@ public class JWTCreator {
                 .compact();
     }
 
+    public <T> T getClaim(String token, String key, Class<T> classType) {
+        return extractAllClaims(token).get(key, classType);
+    }
+
+    public Member getMember(String token) {
+        String id = getClaim(token, "id", String.class);
+        String password = getClaim(token, "password", String.class);
+        String name = getClaim(token, "name", String.class);
+        String college = getClaim(token, "college", String.class);
+        String department = getClaim(token, "department", String.class);
+        String major = getClaim(token, "major", String.class);
+        String role = getClaim(token, "role", String.class);
+
+        return new Member(
+                id,
+                password,
+                name,
+                college,
+                department,
+                major,
+                role
+        );
+    }
+
+    public Boolean isExpired(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getExpiration()
+                .before(new Date());
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
 }
