@@ -1,8 +1,10 @@
 package sopio.acha.jwt;
 
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -10,6 +12,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import sopio.acha.domain.member.presentation.dto.CustomUserDetails;
 import sopio.acha.domain.member.presentation.dto.MemberDto;
+import sopio.acha.jwt.domain.RefreshEntity;
+import sopio.acha.jwt.infrastructure.RefreshRepository;
+
+import java.util.Date;
 
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
@@ -17,9 +23,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final JWTCreator jwtCreator;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTCreator jwtCreator) {
+    private final RefreshRepository refreshRepository;
+
+    public LoginFilter(AuthenticationManager authenticationManager, JWTCreator jwtCreator, RefreshRepository refreshRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtCreator = jwtCreator;
+        this.refreshRepository = refreshRepository;
         setFilterProcessesUrl("/member/login");
     }
 
@@ -44,15 +53,43 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         CustomUserDetails customUserDetails = (CustomUserDetails) authen.getPrincipal();
         MemberDto memberDto = customUserDetails.getMemberDto();
 
-        // access token 10시간 후 만료
-        String token = jwtCreator.createJwt(memberDto, 60 * 60 * 10L);
+        // access token 10분
+        String access = jwtCreator.createJwt("access", memberDto, 600000L);
+        // refresh token 1일
+        String refresh = jwtCreator.createJwt("refresh", memberDto, 86400000L);
 
-        response.addHeader("Authorization", "Bearer " + token);
+        System.out.println(refresh);
+
+        addRefreshEntity(refresh, memberDto.getId(), 86400000L);
+
+        response.setHeader("access", access);
+        response.addCookie(createCookie("refresh", refresh));
+        response.setStatus(HttpStatus.OK.value());
     }
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
         System.out.println("failed");
         response.setStatus(401);
+    }
+
+    private Cookie createCookie(String key, String value) {
+        Cookie cookie = new Cookie(key, value);
+        cookie.setPath("/");
+        cookie.setMaxAge(24 * 60 * 60);
+        cookie.setHttpOnly(true);
+
+        return cookie;
+    }
+
+    private void addRefreshEntity(String refresh, String username, Long expiredMs) {
+        Date date = new Date(System.currentTimeMillis() + expiredMs);
+
+        RefreshEntity refreshEntity = new RefreshEntity();
+        refreshEntity.setRefresh(refresh);
+        refreshEntity.setUsername(username);
+        refreshEntity.setExpiration(date.toString());
+
+        refreshRepository.save(refreshEntity);
     }
 }
