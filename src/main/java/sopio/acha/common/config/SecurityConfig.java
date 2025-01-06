@@ -19,7 +19,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import lombok.RequiredArgsConstructor;
 import sopio.acha.jwt.JWTCreator;
+import sopio.acha.jwt.JWTFilter;
 import sopio.acha.jwt.LoginFilter;
+import sopio.acha.jwt.infrastructure.RefreshRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -30,6 +32,8 @@ public class SecurityConfig {
 	private final AuthenticationConfiguration authenticationConfiguration;
 
 	private final JWTCreator jwtCreator;
+
+	private final RefreshRepository refreshRepository;
 
 	@Bean
 	public BCryptPasswordEncoder bCryptPasswordEncoder() {
@@ -49,7 +53,8 @@ public class SecurityConfig {
 			.httpBasic(AbstractHttpConfigurer::disable)
 			.formLogin(AbstractHttpConfigurer::disable)
 			.logout(AbstractHttpConfigurer::disable)
-			.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtCreator), UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(new JWTFilter(jwtCreator), LoginFilter.class)
+			.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtCreator, refreshRepository), UsernamePasswordAuthenticationFilter.class)
 			.sessionManagement(session -> session
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 			)
@@ -76,7 +81,8 @@ public class SecurityConfig {
 
 	private static final String[] PERMIT_ALL_PATTERNS = {
 		"/api/v1/",
-		"/member/**"
+		"/member/**",
+		"/reissue"
 	};
 
 	CorsConfigurationSource corsConfigurationSource() {
