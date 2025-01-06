@@ -47,7 +47,7 @@ public class Member {
 
     public Member() {}
 
-    private Member(String id, String password, String name, String college, String department, String major, String role) {
+    public Member(String id, String password, String name, String college, String department, String major, String role) {
         this.id = id;
         this.password = password;
         this.name = name;
