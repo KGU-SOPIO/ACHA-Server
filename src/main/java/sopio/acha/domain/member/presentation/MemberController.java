@@ -16,32 +16,19 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    @PostMapping("/login")
-    @Operation(summary = "login", description = "로그인")
-    public ResponseEntity<?> login(
+    @PostMapping("/join")
+    @Operation(summary = "join", description = "정보 가져와서 회원가입")
+    public ResponseEntity<?> getInfo(
             @RequestParam String id,
             @RequestParam String password
     ) {
-        try {
-            MemberDto memberDto = memberService.login(id, password);
-            return ResponseEntity.ok().body(memberDto);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        MemberDto memberDto = memberService.getInfo(id, password);
+        return ResponseEntity.ok().body(memberDto);
     }
 
-    @PostMapping("/join")
-    @Operation(summary = "join", description = "회원가입")
-    public ResponseEntity<?> join(
-            @RequestBody MemberDto memberDto
-    ) {
-        try {
-            MemberDto responseMemberDto = memberService.join(memberDto);
-            return ResponseEntity.ok(responseMemberDto);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-
+    @PostMapping("/login")
+    @Operation(summary = "login", description = "로그인")
+    public void login() {
     }
 
 }
