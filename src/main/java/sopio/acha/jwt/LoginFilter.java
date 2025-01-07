@@ -58,8 +58,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // refresh token 1일
         String refresh = jwtCreator.createJwt("refresh", memberDto, 86400000L);
 
-        System.out.println(refresh);
-
         addRefreshEntity(refresh, memberDto.getId(), 86400000L);
 
         response.setHeader("access", access);
@@ -70,7 +68,23 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
         System.out.println("failed");
-        response.setStatus(401);
+
+        try {
+            String errorMessage;
+            if (failed.getMessage().contains("Bad credentials")) {
+                errorMessage = "아이디 또는 비밀번호가 잘못되었습니다.";
+            } else {
+                errorMessage = "인증에 실패했습니다. 다시 시도해주세요.";
+            }
+
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setContentType("application/json;charset=UTF-8");
+
+            String jsonResponse = "{\"error\": \"Authentication failed\", \"message\": \"" + errorMessage + "\"}";
+            response.getWriter().write(jsonResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private Cookie createCookie(String key, String value) {
