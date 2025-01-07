@@ -18,11 +18,11 @@ public class MemberController {
 
     @PostMapping("/join")
     @Operation(summary = "join", description = "정보 가져와서 회원가입")
-    public ResponseEntity<?> getInfo(
+    public ResponseEntity<?> join(
             @RequestParam String id,
             @RequestParam String password
     ) {
-        MemberDto memberDto = memberService.getInfo(id, password);
+        MemberDto memberDto = memberService.join(id, password);
         return ResponseEntity.ok().body(memberDto);
     }
 
