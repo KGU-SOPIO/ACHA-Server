@@ -3,6 +3,8 @@ package sopio.acha.domain.member.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import sopio.acha.common.api.RestTemplateService;
+import sopio.acha.common.api.dto.ResponseDto;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.infrastructure.MemberRepository;
 import sopio.acha.domain.member.presentation.dto.MemberDto;
@@ -16,29 +18,34 @@ public class MemberService {
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public MemberDto login(String id, String password) {
+    private final RestTemplateService restTemplateService;
+
+    public MemberDto join(String id, String password) {
         Member member = memberRepository.findMemberById(id);
 
         if (member == null) {
-            throw new IllegalArgumentException("아이디가 존재하지 않습니다.");
+            ResponseDto responseDto = restTemplateService.isExtract(id, password, true);
+
+            if (responseDto.isVerification()) {
+                MemberDto memberDto = new MemberDto();
+
+                memberDto.setId(id);
+                memberDto.setPassword(password);
+                memberDto.setName(responseDto.getUserData().getName());
+                memberDto.setCollege(responseDto.getUserData().getCollege());
+                memberDto.setDepartment(responseDto.getUserData().getDepartment());
+                memberDto.setMajor(responseDto.getUserData().getMajor());
+                memberDto.setRole("ROLE_USER");
+
+                Member newMember = Member.of(memberDto, bCryptPasswordEncoder);
+
+                memberRepository.save(newMember);
+                return memberDto;
+            }
+            else {
+                throw new IllegalArgumentException("인증 실패: " + responseDto.getMessage());
+            }
         }
-
-        if (member.chkPassword(password, member, bCryptPasswordEncoder)) {
-            return MemberDto.of(member);
-        } else {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-
+        return MemberDto.of(member);
     }
-
-    public MemberDto join(MemberDto memberDto) {
-        Member member = Member.of(memberDto, bCryptPasswordEncoder);
-
-        memberRepository.save(member);
-        return memberDto;
-    }
-
-
-
-
 }
