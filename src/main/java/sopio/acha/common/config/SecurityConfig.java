@@ -4,22 +4,46 @@ import java.util.Collections;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import lombok.RequiredArgsConstructor;
+import sopio.acha.jwt.JWTCreator;
+import sopio.acha.jwt.JWTFilter;
+import sopio.acha.jwt.LoginFilter;
+import sopio.acha.jwt.infrastructure.RefreshRepository;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
+
+	private final AuthenticationConfiguration authenticationConfiguration;
+
+	private final JWTCreator jwtCreator;
+
+	private final RefreshRepository refreshRepository;
+
+	@Bean
+	public BCryptPasswordEncoder bCryptPasswordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception{
+		return configuration.getAuthenticationManager();
+	}
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -29,6 +53,8 @@ public class SecurityConfig {
 			.httpBasic(AbstractHttpConfigurer::disable)
 			.formLogin(AbstractHttpConfigurer::disable)
 			.logout(AbstractHttpConfigurer::disable)
+			.addFilterBefore(new JWTFilter(jwtCreator), LoginFilter.class)
+			.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtCreator, refreshRepository), UsernamePasswordAuthenticationFilter.class)
 			.sessionManagement(session -> session
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 			)
@@ -54,7 +80,9 @@ public class SecurityConfig {
 	};
 
 	private static final String[] PERMIT_ALL_PATTERNS = {
-		"/api/v1/"
+		"/api/v1/",
+		"/member/**",
+		"/reissue"
 	};
 
 	CorsConfigurationSource corsConfigurationSource() {
