@@ -48,4 +48,8 @@ public class MemberService {
         }
         return MemberDto.of(member);
     }
+
+    public Member me(){
+        return memberRepository.findMemberById("202211516"); // 임시로 고정, 추후 SecurityContextHolder 에서 가져와야함
+    }
 }

@@ -82,7 +82,8 @@ public class SecurityConfig {
 	private static final String[] PERMIT_ALL_PATTERNS = {
 		"/api/v1/",
 		"/member/**",
-		"/reissue"
+		"/reissue",
+		"/api/v1/lecture"
 	};
 
 	CorsConfigurationSource corsConfigurationSource() {
