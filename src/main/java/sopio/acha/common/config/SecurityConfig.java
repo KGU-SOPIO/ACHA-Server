@@ -62,7 +62,7 @@ public class SecurityConfig {
 				.requestMatchers(SWAGGER_PATTERNS).permitAll()
 				.requestMatchers(STATIC_RESOURCES_PATTERNS).permitAll()
 				.requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
-				.anyRequest().authenticated()
+				.anyRequest().permitAll()
 			)
 			.build();
 	}

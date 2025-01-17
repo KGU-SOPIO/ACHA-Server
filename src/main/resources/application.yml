@@ -27,3 +27,6 @@ logging:
 
 extractor:
   request-url: ${EXTRACTOR_URL}
+
+encryption:
+  secret-key: ${ENCRYPTION_SECRET}

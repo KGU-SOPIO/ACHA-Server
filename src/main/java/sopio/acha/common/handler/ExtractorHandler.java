@@ -1,5 +1,7 @@
 package sopio.acha.common.handler;
 
+import static org.springframework.http.HttpMethod.POST;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +11,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -35,35 +36,54 @@ public class ExtractorHandler {
 
 	public static List<Object> requestTimeTable(String studentId, String password) {
 		try {
-			URI uri = UriComponentsBuilder
-				.fromUriString(requestUrl)
-				.path("/timetable/")
-				.encode()
-				.build()
-				.toUri();
-
+			URI uri = buildURIByPath("/timetable/");
 			String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password + "\" }";
-
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("accept", "application/json");
-			headers.set("Content-Type", "application/json");
-
-			HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
-
-			RestTemplate restTemplate = new RestTemplate();
-			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, entity, String.class);
-
-			JSONObject jsonResponse = new JSONObject(response.getBody());
-			JSONArray dataArray = jsonResponse.getJSONArray("data");
+			JSONObject jsonObject = getJsonData(requestBody, uri);
+			JSONArray dataArray = jsonObject.getJSONArray("data");
 
 			List<Object> lectureList = new ArrayList<>();
 			for (int i = 0; i < dataArray.length(); i++) {
-				JSONObject jsonObject = dataArray.getJSONObject(i);
+				JSONObject data = dataArray.getJSONObject(i);
+				JSONObject lecture = data.getJSONObject("lecture");
 				lectureList.add(jsonObject.toMap());
 			}
 			return lectureList;
 		} catch (Exception e) {
 			throw new ConvertErrorException();
 		}
+	}
+
+	public static String requestAuthenticationAndUserInfo(String studentId, String password) {
+		try {
+			URI uri = buildURIByPath("/auth/");
+			String requestBody =
+				"{ \"authentication\": { \"studentId\": \"" + studentId + "\", \"password\": \"" + password
+					+ "\" }, \"user\": true }";
+			JSONObject jsonObject = getJsonData(requestBody, uri);
+			return jsonObject.get("userData").toString();
+		} catch (Exception e) {
+			throw new ConvertErrorException();
+		}
+	}
+
+	private static URI buildURIByPath(String path) {
+		return UriComponentsBuilder
+			.fromUriString(requestUrl)
+			.path(path)
+			.encode()
+			.build()
+			.toUri();
+	}
+
+	private static JSONObject getJsonData(String requestBody, URI uri) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("accept", "application/json");
+		headers.set("Content-Type", "application/json");
+
+		HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+		RestTemplate restTemplate = new RestTemplate();
+		ResponseEntity<String> response = restTemplate.exchange(uri, POST, entity, String.class);
+		return new JSONObject(response.getBody());
 	}
 }
