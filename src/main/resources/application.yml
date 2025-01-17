@@ -27,3 +27,10 @@ logging:
 
 extractor:
   request-url: ${EXTRACTOR_URL}
+
+encryption:
+  secret-key: ${ENCRYPTION_SECRET}
+
+jwt:
+  issuer: ${JWT_ISSUER}
+  secret_key: ${JWT_SECRET_KEY}

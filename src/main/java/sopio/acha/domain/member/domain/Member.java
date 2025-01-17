@@ -1,73 +1,89 @@
 package sopio.acha.domain.member.domain;
 
+import static lombok.AccessLevel.PROTECTED;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jdk.jfr.Timestamp;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import sopio.acha.domain.member.presentation.dto.MemberDto;
+import lombok.NoArgsConstructor;
+import sopio.acha.common.domain.BaseTimeEntity;
+import sopio.acha.common.handler.EncryptionHandler;
+import sopio.acha.domain.member.presentation.exception.PasswordNotMatchedException;
 
-import java.time.LocalDateTime;
-
-@Entity(name = "Member")
-@Table(name = "member")
 @Getter
-public class Member {
+@Entity
+@Builder
+@Table(name = "member")
+@AllArgsConstructor
+@NoArgsConstructor(access = PROTECTED)
+public class Member extends BaseTimeEntity implements UserDetails {
 
-    @Id
-    @Column(nullable = false, updatable = false, unique = true)
-    private String id;
+	@Id
+	@Column(nullable = false, updatable = false, unique = true)
+	private String id;
 
-    @Column(nullable = false)
-    private String password;
+	@Column(nullable = false)
+	private String password;
 
-    @Column(nullable = false)
-    private String name;
+	@Column(nullable = false)
+	private String name;
 
-    @Column(nullable = false)
-    private String college;
+	@Column(nullable = false)
+	private String college;
 
-    @Column(nullable = false)
-    private String department;
+	@Column(nullable = false)
+	private String department;
 
-    @Column
-    private String major;
+	@Column
+	private String major;
 
-    @Column(nullable = false)
-    private String role;
+	@Column(nullable = false)
+	private Role role;
 
-    @Timestamp
-    private LocalDateTime created_date;
+	public static Member create(String id, String password, String name, String college, String department,
+		String major) {
+		return Member.builder()
+			.id(id)
+			.password(EncryptionHandler.encrypt(password))
+			.name(name)
+			.college(college)
+			.department(department)
+			.major(major)
+			.role(Role.ROLE_USER)
+			.build();
+	}
 
-    public boolean chkPassword(String password, Member member, BCryptPasswordEncoder bCryptPasswordEncoder) {
-        return bCryptPasswordEncoder.matches(password, member.getPassword());
-    }
+	public void validatePassword(String password) {
+		if (!Objects.equals(EncryptionHandler.encrypt(password), this.password)) {
+			throw new PasswordNotMatchedException();
+		}
+	}
 
-    public Member() {}
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return Collections.singletonList(new SimpleGrantedAuthority(role.name()));
+	}
 
-    public Member(String id, String password, String name, String college, String department, String major, String role) {
-        this.id = id;
-        this.password = password;
-        this.name = name;
-        this.college = college;
-        this.department = department;
-        this.major = major;
-        this.role = role;
-        this.created_date = LocalDateTime.now();
-    }
+	@Override
+	public String getUsername() {
+		return id;
+	}
 
-    public static Member of(MemberDto memberDto, BCryptPasswordEncoder bCryptPasswordEncoder) {
-        return new Member(
-                memberDto.getId(),
-                bCryptPasswordEncoder.encode(memberDto.getPassword()),
-                memberDto.getName(),
-                memberDto.getCollege(),
-                memberDto.getDepartment(),
-                memberDto.getMajor(),
-                memberDto.getRole()
-        );
-    }
+	@Override
+	public String getPassword() {
+		return password;
+	}
 
 }
