@@ -18,22 +18,15 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import lombok.RequiredArgsConstructor;
-import sopio.acha.jwt.JWTCreator;
-import sopio.acha.jwt.JWTFilter;
-import sopio.acha.jwt.LoginFilter;
-import sopio.acha.jwt.infrastructure.RefreshRepository;
+import sopio.acha.common.auth.filter.JwtFilter;
+import sopio.acha.common.auth.jwt.JwtCreator;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
-
-	private final AuthenticationConfiguration authenticationConfiguration;
-
-	private final JWTCreator jwtCreator;
-
-	private final RefreshRepository refreshRepository;
+	private final JwtCreator jwtCreator;
 
 	@Bean
 	public BCryptPasswordEncoder bCryptPasswordEncoder() {
@@ -53,11 +46,10 @@ public class SecurityConfig {
 			.httpBasic(AbstractHttpConfigurer::disable)
 			.formLogin(AbstractHttpConfigurer::disable)
 			.logout(AbstractHttpConfigurer::disable)
-			.addFilterBefore(new JWTFilter(jwtCreator), LoginFilter.class)
-			.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtCreator, refreshRepository), UsernamePasswordAuthenticationFilter.class)
 			.sessionManagement(session -> session
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 			)
+			.addFilterBefore(new JwtFilter(jwtCreator), UsernamePasswordAuthenticationFilter.class)
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(SWAGGER_PATTERNS).permitAll()
 				.requestMatchers(STATIC_RESOURCES_PATTERNS).permitAll()
