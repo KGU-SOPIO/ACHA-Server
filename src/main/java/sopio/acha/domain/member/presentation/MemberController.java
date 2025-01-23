@@ -21,7 +21,7 @@ public class MemberController {
 
     @PostMapping("/join")
     @Operation(summary = "join", description = "정보 가져와서 회원가입")
-    public ResponseEntity<Void> join(
+    public ResponseEntity<Void> saveMember(
         @RequestParam String studentId,
         @RequestParam String password
     ) {
@@ -31,7 +31,7 @@ public class MemberController {
 
     @PostMapping("/login")
     @Operation(summary = "login", description = "로그인")
-    public ResponseEntity<MemberTokenResponse> login(
+    public ResponseEntity<MemberTokenResponse> authenticateMemberAndGenerateToken(
         @RequestParam String studentId,
         @RequestParam String password
     ) {

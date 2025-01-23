@@ -23,14 +23,14 @@ public class LectureService {
 	public void saveLecture() {
 		Member member = memberService.me();
 		List<Object> lectureList = ExtractorHandler.requestTimeTable(member.getId(), member.getPassword());
-		List<Lecture> converted = Lecture.convert(lectureList);
-		lectureRepository.saveAll(converted);
+		List<Lecture> convertedLectureList = Lecture.convert(lectureList);
+		lectureRepository.saveAll(convertedLectureList);
 	}
 
 	@Transactional(readOnly = true)
 	public LectureSummaryListResponse getTodayLecture() {
-		Member member = memberService.me();
-		List<Lecture> lectures = lectureRepository.findAllByMemberIdAndDayAndIsPresentTrue(member.getId(),
+		Member currentMember = memberService.me();
+		List<Lecture> lectures = lectureRepository.findAllByMemberIdAndDayAndIsPresentTrue(currentMember.getId(),
 			DateHandler.getTodayDate());
 		return LectureSummaryListResponse.from(lectures);
 	}

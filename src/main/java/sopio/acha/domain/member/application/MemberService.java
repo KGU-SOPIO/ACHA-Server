@@ -43,11 +43,11 @@ public class MemberService {
 
 	@Transactional
 	public MemberTokenResponse authenticateMemberAndGenerateToken(final String studentId, final String password) {
-		Member member = getMemberById(studentId);
-		member.validatePassword(password);
+		Member loginMember = getMemberById(studentId);
+		loginMember.validatePassword(password);
 		return MemberTokenResponse.of(
-			jwtCreator.generateToken(member, Duration.ofHours(2)),
-			jwtCreator.generateToken(member, Duration.ofDays(7))
+			jwtCreator.generateToken(loginMember, Duration.ofHours(2)),
+			jwtCreator.generateToken(loginMember, Duration.ofDays(7))
 		);
 	}
 
