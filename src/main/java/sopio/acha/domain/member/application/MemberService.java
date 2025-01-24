@@ -32,8 +32,7 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final JwtCreator jwtCreator;
 
-	public MemberSummaryResponse getMemberInformationFromExtractor() {
-		Member currentMember = me();
+	public MemberSummaryResponse getMemberInformationFromExtractor(Member currentMember) {
 		try {
 			return new ObjectMapper().readValue(
 				requestAuthenticationAndUserInfo(currentMember.getId(),
@@ -45,8 +44,7 @@ public class MemberService {
 	}
 
 	@Transactional(readOnly = true)
-	public MemberBasicInformationResponse getMemberBasicInformation() {
-		Member currentMember = me();
+	public MemberBasicInformationResponse getMemberBasicInformation(Member currentMember) {
 		return MemberBasicInformationResponse.from(currentMember);
 	}
 
@@ -61,8 +59,7 @@ public class MemberService {
 	}
 
 	@Transactional
-	public void updateBasicMemberInformation(MemberBasicInformationRequest request) {
-		Member currentMember = me();
+	public void updateBasicMemberInformation(Member currentMember, MemberBasicInformationRequest request) {
 		currentMember.updateBasicInformation(request.name(), request.college(), request.department(), request.major());
 	}
 
@@ -85,15 +82,5 @@ public class MemberService {
 
 	private boolean isExistMember(String studentId) {
 		return memberRepository.existsById(studentId);
-	}
-
-	public Member me() {
-		try {
-			Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-			String userId = ((UserDetails)principal).getUsername();
-			return getMemberById(userId);
-		} catch (Exception e) {
-			throw new MemberNotAuthenticatedException();
-		}
 	}
 }

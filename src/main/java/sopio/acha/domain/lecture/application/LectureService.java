@@ -1,5 +1,7 @@
 package sopio.acha.domain.lecture.application;
 
+import static sopio.acha.common.handler.ExtractorHandler.requestTimeTable;
+
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -20,16 +22,14 @@ public class LectureService {
 	private final MemberService memberService;
 	private final LectureRepository lectureRepository;
 
-	public void saveLecture() {
-		Member member = memberService.me();
-		List<Object> lectureList = ExtractorHandler.requestTimeTable(member.getId(), member.getPassword());
+	public void saveLecture(Member currentMember) {
+		List<Object> lectureList = requestTimeTable(currentMember.getId(), currentMember.getPassword());
 		List<Lecture> convertedLectureList = Lecture.convert(lectureList);
 		lectureRepository.saveAll(convertedLectureList);
 	}
 
 	@Transactional(readOnly = true)
-	public LectureSummaryListResponse getTodayLecture() {
-		Member currentMember = memberService.me();
+	public LectureSummaryListResponse getTodayLecture(Member currentMember) {
 		List<Lecture> lectures = lectureRepository.findAllByMemberIdAndDayAndIsPresentTrue(currentMember.getId(),
 			DateHandler.getTodayDate());
 		return LectureSummaryListResponse.from(lectures);
