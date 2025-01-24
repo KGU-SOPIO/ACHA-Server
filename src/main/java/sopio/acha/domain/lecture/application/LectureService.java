@@ -1,5 +1,6 @@
 package sopio.acha.domain.lecture.application;
 
+import static sopio.acha.common.handler.EncryptionHandler.decrypt;
 import static sopio.acha.common.handler.ExtractorHandler.requestTimeTable;
 
 import java.util.List;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import sopio.acha.common.handler.DateHandler;
+import sopio.acha.common.handler.EncryptionHandler;
 import sopio.acha.common.handler.ExtractorHandler;
 import sopio.acha.domain.lecture.domain.Lecture;
 import sopio.acha.domain.lecture.infrastructure.LectureRepository;
@@ -23,7 +25,7 @@ public class LectureService {
 	private final LectureRepository lectureRepository;
 
 	public void saveLecture(Member currentMember) {
-		List<Object> lectureList = requestTimeTable(currentMember.getId(), currentMember.getPassword());
+		List<Object> lectureList = requestTimeTable(currentMember.getId(), decrypt(currentMember.getPassword()));
 		List<Lecture> convertedLectureList = Lecture.convert(lectureList);
 		lectureRepository.saveAll(convertedLectureList);
 	}
