@@ -22,6 +22,7 @@ import sopio.acha.domain.member.infrastructure.MemberRepository;
 import sopio.acha.domain.member.presentation.exception.MemberNotAuthenticatedException;
 import sopio.acha.domain.member.presentation.exception.MemberNotFoundException;
 import sopio.acha.domain.member.presentation.request.MemberBasicInformationRequest;
+import sopio.acha.domain.member.presentation.response.MemberBasicInformationResponse;
 import sopio.acha.domain.member.presentation.response.MemberSummaryResponse;
 import sopio.acha.domain.member.presentation.response.MemberTokenResponse;
 
@@ -41,6 +42,12 @@ public class MemberService {
 		} catch (JsonProcessingException e) {
 			throw new ExtractorErrorException();
 		}
+	}
+
+	@Transactional(readOnly = true)
+	public MemberBasicInformationResponse getMemberBasicInformation() {
+		Member currentMember = me();
+		return MemberBasicInformationResponse.from(currentMember);
 	}
 
 	@Transactional

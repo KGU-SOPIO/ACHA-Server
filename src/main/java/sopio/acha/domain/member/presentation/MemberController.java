@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import sopio.acha.domain.member.application.MemberService;
 import sopio.acha.domain.member.presentation.request.MemberBasicInformationRequest;
+import sopio.acha.domain.member.presentation.response.MemberBasicInformationResponse;
 import sopio.acha.domain.member.presentation.response.MemberSummaryResponse;
 import sopio.acha.domain.member.presentation.response.MemberTokenResponse;
 
@@ -28,6 +29,13 @@ public class MemberController {
     @Operation(summary = "get basic member information from extractor", description = "회원가입 시 추출기에서 정보 불러오기")
     public ResponseEntity<MemberSummaryResponse> getMemberInformationFromExtractor() {
         MemberSummaryResponse response = memberService.getMemberInformationFromExtractor();
+        return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping
+    @Operation(summary = "get basic member information in home page", description = "홈화면 회원 기본 정보 불러오기")
+    public ResponseEntity<MemberBasicInformationResponse> getMemberInformation() {
+        MemberBasicInformationResponse response = memberService.getMemberBasicInformation();
         return ResponseEntity.ok().body(response);
     }
 
