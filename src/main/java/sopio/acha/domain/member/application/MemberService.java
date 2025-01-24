@@ -16,10 +16,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import sopio.acha.common.auth.jwt.JwtCreator;
 import sopio.acha.common.exception.ExtractorErrorException;
+import sopio.acha.common.handler.EncryptionHandler;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.infrastructure.MemberRepository;
 import sopio.acha.domain.member.presentation.exception.MemberNotAuthenticatedException;
 import sopio.acha.domain.member.presentation.exception.MemberNotFoundException;
+import sopio.acha.domain.member.presentation.request.MemberBasicInformationRequest;
 import sopio.acha.domain.member.presentation.response.MemberSummaryResponse;
 import sopio.acha.domain.member.presentation.response.MemberTokenResponse;
 
@@ -33,7 +35,9 @@ public class MemberService {
 		Member currentMember = me();
 		try {
 			return new ObjectMapper().readValue(
-				requestAuthenticationAndUserInfo(currentMember.getId(), currentMember.getPassword()), MemberSummaryResponse.class);
+				requestAuthenticationAndUserInfo(currentMember.getId(),
+					EncryptionHandler.decrypt(currentMember.getPassword())),
+				MemberSummaryResponse.class);
 		} catch (JsonProcessingException e) {
 			throw new ExtractorErrorException();
 		}
@@ -47,6 +51,12 @@ public class MemberService {
 			jwtCreator.generateToken(loginMember, Duration.ofHours(2)),
 			jwtCreator.generateToken(loginMember, Duration.ofDays(7))
 		);
+	}
+
+	@Transactional
+	public void updateBasicMemberInformation(MemberBasicInformationRequest request) {
+		Member currentMember = me();
+		currentMember.updateBasicInformation(request.name(), request.college(), request.department(), request.major());
 	}
 
 	public Member getMemberById(String studentId) {

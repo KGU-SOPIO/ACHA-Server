@@ -55,22 +55,7 @@ public class Member extends BaseTimeEntity implements UserDetails {
 			.build();
 	}
 
-	public static Member create(String id, String password, String name, String college, String department,
-		String major) {
-		return Member.builder()
-			.id(id)
-			.password(EncryptionHandler.encrypt(password))
-			.name(name)
-			.college(college)
-			.department(department)
-			.major(major)
-			.role(ROLE_USER)
-			.build();
-	}
-
-	public void updateAllMemberInformation(String password, String name, String college, String department,
-		String major) {
-		this.password = EncryptionHandler.encrypt(password);
+	public void updateBasicInformation(String name, String college, String department, String major) {
 		this.name = name;
 		this.college = college;
 		this.department = department;
