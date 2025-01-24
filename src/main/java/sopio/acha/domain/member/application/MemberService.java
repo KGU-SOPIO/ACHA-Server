@@ -1,5 +1,6 @@
 package sopio.acha.domain.member.application;
 
+import static sopio.acha.common.handler.ExtractorHandler.requestAuthentication;
 import static sopio.acha.common.handler.ExtractorHandler.requestAuthenticationAndUserInfo;
 
 import java.time.Duration;
@@ -14,7 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import sopio.acha.common.auth.jwt.JwtCreator;
-import sopio.acha.common.exception.ConvertErrorException;
+import sopio.acha.common.exception.ExtractorErrorException;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.infrastructure.MemberRepository;
 import sopio.acha.domain.member.presentation.exception.MemberNotAuthenticatedException;
@@ -28,23 +29,20 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final JwtCreator jwtCreator;
 
-	@Transactional
-	public void saveMemberInfo(final String studentId, final String password) {
+	public MemberSummaryResponse getMemberInformationFromExtractor() {
+		Member currentMember = me();
 		try {
-			MemberSummaryResponse response = new ObjectMapper().readValue(
-				requestAuthenticationAndUserInfo(studentId, password), MemberSummaryResponse.class);
-			Member newMember = Member.create(studentId, password, response.name(), response.college(),
-				response.department(), response.major());
-			memberRepository.save(newMember);
+			return new ObjectMapper().readValue(
+				requestAuthenticationAndUserInfo(currentMember.getId(), currentMember.getPassword()), MemberSummaryResponse.class);
 		} catch (JsonProcessingException e) {
-			throw new ConvertErrorException();
+			throw new ExtractorErrorException();
 		}
 	}
 
 	@Transactional
 	public MemberTokenResponse authenticateMemberAndGenerateToken(final String studentId, final String password) {
-		Member loginMember = getMemberById(studentId);
-		loginMember.validatePassword(password);
+		requestAuthentication(studentId, password);
+		Member loginMember = validateLoginMember(studentId, password);
 		return MemberTokenResponse.of(
 			jwtCreator.generateToken(loginMember, Duration.ofHours(2)),
 			jwtCreator.generateToken(loginMember, Duration.ofDays(7))
@@ -54,6 +52,22 @@ public class MemberService {
 	public Member getMemberById(String studentId) {
 		return memberRepository.findMemberById(studentId)
 			.orElseThrow(MemberNotFoundException::new);
+	}
+
+	private Member validateLoginMember(final String studentId, final String password) {
+		if (!isExistMember(studentId)) {
+			Member newMember = Member.createEmptyMember(studentId, password);
+			memberRepository.save(newMember);
+			return newMember;
+		} else {
+			Member existMember = getMemberById(studentId);
+			existMember.updatePassword(password);
+			return existMember;
+		}
+	}
+
+	private boolean isExistMember(String studentId) {
+		return memberRepository.existsById(studentId);
 	}
 
 	public Member me() {

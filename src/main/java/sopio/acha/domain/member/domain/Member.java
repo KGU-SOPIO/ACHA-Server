@@ -1,10 +1,10 @@
 package sopio.acha.domain.member.domain;
 
 import static lombok.AccessLevel.PROTECTED;
+import static sopio.acha.domain.member.domain.Role.ROLE_USER;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Objects;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,7 +20,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sopio.acha.common.domain.BaseTimeEntity;
 import sopio.acha.common.handler.EncryptionHandler;
-import sopio.acha.domain.member.presentation.exception.PasswordNotMatchedException;
 
 @Getter
 @Entity
@@ -37,20 +36,24 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	@Column(nullable = false)
 	private String password;
 
-	@Column(nullable = false)
 	private String name;
 
-	@Column(nullable = false)
 	private String college;
 
-	@Column(nullable = false)
 	private String department;
 
-	@Column
 	private String major;
 
 	@Column(nullable = false)
 	private Role role;
+
+	public static Member createEmptyMember(String id, String password) {
+		return Member.builder()
+			.id(id)
+			.password(password)
+			.role(ROLE_USER)
+			.build();
+	}
 
 	public static Member create(String id, String password, String name, String college, String department,
 		String major) {
@@ -61,14 +64,21 @@ public class Member extends BaseTimeEntity implements UserDetails {
 			.college(college)
 			.department(department)
 			.major(major)
-			.role(Role.ROLE_USER)
+			.role(ROLE_USER)
 			.build();
 	}
 
-	public void validatePassword(String password) {
-		if (!Objects.equals(EncryptionHandler.encrypt(password), this.password)) {
-			throw new PasswordNotMatchedException();
-		}
+	public void updateAllMemberInformation(String password, String name, String college, String department,
+		String major) {
+		this.password = EncryptionHandler.encrypt(password);
+		this.name = name;
+		this.college = college;
+		this.department = department;
+		this.major = major;
+	}
+
+	public void updatePassword(String password) {
+		this.password = EncryptionHandler.encrypt(password);
 	}
 
 	@Override

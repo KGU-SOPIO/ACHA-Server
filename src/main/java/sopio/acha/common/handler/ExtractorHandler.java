@@ -18,7 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import sopio.acha.common.exception.ConvertErrorException;
+import sopio.acha.common.exception.ExtractorErrorException;
 
 @Component
 @RequiredArgsConstructor
@@ -36,7 +36,7 @@ public class ExtractorHandler {
 
 	public static List<Object> requestTimeTable(String studentId, String password) {
 		try {
-			URI uri = buildURIByPath("/timetable/");
+			URI uri = buildUriByPath("/timetable/");
 			String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password + "\" }";
 			JSONObject jsonObject = getJsonData(requestBody, uri);
 			JSONArray dataArray = jsonObject.getJSONArray("data");
@@ -49,24 +49,35 @@ public class ExtractorHandler {
 			}
 			return lectureList;
 		} catch (Exception e) {
-			throw new ConvertErrorException();
+			throw new ExtractorErrorException();
+		}
+	}
+
+	public static void requestAuthentication(String studentId, String password) {
+		URI uri = buildUriByPath("/auth/");
+		String requestBody =
+			"{ \"authentication\": { \"studentId\": \"" + studentId + "\", \"password\": \"" + password
+				+ "\" }, \"user\": false }";
+		JSONObject jsonObject = getJsonData(requestBody, uri);
+		if (!jsonObject.get("verification").toString().equals("true")) {
+			throw new ExtractorErrorException();
 		}
 	}
 
 	public static String requestAuthenticationAndUserInfo(String studentId, String password) {
 		try {
-			URI uri = buildURIByPath("/auth/");
+			URI uri = buildUriByPath("/auth/");
 			String requestBody =
 				"{ \"authentication\": { \"studentId\": \"" + studentId + "\", \"password\": \"" + password
 					+ "\" }, \"user\": true }";
 			JSONObject jsonObject = getJsonData(requestBody, uri);
 			return jsonObject.get("userData").toString();
 		} catch (Exception e) {
-			throw new ConvertErrorException();
+			throw new ExtractorErrorException();
 		}
 	}
 
-	private static URI buildURIByPath(String path) {
+	private static URI buildUriByPath(String path) {
 		return UriComponentsBuilder
 			.fromUriString(requestUrl)
 			.path(path)
