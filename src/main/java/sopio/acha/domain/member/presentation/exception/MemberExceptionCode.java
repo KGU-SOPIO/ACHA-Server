@@ -13,7 +13,6 @@ import sopio.acha.common.exception.ExceptionCode;
 @AllArgsConstructor
 public enum MemberExceptionCode implements ExceptionCode {
 	MEMBER_NOT_AUTHENTICATED(FORBIDDEN, "해당 회원은 인증되지 않았습니다."),
-	PASSWORD_NOT_MATCHED(FORBIDDEN, "비밀번호가 일치하지 않습니다."),
 	MEMBER_NOT_FOUND(NOT_FOUND, "해당 회원을 찾을 수 없습니다."),
 	;
 

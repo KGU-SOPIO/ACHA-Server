@@ -13,7 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import sopio.acha.common.domain.BaseTimeEntity;
-import sopio.acha.common.exception.ConvertErrorException;
+import sopio.acha.common.exception.ExtractorErrorException;
 import sopio.acha.domain.member.domain.Member;
 
 @Entity
@@ -61,7 +61,7 @@ public class Lecture extends BaseTimeEntity {
 					lecture.endAt = (int) map.get("endAt");
 					return lecture;
 				}
-				throw new ConvertErrorException();
+				throw new ExtractorErrorException();
 			})
 			.toList();
 	}

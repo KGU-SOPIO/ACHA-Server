@@ -1,5 +1,8 @@
 package sopio.acha.domain.lecture.application;
 
+import static sopio.acha.common.handler.EncryptionHandler.decrypt;
+import static sopio.acha.common.handler.ExtractorHandler.requestTimeTable;
+
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -7,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import sopio.acha.common.handler.DateHandler;
+import sopio.acha.common.handler.EncryptionHandler;
 import sopio.acha.common.handler.ExtractorHandler;
 import sopio.acha.domain.lecture.domain.Lecture;
 import sopio.acha.domain.lecture.infrastructure.LectureRepository;
@@ -20,17 +24,15 @@ public class LectureService {
 	private final MemberService memberService;
 	private final LectureRepository lectureRepository;
 
-	public void saveLecture() {
-		Member member = memberService.me();
-		List<Object> lectureList = ExtractorHandler.requestTimeTable(member.getId(), member.getPassword());
-		List<Lecture> converted = Lecture.convert(lectureList);
-		lectureRepository.saveAll(converted);
+	public void saveLecture(Member currentMember) {
+		List<Object> lectureList = requestTimeTable(currentMember.getId(), decrypt(currentMember.getPassword()));
+		List<Lecture> convertedLectureList = Lecture.convert(lectureList);
+		lectureRepository.saveAll(convertedLectureList);
 	}
 
 	@Transactional(readOnly = true)
-	public LectureSummaryListResponse getTodayLecture() {
-		Member member = memberService.me();
-		List<Lecture> lectures = lectureRepository.findAllByMemberIdAndDayAndIsPresentTrue(member.getId(),
+	public LectureSummaryListResponse getTodayLecture(Member currentMember) {
+		List<Lecture> lectures = lectureRepository.findAllByMemberIdAndDayAndIsPresentTrue(currentMember.getId(),
 			DateHandler.getTodayDate());
 		return LectureSummaryListResponse.from(lectures);
 	}
