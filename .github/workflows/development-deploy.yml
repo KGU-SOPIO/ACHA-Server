@@ -51,8 +51,9 @@ jobs:
             password: ${{ secrets.SERVER_PASSWORD }}
             port: ${{ secrets.SERVER_PORT }}
             source: infra/docker-compose.yml
-            target: ${{secrets.DOCKER_COMPOSE_PATH}}/docker-compose.yml
+            target: ${{secrets.DOCKER_COMPOSE_PATH}}/
             rm: false
+            debug: true
 
       - name: Deploy to Server
         uses: appleboy/ssh-action@master
