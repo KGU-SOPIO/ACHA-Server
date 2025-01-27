@@ -6,7 +6,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: development
     name: build image
 
     steps:
@@ -39,7 +38,6 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment: development
 
     steps:
       - name: Copy docker-compose.yml to development server
