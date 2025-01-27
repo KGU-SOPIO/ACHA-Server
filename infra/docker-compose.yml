@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  acha-api:
+    image: ${DOCKER_USERNAME}/acha-api:latest
+    container_name: acha-api
+    ports:
+      - "9090:9090"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - acha-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: acha-mysql
+    restart: always
+    ports:
+      - "9306:9306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:acha}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - acha-network
+
+  redis:
+    image: redis:latest
+    container_name: acha-redis
+    restart: always
+    command: redis-server
+    ports:
+      - "9379:9379"
+    networks:
+      - acha-network
+
+networks:
+  acha-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
