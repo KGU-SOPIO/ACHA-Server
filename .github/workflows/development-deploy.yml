@@ -47,7 +47,7 @@ jobs:
             username: ${{ secrets.SERVER_USERNAME }}
             password: ${{ secrets.SERVER_PASSWORD }}
             port: ${{ secrets.SERVER_PORT }}
-            source: infra/docker-compose.yml
+            source: ${{ github.workspace }}/infra/docker-compose.yml
             target: ${{secrets.DOCKER_COMPOSE_PATH}}/docker-compose.yml
 
       - name: Deploy to Server
