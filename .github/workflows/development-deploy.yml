@@ -51,6 +51,6 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            echo "${{ secrets.SERVER_PASSWORD }}" | sudo scp ${{ secrets.SERVER_PORT }} infra/docker-compose.yml ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ secrets.DOCKER_COMPOSE_PATH }}/
+            echo "${{ secrets.SERVER_PASSWORD }}" | sudo -S scp ${{ secrets.SERVER_PORT }} infra/docker-compose.yml ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ secrets.DOCKER_COMPOSE_PATH }}/
             echo "${{ secrets.SERVER_PASSWORD }}" | sudo -S docker-compose -f ${{secrets.DOCKER_COMPOSE_PATH}} pull
             echo "${{ secrets.SERVER_PASSWORD }}" | sudo -S docker-compose -f ${{secrets.DOCKER_COMPOSE_PATH}} up -d
