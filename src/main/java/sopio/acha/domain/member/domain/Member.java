@@ -1,6 +1,7 @@
 package sopio.acha.domain.member.domain;
 
 import static lombok.AccessLevel.PROTECTED;
+import static sopio.acha.common.handler.EncryptionHandler.encrypt;
 import static sopio.acha.domain.member.domain.Role.ROLE_USER;
 
 import java.util.Collection;
@@ -50,7 +51,7 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	public static Member createEmptyMember(String id, String password) {
 		return Member.builder()
 			.id(id)
-			.password(password)
+			.password(encrypt(password))
 			.role(ROLE_USER)
 			.build();
 	}
@@ -63,7 +64,7 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	}
 
 	public void updatePassword(String password) {
-		this.password = EncryptionHandler.encrypt(password);
+		this.password = encrypt(password);
 	}
 
 	@Override
