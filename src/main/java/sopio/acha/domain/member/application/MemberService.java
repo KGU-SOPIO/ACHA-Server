@@ -5,8 +5,6 @@ import static sopio.acha.common.handler.ExtractorHandler.requestAuthenticationAn
 
 import java.time.Duration;
 
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +17,6 @@ import sopio.acha.common.exception.ExtractorErrorException;
 import sopio.acha.common.handler.EncryptionHandler;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.infrastructure.MemberRepository;
-import sopio.acha.domain.member.presentation.exception.MemberNotAuthenticatedException;
 import sopio.acha.domain.member.presentation.exception.MemberNotFoundException;
 import sopio.acha.domain.member.presentation.request.MemberBasicInformationRequest;
 import sopio.acha.domain.member.presentation.response.MemberBasicInformationResponse;
@@ -58,9 +55,9 @@ public class MemberService {
 		);
 	}
 
-	@Transactional
 	public void updateBasicMemberInformation(Member currentMember, MemberBasicInformationRequest request) {
 		currentMember.updateBasicInformation(request.name(), request.college(), request.department(), request.major());
+		memberRepository.save(currentMember);
 	}
 
 	public Member getMemberById(String studentId) {
