@@ -75,7 +75,11 @@ public class SecurityConfig {
 		"/api/v1/",
 		"/member/**",
 		"/reissue",
-		"/api/v1/lecture"
+		"/api/v1/lecture",
+		"/error",
+		"/favicon.ico",
+		"/index.html",
+		"/",
 	};
 
 	CorsConfigurationSource corsConfigurationSource() {
