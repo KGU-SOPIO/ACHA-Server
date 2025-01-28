@@ -6,9 +6,19 @@ services:
     container_name: acha-api
     ports:
       - "9090:9090"
+    environment:
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQL8Dialect
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - EXTRACTOR_URL=${EXTRACTOR_URL}
+      - ENCRYPTION_SECRET=${ENCRYPTION_SECRET}
     depends_on:
       - mysql
-      - redis
     networks:
       - acha-network
 
@@ -17,24 +27,14 @@ services:
     container_name: acha-mysql
     restart: always
     ports:
-      - "9306:9306"
+      - "9306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE_NAME}
+      MYSQL_USER: ${MYSQL_USERNAME}
+      MYSQL_PASSWORD: ${MYSQL_USER_PASSWORD}
     volumes:
-      - mysql-data:/var/lib/mysql
-    networks:
-      - acha-network
-
-  redis:
-    image: redis:latest
-    container_name: acha-redis
-    restart: always
-    command: redis-server
-    ports:
-      - "9379:9379"
+      - acha-data:/var/lib/mysql
     networks:
       - acha-network
 
@@ -43,4 +43,4 @@ networks:
     driver: bridge
 
 volumes:
-  mysql-data:
+  acha-data:
