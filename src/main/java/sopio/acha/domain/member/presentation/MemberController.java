@@ -64,5 +64,4 @@ public class MemberController {
         memberService.updateBasicMemberInformation(currentMember, request);
         return ResponseEntity.ok().build();
     }
-
 }
