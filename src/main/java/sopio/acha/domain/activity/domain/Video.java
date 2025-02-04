@@ -6,34 +6,24 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-@Embeddable
-@Table(name = "video")
+@Entity
 @Getter
-public class Video {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String title;
+@DiscriminatorValue("video")
+public class Video extends Activity{
 
     @Timestamp
     private LocalDateTime startTime;
 
     @Timestamp
-    private LocalDateTime endTime;
-
-    @Timestamp
     private LocalDateTime lectureTime;
 
-    public Video(String title, LocalDateTime startTime, LocalDateTime endTime, LocalDateTime lectureTime) {
-        this.title = title;
+    public Video(Boolean available, String title, String link, String deadline, LocalDateTime startTime, LocalDateTime lectureTime) {
+        super(available, title, link, deadline);
         this.startTime = startTime;
-        this.endTime = endTime;
         this.lectureTime = lectureTime;
     }
 
-    protected Video() {
+    public Video() {
 
     }
 }

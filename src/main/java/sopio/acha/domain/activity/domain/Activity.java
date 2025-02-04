@@ -6,9 +6,10 @@ import lombok.Getter;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
-@Table(name = "activity")
 @Getter
-public class Activity {
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn
+public abstract class Activity {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -16,19 +17,20 @@ public class Activity {
 
     private Boolean available;
 
-    @Embedded
-    private Assignment assignment;
+    private String title;
 
-    @Embedded
-    private Video video;
+    private String link;
 
-    public Activity(Boolean available, Assignment assignment, Video video) {
+    private String deadline;
+
+    public Activity(Boolean available, String title, String link, String deadline) {
         this.available = available;
-        this.assignment = assignment;
-        this.video = video;
+        this.title = title;
+        this.link = link;
+        this.deadline = deadline;
     }
 
-    protected Activity() {
+    public Activity() {
 
     }
 }
