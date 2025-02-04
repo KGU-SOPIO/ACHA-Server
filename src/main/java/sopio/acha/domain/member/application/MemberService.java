@@ -1,5 +1,6 @@
 package sopio.acha.domain.member.application;
 
+import static sopio.acha.common.handler.EncryptionHandler.decrypt;
 import static sopio.acha.common.handler.ExtractorHandler.requestAuthentication;
 import static sopio.acha.common.handler.ExtractorHandler.requestAuthenticationAndUserInfo;
 
@@ -14,7 +15,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import sopio.acha.common.auth.jwt.JwtCreator;
 import sopio.acha.common.exception.ExtractorErrorException;
-import sopio.acha.common.handler.EncryptionHandler;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.infrastructure.MemberRepository;
 import sopio.acha.domain.member.presentation.exception.MemberNotFoundException;
@@ -33,7 +33,7 @@ public class MemberService {
 		try {
 			return new ObjectMapper().readValue(
 				requestAuthenticationAndUserInfo(currentMember.getId(),
-					EncryptionHandler.decrypt(currentMember.getPassword())),
+					decrypt(currentMember.getPassword())),
 				MemberSummaryResponse.class);
 		} catch (JsonProcessingException e) {
 			throw new ExtractorErrorException();
@@ -65,14 +65,19 @@ public class MemberService {
 			.orElseThrow(MemberNotFoundException::new);
 	}
 
+	private void updateBasicMemberInfoFromExtractor(Member currentMember) {
+		MemberSummaryResponse updatedInfo = getMemberInformationFromExtractor(currentMember);
+		currentMember.updateBasicInformation(updatedInfo.name(), updatedInfo.college(), updatedInfo.department(), updatedInfo.major());
+		memberRepository.save(currentMember);
+	}
+
 	private Member validateLoginMember(final String studentId, final String password) {
 		if (!isExistMember(studentId)) {
-			Member newMember = Member.createEmptyMember(studentId, password);
-			memberRepository.save(newMember);
-			return newMember;
+			throw new MemberNotFoundException();
 		} else {
 			Member existMember = getMemberById(studentId);
 			existMember.updatePassword(password);
+			updateBasicMemberInfoFromExtractor(existMember);
 			return existMember;
 		}
 	}
