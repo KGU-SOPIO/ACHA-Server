@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import sopio.acha.common.auth.annotation.CurrentMember;
@@ -24,15 +25,8 @@ import sopio.acha.domain.member.domain.Member;
 public class LectureController {
 	private final LectureService lectureService;
 
-	@PostMapping
-	public ResponseEntity<Void> storeLecture(
-		@CurrentMember Member currentMember
-	) {
-		lectureService.saveLecture(currentMember);
-		return ResponseEntity.ok().build();
-	}
-
 	@GetMapping
+	@Operation(summary = "get today's lecture in home page", description = "홈 화면 오늘의 강의 정보 불러오기")
 	public ResponseEntity<LectureSummaryListResponse> getTodayLecture(
 		@CurrentMember Member currentMember
 	) {

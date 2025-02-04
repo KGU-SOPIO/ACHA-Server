@@ -5,6 +5,7 @@ import static sopio.acha.common.handler.ExtractorHandler.requestTimeTable;
 
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.sql.init.SqlDataSourceScriptDatabaseInitializer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,17 +24,21 @@ import sopio.acha.domain.member.domain.Member;
 public class LectureService {
 	private final MemberService memberService;
 	private final LectureRepository lectureRepository;
+	private final SqlDataSourceScriptDatabaseInitializer dataSourceScriptDatabaseInitializer;
 
-	public void saveLecture(Member currentMember) {
-		List<Object> lectureList = requestTimeTable(currentMember.getId(), decrypt(currentMember.getPassword()));
-		List<Lecture> convertedLectureList = Lecture.convert(lectureList);
-		lectureRepository.saveAll(convertedLectureList);
-	}
-
-	@Transactional(readOnly = true)
+	@Transactional
 	public LectureSummaryListResponse getTodayLecture(Member currentMember) {
+		validateHasLecture(currentMember);
 		List<Lecture> lectures = lectureRepository.findAllByMemberIdAndDayAndIsPresentTrue(currentMember.getId(),
 			DateHandler.getTodayDate());
 		return LectureSummaryListResponse.from(lectures);
+	}
+
+	private void validateHasLecture(Member currentMember) {
+		if (lectureRepository.existsByMemberId(currentMember.getId())) {
+			return;
+		}
+		List<Object> lectureList = requestTimeTable(currentMember.getId(), decrypt(currentMember.getPassword()));
+		lectureRepository.saveAll(Lecture.convert(lectureList, currentMember));
 	}
 }

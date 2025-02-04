@@ -10,4 +10,5 @@ import sopio.acha.domain.lecture.domain.Lecture;
 @Repository
 public interface LectureRepository extends JpaRepository<Lecture, Long> {
 	List<Lecture> findAllByMemberIdAndDayAndIsPresentTrue(String memberId, String day);
+	Boolean existsByMemberId(String memberId);
 }

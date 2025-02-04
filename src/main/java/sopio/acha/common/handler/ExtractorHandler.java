@@ -1,6 +1,8 @@
 package sopio.acha.common.handler;
 
 import static org.springframework.http.HttpMethod.POST;
+import static sopio.acha.common.handler.DateHandler.getCurrentSemester;
+import static sopio.acha.common.handler.DateHandler.getCurrentSemesterYear;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -37,15 +39,13 @@ public class ExtractorHandler {
 	public static List<Object> requestTimeTable(String studentId, String password) {
 		try {
 			URI uri = buildUriByPath("/timetable/");
-			String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password + "\" }";
+			String requestBody = "{ \"authentication\": { \"studentId\": \"" + studentId + "\", \"password\": \"" + password
+				+ "\" }, \"year\":" + getCurrentSemesterYear() + ", \"semester\":" + getCurrentSemester() + "}";
 			JSONObject jsonObject = getJsonData(requestBody, uri);
 			JSONArray dataArray = jsonObject.getJSONArray("data");
-
 			List<Object> lectureList = new ArrayList<>();
 			for (int i = 0; i < dataArray.length(); i++) {
-				JSONObject data = dataArray.getJSONObject(i);
-				JSONObject lecture = data.getJSONObject("lecture");
-				lectureList.add(jsonObject.toMap());
+				lectureList.add(dataArray.getJSONObject(i).toMap());
 			}
 			return lectureList;
 		} catch (Exception e) {
