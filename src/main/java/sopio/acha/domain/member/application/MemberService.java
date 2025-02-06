@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import sopio.acha.common.auth.application.RefreshTokenService;
 import sopio.acha.common.auth.jwt.JwtCreator;
 import sopio.acha.common.exception.ExtractorErrorException;
 import sopio.acha.domain.member.domain.Member;
@@ -27,6 +28,7 @@ import sopio.acha.domain.member.presentation.response.MemberTokenResponse;
 @RequiredArgsConstructor
 public class MemberService {
 	private final MemberRepository memberRepository;
+	private final RefreshTokenService refreshTokenService;
 	private final JwtCreator jwtCreator;
 
 	public MemberSummaryResponse getMemberInformationFromExtractor(Member currentMember) {
@@ -49,10 +51,15 @@ public class MemberService {
 	public MemberTokenResponse authenticateMemberAndGenerateToken(final String studentId, final String password) {
 		requestAuthentication(studentId, password);
 		Member loginMember = validateLoginMember(studentId, password);
-		return MemberTokenResponse.of(
-			jwtCreator.generateToken(loginMember, Duration.ofHours(2)),
-			jwtCreator.generateToken(loginMember, Duration.ofDays(7))
-		);
+		String access = jwtCreator.generateToken(loginMember, Duration.ofHours(2));
+
+		String refreshToken = refreshTokenService.getRefreshToken(studentId);
+		if (refreshToken == null) {
+			refreshToken = jwtCreator.generateToken(loginMember, Duration.ofDays(7));
+			refreshTokenService.saveRefreshToken(studentId, refreshToken);
+			return MemberTokenResponse.of(access, refreshToken);
+		}
+		return MemberTokenResponse.of(access, refreshToken);
 	}
 
 	public void updateBasicMemberInformation(Member currentMember, MemberBasicInformationRequest request) {
