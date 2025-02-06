@@ -57,7 +57,6 @@ public class MemberService {
 		if (refreshToken == null) {
 			refreshToken = jwtCreator.generateToken(loginMember, Duration.ofDays(7));
 			refreshTokenService.saveRefreshToken(studentId, refreshToken);
-			return MemberTokenResponse.of(access, refreshToken);
 		}
 		return MemberTokenResponse.of(access, refreshToken);
 	}
