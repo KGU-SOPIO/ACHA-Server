@@ -64,5 +64,5 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            docker-compose -f ${{ secrets.DOCKER_COMPOSE_PATH }}/docker-compose.yml pull
-            docker-compose -f ${{ secrets.DOCKER_COMPOSE_PATH }}/docker-compose.yml --env-file ${{ secrets.ENV_FILE_PATH }} up -d
+            echo "${{ secrets.SERVER_PASSWORD }}" | sudo -S docker-compose -f ${{ secrets.DOCKER_COMPOSE_PATH }}/docker-compose.yml pull
+            echo "${{ secrets.SERVER_PASSWORD }}" | sudo -S docker-compose -f ${{ secrets.DOCKER_COMPOSE_PATH }}/docker-compose.yml --env-file ${{ secrets.ENV_FILE_PATH }} up -d
