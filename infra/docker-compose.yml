@@ -6,6 +6,10 @@ services:
     container_name: acha-api
     ports:
       - "9090:9090"
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
     depends_on:
       - mysql
     networks:
@@ -17,11 +21,8 @@ services:
     restart: always
     ports:
       - "9306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE_NAME}
-      MYSQL_USER: ${MYSQL_USERNAME}
-      MYSQL_PASSWORD: ${MYSQL_USER_PASSWORD}
+    env_file:
+      - .env
     volumes:
       - acha-data:/var/lib/mysql
     networks:
