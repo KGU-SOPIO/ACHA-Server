@@ -26,7 +26,8 @@ public class SwaggerConfig {
 	private final Environment environment;
 
 	private static final Map<String, String> PROFILE_SERVER_URL_MAP = Map.of(
-		"local", "http://localhost:9090"
+		"local", "http://localhost:9090",
+		"dev", "https://api.sopio.kr"
 	);
 
 	@Bean

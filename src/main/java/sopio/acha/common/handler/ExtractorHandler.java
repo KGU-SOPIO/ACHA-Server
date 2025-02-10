@@ -65,16 +65,11 @@ public class ExtractorHandler {
 	}
 
 	public static String requestAuthenticationAndUserInfo(String studentId, String password) {
-		try {
-			URI uri = buildUriByPath("/auth/");
-			String requestBody =
-				"{ \"authentication\": { \"studentId\": \"" + studentId + "\", \"password\": \"" + password
-					+ "\" }, \"user\": true }";
-			JSONObject jsonObject = getJsonData(requestBody, uri);
-			return jsonObject.get("userData").toString();
-		} catch (Exception e) {
-			throw new ExtractorErrorException();
-		}
+		URI uri = buildUriByPath("/auth/");
+		String requestBody =
+			"{ \"authentication\": { \"studentId\": \"" + studentId + "\", \"password\": \"" + password
+				+ "\" }, \"user\": true }";
+		return getJsonData(requestBody, uri).toString();
 	}
 
 	private static URI buildUriByPath(String path) {
