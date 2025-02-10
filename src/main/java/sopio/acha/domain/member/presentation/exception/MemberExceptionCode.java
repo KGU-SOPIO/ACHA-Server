@@ -13,11 +13,10 @@ import sopio.acha.common.exception.ExceptionCode;
 @Getter
 @AllArgsConstructor
 public enum MemberExceptionCode implements ExceptionCode {
-	MEMBER_ALREADY_EXISTS(FORBIDDEN, "이미 가입된 회원입니다."),
-	MEMBER_NOT_AUTHENTICATED(FORBIDDEN, "해당 회원은 인증되지 않았습니다."),
-	MEMBER_NOT_FOUND(NOT_FOUND, "아차 서비스의 회원이 아닙니다."),
 	INVALID_STUDENT_ID_OR_PASSWORD(BAD_REQUEST, "학번 또는 비밀번호를 잘못 입력했습니다."),
-	FAILED_PARSING_MEMBER_DATA(BAD_REQUEST, "회원 정보 파싱 중 에러가 발생했습니다.")
+	FAILED_PARSING_MEMBER_DATA(BAD_REQUEST, "회원 정보 파싱 중 에러가 발생했습니다."),
+	MEMBER_NOT_AUTHENTICATED(FORBIDDEN, "해당 회원은 인증되지 않았습니다."),
+	MEMBER_NOT_FOUND(NOT_FOUND, "아차 서비스의 회원이 아닙니다.")
 	;
 
 	private final HttpStatus status;

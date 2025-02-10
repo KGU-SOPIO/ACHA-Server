@@ -14,7 +14,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -23,7 +22,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sopio.acha.common.domain.BaseTimeEntity;
-import sopio.acha.common.handler.EncryptionHandler;
 
 @Getter
 @Entity
@@ -48,13 +46,19 @@ public class Member extends BaseTimeEntity implements UserDetails {
 
 	private String major;
 
+	@Column(nullable = false)
 	@Enumerated(STRING)
 	private Role role;
 
-	public static Member createEmptyMember(String id, String password) {
+	public static Member save(String id, String password, String name, String college, String department,
+		String major) {
 		return Member.builder()
 			.id(id)
 			.password(encrypt(password))
+			.name(name)
+			.college(college)
+			.department(department)
+			.major(major)
 			.role(ROLE_USER)
 			.build();
 	}
@@ -64,10 +68,6 @@ public class Member extends BaseTimeEntity implements UserDetails {
 		this.college = college;
 		this.department = department;
 		this.major = major;
-	}
-
-	public void updatePassword(String password) {
-		this.password = encrypt(password);
 	}
 
 	@Override
