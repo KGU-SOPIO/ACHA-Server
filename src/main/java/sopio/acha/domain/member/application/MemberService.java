@@ -40,7 +40,6 @@ public class MemberService {
 		return MemberBasicInformationResponse.from(currentMember);
 	}
 
-	@Transactional
 	public MemberTokenResponse validateIsAchaMemberAndLogin(MemberLoginRequest request) {
 		validateIsAchaMember(request.studentId());
 		Member loginMember = validatePasswordAndGetMemberInfoFromExtractor(request.studentId(), request.password());
@@ -76,7 +75,7 @@ public class MemberService {
 				json.getJSONObject("userData").toString(), MemberSummaryResponse.class);
 			Member member = getMemberById(studentId);
 			member.updateBasicInformation(response.name(), response.college(), response.department(), response.major());
-			return member;
+			return memberRepository.save(member);
 		} catch (JsonProcessingException e) {
 			throw new FailedParsingMemberDataException();
 		}
