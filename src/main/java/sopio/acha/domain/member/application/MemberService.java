@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import sopio.acha.common.auth.application.RefreshTokenService;
 import sopio.acha.common.auth.jwt.JwtCreator;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.infrastructure.MemberRepository;
@@ -29,6 +30,7 @@ import sopio.acha.domain.member.presentation.response.MemberTokenResponse;
 @RequiredArgsConstructor
 public class MemberService {
 	private final MemberRepository memberRepository;
+	private final RefreshTokenService refreshTokenService;
 	private final JwtCreator jwtCreator;
 
 	@Transactional
