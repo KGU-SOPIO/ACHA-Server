@@ -1,5 +1,6 @@
 package sopio.acha.domain.member.domain;
 
+import static jakarta.persistence.EnumType.STRING;
 import static lombok.AccessLevel.PROTECTED;
 import static sopio.acha.common.handler.EncryptionHandler.encrypt;
 import static sopio.acha.domain.member.domain.Role.ROLE_USER;
@@ -13,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -45,7 +48,7 @@ public class Member extends BaseTimeEntity implements UserDetails {
 
 	private String major;
 
-	@Column(nullable = false)
+	@Enumerated(STRING)
 	private Role role;
 
 	public static Member createEmptyMember(String id, String password) {

@@ -11,11 +11,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import sopio.acha.common.auth.annotation.CurrentMember;
 import sopio.acha.domain.member.application.MemberService;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.presentation.request.MemberBasicInformationRequest;
+import sopio.acha.domain.member.presentation.request.MemberLoginRequest;
 import sopio.acha.domain.member.presentation.response.MemberBasicInformationResponse;
 import sopio.acha.domain.member.presentation.response.MemberSummaryResponse;
 import sopio.acha.domain.member.presentation.response.MemberTokenResponse;
@@ -30,14 +32,15 @@ public class MemberController {
     @GetMapping("/info")
     @Operation(summary = "get basic member information from extractor", description = "회원가입 시 추출기에서 정보 불러오기")
     public ResponseEntity<MemberSummaryResponse> getMemberInformationFromExtractor(
-        @CurrentMember Member currentMember
+        @RequestParam String studentId,
+        @RequestParam String password
     ) {
-        MemberSummaryResponse response = memberService.getMemberInformationFromExtractor(currentMember);
+        MemberSummaryResponse response = memberService.getMemberInformationFromExtractor(studentId, password);
         return ResponseEntity.ok().body(response);
     }
 
     @GetMapping
-    @Operation(summary = "get basic member information in home page", description = "홈화면 회원 기본 정보 불러오기")
+    @Operation(summary = "get basic member information in home page", description = "회원 기본 정보 불러오기")
     public ResponseEntity<MemberBasicInformationResponse> getMemberInformation(
         @CurrentMember Member currentMember
     ) {
@@ -46,13 +49,22 @@ public class MemberController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "login", description = "로그인")
+    @Operation(summary = "로그인 API", description = "로그인")
     public ResponseEntity<MemberTokenResponse> authenticateMemberAndGenerateToken(
         @RequestParam String studentId,
         @RequestParam String password
     ) {
         MemberTokenResponse response = memberService.authenticateMemberAndGenerateToken(studentId, password);
         return ResponseEntity.ok().body(response);
+    }
+
+    @PostMapping("/join")
+    @Operation(summary = "회원가입 API", description = "로그인 시도 이후 비회원 인 경우 회원 가입 API 호출")
+    public ResponseEntity<MemberTokenResponse> joinMember(
+        @RequestBody MemberLoginRequest request
+    ) {
+        memberService.joinMember(request);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/update")
@@ -63,5 +75,14 @@ public class MemberController {
     ) {
         memberService.updateBasicMemberInformation(currentMember, request);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping
+    @Operation(summary = "아차 로그인 API", description = "아차 서비스 회원 여부를 판단하고 로그인 합니다.")
+    public ResponseEntity<MemberTokenResponse> validateIsAchaMemberAndLogin (
+        @RequestBody MemberLoginRequest request
+    ) {
+        MemberTokenResponse response = memberService.validateIsAchaMemberAndLogin(request);
+        return ResponseEntity.ok().body(response);
     }
 }
