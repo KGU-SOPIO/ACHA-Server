@@ -85,4 +85,13 @@ public class MemberController {
         MemberTokenResponse response = memberService.validateIsAchaMemberAndLogin(request);
         return ResponseEntity.ok().body(response);
     }
+
+    @PostMapping("/data")
+    @Operation(summary = "신규 회원 LMS 학생 정보 추출 API", description = "신규 회원 가입 시에 LMS에서 학생 정보를 추출합니다.")
+    public ResponseEntity<MemberSummaryResponse> getNewMemberDataFromLMS(
+        @RequestBody MemberLoginRequest request
+    ) {
+        MemberSummaryResponse response = memberService.getNewMemberDataFromLMS(request);
+        return ResponseEntity.ok().body(response);
+    }
 }

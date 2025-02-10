@@ -29,13 +29,13 @@ import sopio.acha.domain.member.presentation.response.MemberTokenResponse;
 
 /**
  * [로그인 및 회원가입 플로우]
- * DB에 학번이 존재하는지 여부를 검사 (1)
- * DB에 학번이 없으면 -> 404 MEMBER_NOT_FOUND
- * 회원 가입 요청 API를 호출 POST -> 서버가 추출기에 인증+데이터추출(false) -> 데이터 확인 API GET(학번, 비번) 쿼리 파라미터-> 사용자가 OK PATCH
+ * DB에 학번이 존재하는지 여부를 검사 (1) 완료
+ * DB에 학번이 없으면 -> 404 MEMBER_NOT_FOUND 완료
+ * 회원 가입 요청 API를 호출 POST -> 서버가 추출기에 인증+데이터추출(false) -> 데이터 확인 API POST(학번, 비번) 쿼리 파라미터-> 사용자가 OK PATCH
  * 만약 학번 비번이 달라서 실패하면 -> INVALID_STUDENT_ID_OR_PASSWORD 다시 1번으로 돌아감
  *
- * DB에 학번이 있으면 -> 서버가 추출기에 인증 실패하면 -> INVALID_STUDENT_ID_OR_PASSWORD 다시 1번으로 돌아감
- * 인증 성공하면 -> 회원 정보 업데이트 + 토큰 반환
+ * DB에 학번이 있으면 -> 서버가 추출기에 인증 실패하면 -> INVALID_STUDENT_ID_OR_PASSWORD 다시 1번으로 돌아감 완료
+ * 인증 성공하면 -> 회원 정보 업데이트 + 토큰 반환 완료
  */
 
 @Service
@@ -52,6 +52,17 @@ public class MemberService {
 			jwtCreator.generateToken(loginMember, Duration.ofHours(2)),
 			jwtCreator.generateToken(loginMember, Duration.ofDays(7))
 		);
+	}
+
+	public MemberSummaryResponse getNewMemberDataFromLMS(MemberLoginRequest request) {
+		JSONObject json = new JSONObject(requestAuthenticationAndUserInfo(request.studentId(), request.password()));
+		if (!json.optBoolean("verification", false)) throw new InvalidStudentIdOrPasswordException();
+		try {
+			return new ObjectMapper().readValue(
+				json.getJSONObject("userData").toString(), MemberSummaryResponse.class);
+		} catch (JsonProcessingException e) {
+			throw new FailedParsingMemberDataException();
+		}
 	}
 
 	public MemberSummaryResponse getMemberInformationFromExtractor(String studentId, String password) {
