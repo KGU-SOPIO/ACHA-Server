@@ -12,19 +12,21 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
-import sopio.acha.common.auth.application.RefreshTokenService;
 import sopio.acha.common.auth.jwt.JwtCreator;
+import sopio.acha.domain.member.domain.AccessToken;
 import sopio.acha.domain.member.domain.Member;
+import sopio.acha.domain.member.domain.RefreshToken;
 import sopio.acha.domain.member.infrastructure.MemberRepository;
 import sopio.acha.domain.member.presentation.exception.FailedParsingMemberDataException;
 import sopio.acha.domain.member.presentation.exception.InvalidStudentIdOrPasswordException;
 import sopio.acha.domain.member.presentation.exception.MemberNotFoundException;
 import sopio.acha.domain.member.presentation.request.MemberLoginRequest;
 import sopio.acha.domain.member.presentation.request.MemberSaveRequest;
+import sopio.acha.domain.member.presentation.request.RefreshTokenRequest;
+import sopio.acha.domain.member.presentation.response.AccessTokenResponse;
 import sopio.acha.domain.member.presentation.response.MemberBasicInformationResponse;
 import sopio.acha.domain.member.presentation.response.MemberSummaryResponse;
 import sopio.acha.domain.member.presentation.response.MemberTokenResponse;
-
 
 @Service
 @RequiredArgsConstructor
@@ -33,14 +35,16 @@ public class MemberService {
 	private final RefreshTokenService refreshTokenService;
 	private final JwtCreator jwtCreator;
 
+	@Transactional(readOnly = true)
+	public MemberBasicInformationResponse getMemberBasicInformation(Member currentMember) {
+		return MemberBasicInformationResponse.from(currentMember);
+	}
+
 	@Transactional
 	public MemberTokenResponse validateIsAchaMemberAndLogin(MemberLoginRequest request) {
 		validateIsAchaMember(request.studentId());
 		Member loginMember = validatePasswordAndGetMemberInfoFromExtractor(request.studentId(), request.password());
-		return MemberTokenResponse.of(
-			jwtCreator.generateToken(loginMember, Duration.ofHours(2)),
-			jwtCreator.generateToken(loginMember, Duration.ofDays(7))
-		);
+		return issueAndSaveMemberToken(loginMember);
 	}
 
 	public MemberSummaryResponse getNewMemberDataFromLMS(MemberLoginRequest request) {
@@ -60,10 +64,7 @@ public class MemberService {
 			Member.save(request.studentId(), request.password(), request.name(), request.college(),
 				request.department(), request.major())
 		);
-		return MemberTokenResponse.of(
-			jwtCreator.generateToken(savedMember, Duration.ofHours(2)),
-			jwtCreator.generateToken(savedMember, Duration.ofDays(7))
-		);
+		return issueAndSaveMemberToken(savedMember);
 	}
 
 	public Member validatePasswordAndGetMemberInfoFromExtractor(final String studentId, final String password) {
@@ -81,14 +82,24 @@ public class MemberService {
 		}
 	}
 
-	@Transactional(readOnly = true)
-	public MemberBasicInformationResponse getMemberBasicInformation(Member currentMember) {
-		return MemberBasicInformationResponse.from(currentMember);
+	public AccessTokenResponse reissueAccessToken(RefreshTokenRequest request) {
+		RefreshToken refreshToken = refreshTokenService.getRefreshTokenObject(request);
+		Member loginMember = getMemberById(refreshToken.getStudentId());
+		AccessToken accessToken = AccessToken.of(jwtCreator.generateToken(loginMember, Duration.ofHours(2)));
+		return AccessTokenResponse.of(accessToken.getAccessToken());
 	}
 
 	public Member getMemberById(String studentId) {
 		return memberRepository.findMemberById(studentId)
 			.orElseThrow(MemberNotFoundException::new);
+	}
+
+	private MemberTokenResponse issueAndSaveMemberToken(Member member) {
+		AccessToken accessToken = AccessToken.of(jwtCreator.generateToken(member, Duration.ofHours(2)));
+		RefreshToken refreshToken = RefreshToken.of(member.getId(),
+			jwtCreator.generateToken(member, Duration.ofDays(7)));
+		refreshTokenService.saveRefreshToken(refreshToken);
+		return MemberTokenResponse.of(accessToken.getAccessToken(), refreshToken.getRefreshToken());
 	}
 
 	private void validateIsAchaMember(final String studentId) {

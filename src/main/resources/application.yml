@@ -20,6 +20,12 @@ spring:
     show-sql: true
     open-in-view: false
 
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+
 extractor:
   request-url: ${EXTRACTOR_URL}
 
