@@ -12,9 +12,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import sopio.acha.common.auth.annotation.CurrentMember;
 import sopio.acha.domain.member.application.MemberService;
+import sopio.acha.domain.member.domain.AccessToken;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.presentation.request.MemberLoginRequest;
 import sopio.acha.domain.member.presentation.request.MemberSaveRequest;
+import sopio.acha.domain.member.presentation.request.RefreshTokenRequest;
+import sopio.acha.domain.member.presentation.response.AccessTokenResponse;
 import sopio.acha.domain.member.presentation.response.MemberBasicInformationResponse;
 import sopio.acha.domain.member.presentation.response.MemberSummaryResponse;
 import sopio.acha.domain.member.presentation.response.MemberTokenResponse;
@@ -61,4 +64,14 @@ public class MemberController {
         MemberTokenResponse response = memberService.saveMemberAndLogin(request);
         return ResponseEntity.ok().body(response);
     }
+
+    @PostMapping("/reissue")
+    @Operation(summary = "액세스토큰 재발급 API", description = "리프레시토큰을 기반으로 액세스 토큰을 재발급 합니다.")
+    public ResponseEntity<AccessTokenResponse> reissueAccessToken(
+        @RequestBody RefreshTokenRequest request
+    ) {
+        AccessTokenResponse response = memberService.reissueAccessToken(request);
+        return ResponseEntity.ok().body(response);
+    }
+
 }
