@@ -10,10 +10,12 @@ import sopio.acha.domain.lecture.domain.LectureDay;
 
 @Repository
 public interface LectureRepository extends JpaRepository<Lecture, Long> {
-	List<Lecture> findAllByMemberIdAndDayAndIsPresentTrueOrderByStartAtAsc(String memberId, LectureDay day);
+	// List<Lecture> findAllByMemberIdAndDayAndIsPresentTrueOrderByStartAtAsc(String memberId, LectureDay day);
 
-	Boolean existsByMemberId(String memberId);
+	// Boolean existsByMemberId(String memberId);
 
-	List<Lecture> findAllByMemberIdOrderByDayOrderAscStartAtAsc(String memberId);
+	Boolean existsByIdentifier(String identifier);
+
+	// List<Lecture> findAllByMemberIdOrderByDayOrderAscStartAtAsc(String memberId);
 
 }
