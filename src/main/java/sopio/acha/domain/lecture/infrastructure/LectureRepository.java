@@ -14,6 +14,8 @@ public interface LectureRepository extends JpaRepository<Lecture, Long> {
 
 	Boolean existsByMemberId(String memberId);
 
+	Boolean existsByIdentifier(String identifier);
+
 	List<Lecture> findAllByMemberIdOrderByDayOrderAscStartAtAsc(String memberId);
 
 }

@@ -1,5 +1,7 @@
 package sopio.acha.domain.lecture.presentation.exception;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+
 import org.springframework.http.HttpStatus;
 
 import lombok.AllArgsConstructor;
@@ -9,6 +11,7 @@ import sopio.acha.common.exception.ExceptionCode;
 @Getter
 @AllArgsConstructor
 public enum LectureExceptionCode implements ExceptionCode {
+	FAILED_PARSING_LECTURE_DATA(BAD_REQUEST, "강좌 정보 파싱 중 에러가 발생했습니다."),
 	;
 
 	private final HttpStatus status;

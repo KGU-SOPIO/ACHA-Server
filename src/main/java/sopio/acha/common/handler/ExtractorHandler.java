@@ -38,9 +38,10 @@ public class ExtractorHandler {
 
 	public static List<Object> requestTimeTable(String studentId, String password) {
 		try {
-			URI uri = buildUriByPath("/timetable/");
-			String requestBody = "{ \"authentication\": { \"studentId\": \"" + studentId + "\", \"password\": \"" + password
-				+ "\" }, \"year\":" + getCurrentSemesterYear() + ", \"semester\":" + getCurrentSemester() + "}";
+			URI uri = buildUriByPath("/v1/timetable/");
+			String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password
+				+ "\", \"year\": " + getCurrentSemesterYear() + ", \"semester\": " + getCurrentSemester()
+				+ ", \"extract\": true }";
 			JSONObject jsonObject = getJsonData(requestBody, uri);
 			JSONArray dataArray = jsonObject.getJSONArray("data");
 			List<Object> lectureList = new ArrayList<>();
@@ -54,10 +55,9 @@ public class ExtractorHandler {
 	}
 
 	public static void requestAuthentication(String studentId, String password) {
-		URI uri = buildUriByPath("/auth/");
+		URI uri = buildUriByPath("/v1/auth/");
 		String requestBody =
-			"{ \"authentication\": { \"studentId\": \"" + studentId + "\", \"password\": \"" + password
-				+ "\" }, \"user\": false }";
+			"{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password + "\", \"extract\": false }";
 		JSONObject jsonObject = getJsonData(requestBody, uri);
 		if (!jsonObject.get("verification").toString().equals("true")) {
 			throw new ExtractorErrorException();
@@ -65,10 +65,17 @@ public class ExtractorHandler {
 	}
 
 	public static String requestAuthenticationAndUserInfo(String studentId, String password) {
-		URI uri = buildUriByPath("/auth/");
+		URI uri = buildUriByPath("/v1/auth/");
 		String requestBody =
-			"{ \"authentication\": { \"studentId\": \"" + studentId + "\", \"password\": \"" + password
-				+ "\" }, \"user\": true }";
+			"{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password + "\", \"extract\": true }";
+		return getJsonData(requestBody, uri).toString();
+	}
+
+	public static String requestCourse(String studentId, String password) {
+		URI uri = buildUriByPath("/v1/course/");
+		String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password
+			+ "\", \"year\": " + getCurrentSemesterYear() + ", \"semester\": " + getCurrentSemester()
+			+ ", \"extract\": true }";
 		return getJsonData(requestBody, uri).toString();
 	}
 
