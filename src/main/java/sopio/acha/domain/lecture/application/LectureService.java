@@ -6,6 +6,7 @@ import static sopio.acha.common.handler.ExtractorHandler.requestTimeTable;
 import static sopio.acha.domain.lecture.domain.Lecture.save;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,34 +27,38 @@ import sopio.acha.domain.lecture.presentation.response.LectureBasicInformationRe
 import sopio.acha.domain.lecture.presentation.response.LectureSummaryListResponse;
 import sopio.acha.domain.lecture.presentation.response.LectureTodayListResponse;
 import sopio.acha.domain.member.domain.Member;
+import sopio.acha.domain.memberLecture.application.MemberLectureService;
 
 @Service
 @RequiredArgsConstructor
 public class LectureService {
 	private final LectureRepository lectureRepository;
+	private final MemberLectureService memberLectureService;
 
 	public void extractLectureAndSave(Member currentMember) {
 		JSONArray jsonArray = new JSONObject(
 			requestCourse(currentMember.getId(), decrypt(currentMember.getPassword()))).getJSONArray("data");
 		try {
-			List<LectureBasicInformationResponse> lectureList = new ObjectMapper().readValue(
-				jsonArray.toString(), new TypeReference<List<LectureBasicInformationResponse>>() {
-				}
-			);
-			List<Lecture> newLectures = lectureList.stream()
-				.filter(this::isExistsByIdentifier)
+			List<Lecture> extractedLectures = new ObjectMapper().readValue(
+					jsonArray.toString(), new TypeReference<List<LectureBasicInformationResponse>>() {})
+				.stream()
 				.map(lecture -> save(lecture.title(), lecture.identifier(), lecture.professor()))
 				.toList();
-			if (!newLectures.isEmpty()) lectureRepository.saveAll(newLectures);
+			List<Lecture> LecturesToSave = extractedLectures.stream()
+				.filter(this::isExistsByIdentifier)
+				.toList();
+			if (!LecturesToSave.isEmpty()) lectureRepository.saveAll(LecturesToSave);
+			memberLectureService.saveMyLectures(extractedLectures, currentMember);
 		} catch (JsonProcessingException e) {
 			throw new FailedParsingLectureDataException();
 		}
 	}
 
-	private boolean isExistsByIdentifier(LectureBasicInformationResponse lecture) {
-		return !lectureRepository.existsByIdentifier(lecture.identifier());
+	private boolean isExistsByIdentifier(Lecture lecture) {
+		return !lectureRepository.existsByIdentifier(lecture.getIdentifier());
 	}
 
+	/*
 	@Transactional
 	public LectureTodayListResponse getTodayLecture(Member currentMember) {
 		validateHasLecture(currentMember);
@@ -62,6 +67,8 @@ public class LectureService {
 			LectureDay.valueOf(DateHandler.getTodayDate()));
 		return LectureTodayListResponse.from(lectures);
 	}
+
+
 
 	@Transactional
 	public LectureSummaryListResponse getAllMyLectureList(Member currentMember) {
@@ -76,5 +83,5 @@ public class LectureService {
 		List<Object> lectureList = requestTimeTable(currentMember.getId(), decrypt(currentMember.getPassword()));
 		lectureRepository.saveAll(Lecture.convert(lectureList, currentMember));
 	}
-
+	*/
 }

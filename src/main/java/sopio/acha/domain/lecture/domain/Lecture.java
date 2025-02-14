@@ -69,10 +69,6 @@ public class Lecture extends BaseTimeEntity {
 
 	private Boolean isPresent = true;
 
-	@ManyToOne
-	@JoinColumn(name = "member_id")
-	private Member member;
-
 	public static Lecture save(String title, String identifier, String professor) {
 		return Lecture.builder()
 			.title(title)
@@ -94,7 +90,6 @@ public class Lecture extends BaseTimeEntity {
 					lecture.classTime = Optional.ofNullable((Integer) map.get("classTime")).orElse(0);
 					lecture.startAt = Optional.ofNullable((Integer) map.get("startAt")).orElse(0);
 					lecture.endAt = Optional.ofNullable((Integer) map.get("endAt")).orElse(0);
-					lecture.member = currentMember;
 					return lecture;
 				}
 				throw new ExtractorErrorException();

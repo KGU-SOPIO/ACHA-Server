@@ -35,6 +35,7 @@ public class LectureController {
 		return ResponseEntity.ok().build();
 	}
 
+	/*
 	@GetMapping
 	@Operation(summary = "get today's lecture in home page", description = "홈 화면 오늘의 강좌 정보 불러오기")
 	public ResponseEntity<LectureTodayListResponse> getTodayLecture(
@@ -52,6 +53,6 @@ public class LectureController {
 		LectureSummaryListResponse response = lectureService.getAllMyLectureList(currentMember);
 		return ResponseEntity.ok().body(response);
 	}
-
+*/
 
 }
