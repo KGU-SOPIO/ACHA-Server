@@ -1,6 +1,7 @@
 package sopio.acha.common.config;
 
 import java.util.Collections;
+import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -87,6 +88,7 @@ public class SecurityConfig {
 			CorsConfiguration config = new CorsConfiguration();
 			config.setAllowedHeaders(Collections.singletonList("*"));
 			config.setAllowedMethods(Collections.singletonList("*"));
+			config.setAllowedOriginPatterns(List.of("https://api.sopio.kr"));
 			config.setAllowCredentials(true);
 			return config;
 		};

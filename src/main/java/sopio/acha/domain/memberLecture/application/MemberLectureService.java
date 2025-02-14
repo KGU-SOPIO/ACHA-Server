@@ -23,6 +23,10 @@ public class MemberLectureService {
 		memberLectureRepository.saveAll(memberLectures);
 	}
 
+	// public MemberLectureHomeListResponse getTodayMemberLecture(Member currentMember) {
+	//
+	// }
+
 	private boolean isExistsMemberLecture(Member currentMember, Lecture lecture) {
 		return !memberLectureRepository.existsByMemberAndLecture(currentMember, lecture);
 	}

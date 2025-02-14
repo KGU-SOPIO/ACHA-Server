@@ -5,10 +5,7 @@ import static sopio.acha.common.handler.DateHandler.getCurrentSemester;
 import static sopio.acha.common.handler.DateHandler.getCurrentSemesterYear;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -36,24 +33,6 @@ public class ExtractorHandler {
 		requestUrl = requestUrlInstance;
 	}
 
-	public static List<Object> requestTimeTable(String studentId, String password) {
-		try {
-			URI uri = buildUriByPath("/v1/timetable/");
-			String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password
-				+ "\", \"year\": " + getCurrentSemesterYear() + ", \"semester\": " + getCurrentSemester()
-				+ ", \"extract\": true }";
-			JSONObject jsonObject = getJsonData(requestBody, uri);
-			JSONArray dataArray = jsonObject.getJSONArray("data");
-			List<Object> lectureList = new ArrayList<>();
-			for (int i = 0; i < dataArray.length(); i++) {
-				lectureList.add(dataArray.getJSONObject(i).toMap());
-			}
-			return lectureList;
-		} catch (Exception e) {
-			throw new ExtractorErrorException();
-		}
-	}
-
 	public static void requestAuthentication(String studentId, String password) {
 		URI uri = buildUriByPath("/v1/auth/");
 		String requestBody =
@@ -76,6 +55,13 @@ public class ExtractorHandler {
 		String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password
 			+ "\", \"year\": " + getCurrentSemesterYear() + ", \"semester\": " + getCurrentSemester()
 			+ ", \"extract\": true }";
+		return getJsonData(requestBody, uri).toString();
+	}
+
+	public static String requestTimeTable(String studentId, String password) {
+		URI uri = buildUriByPath("/v1/timetable/");
+		String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password
+			+ "\", \"year\": " + getCurrentSemesterYear() + ", \"semester\": " + getCurrentSemester() + " }";
 		return getJsonData(requestBody, uri).toString();
 	}
 
