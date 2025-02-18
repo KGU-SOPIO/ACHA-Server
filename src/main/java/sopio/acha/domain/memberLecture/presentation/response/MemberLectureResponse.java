@@ -7,7 +7,7 @@ import lombok.Builder;
 import sopio.acha.domain.memberLecture.domain.MemberLecture;
 
 @Builder
-public record MemberLectureHomeResponse(
+public record MemberLectureResponse(
 	@Schema(description = "사용자 강의 ID", example = "1", requiredMode = REQUIRED)
 	Long id,
 
@@ -20,8 +20,8 @@ public record MemberLectureHomeResponse(
 	@Schema(description = "강의실", example = "3306 강의실", requiredMode = REQUIRED)
 	String lectureRoom
 ) {
-	public static MemberLectureHomeResponse from(MemberLecture memberLecture) {
-		return MemberLectureHomeResponse.builder()
+	public static MemberLectureResponse from(MemberLecture memberLecture) {
+		return MemberLectureResponse.builder()
 			.id(memberLecture.getLecture().getId())
 			.title(memberLecture.getLecture().getTitle())
 			.professor(memberLecture.getLecture().getProfessor())

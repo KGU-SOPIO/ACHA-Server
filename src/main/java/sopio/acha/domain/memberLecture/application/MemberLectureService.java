@@ -8,12 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import sopio.acha.common.handler.DateHandler;
 import sopio.acha.domain.lecture.domain.Lecture;
 import sopio.acha.domain.lecture.domain.LectureDay;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.memberLecture.domain.MemberLecture;
 import sopio.acha.domain.memberLecture.infrastructure.MemberLectureRepository;
-import sopio.acha.domain.memberLecture.presentation.response.MemberLectureHomeListResponse;
+import sopio.acha.domain.memberLecture.presentation.response.MemberLectureListResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -29,10 +30,18 @@ public class MemberLectureService {
 	}
 
 	@Transactional(readOnly = true)
-	public MemberLectureHomeListResponse getTodayMemberLecture(Member currentMember) {
+	public MemberLectureListResponse getTodayMemberLecture(Member currentMember) {
 		LectureDay today = LectureDay.valueOf(getTodayDate());
-		List<MemberLecture> memberLectures = memberLectureRepository.findAllByMemberIdAndLectureDay(currentMember.getId(), today);
-		return MemberLectureHomeListResponse.from(memberLectures);
+		List<MemberLecture> memberLectures = memberLectureRepository.findAllByMemberIdAndLectureDayAndLectureYearAndLectureSemester(
+			currentMember.getId(), today, DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
+		return MemberLectureListResponse.from(memberLectures);
+	}
+
+	@Transactional(readOnly = true)
+	public MemberLectureListResponse getThisSemesterMemberLecture(Member currentMember) {
+		List<MemberLecture> memberLectures = memberLectureRepository.findAllByMemberIdAndLectureYearAndLectureSemesterOrderByLectureDayOrderAsc(
+			currentMember.getId(), DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
+		return MemberLectureListResponse.from(memberLectures);
 	}
 
 	private boolean isExistsMemberLecture(Member currentMember, Lecture lecture) {

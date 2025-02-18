@@ -16,6 +16,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sopio.acha.common.domain.BaseTimeEntity;
+import sopio.acha.common.handler.DateHandler;
 
 @Getter
 @Entity
@@ -44,6 +45,12 @@ public class Lecture extends BaseTimeEntity {
 	@Enumerated(STRING)
 	private LectureDay day;
 
+	@Column(nullable = false)
+	private String year;
+
+	@Column(nullable = false)
+	private String semester;
+
 	@Formula("CASE WHEN day = '월요일' THEN 1 " +
 		"WHEN day = '화요일' THEN 2 " +
 		"WHEN day = '수요일' THEN 3 " +
@@ -65,6 +72,8 @@ public class Lecture extends BaseTimeEntity {
 			.identifier(identifier)
 			.code(code)
 			.professor(professor)
+			.year(DateHandler.getCurrentSemesterYear())
+			.semester(DateHandler.getCurrentSemester())
 			.build();
 	}
 
