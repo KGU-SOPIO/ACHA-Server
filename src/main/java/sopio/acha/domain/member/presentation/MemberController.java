@@ -17,6 +17,7 @@ import sopio.acha.domain.member.domain.AccessToken;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.presentation.request.MemberLoginRequest;
 import sopio.acha.domain.member.presentation.request.MemberSaveRequest;
+import sopio.acha.domain.member.presentation.request.MemberSignOutRequest;
 import sopio.acha.domain.member.presentation.request.RefreshTokenRequest;
 import sopio.acha.domain.member.presentation.response.AccessTokenResponse;
 import sopio.acha.domain.member.presentation.response.MemberBasicInformationResponse;
@@ -78,9 +79,10 @@ public class MemberController {
     @PatchMapping("/signout")
     @Operation(summary = "아차 회원 탈퇴 API", description = "아차 계정을 비활성화하고 탈퇴합니다.")
     public ResponseEntity<Void> signOutAchaMember(
-        @CurrentMember Member currentMember
+        @CurrentMember Member currentMember,
+        @RequestBody MemberSignOutRequest request
     ) {
-        memberService.signOutAchaMember(currentMember);
+        memberService.signOutAchaMember(currentMember, request);
         return ResponseEntity.ok().build();
     }
 }

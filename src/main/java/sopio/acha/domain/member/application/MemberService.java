@@ -23,6 +23,7 @@ import sopio.acha.domain.member.presentation.exception.MemberNotAuthenticatedExc
 import sopio.acha.domain.member.presentation.exception.MemberNotFoundException;
 import sopio.acha.domain.member.presentation.request.MemberLoginRequest;
 import sopio.acha.domain.member.presentation.request.MemberSaveRequest;
+import sopio.acha.domain.member.presentation.request.MemberSignOutRequest;
 import sopio.acha.domain.member.presentation.request.RefreshTokenRequest;
 import sopio.acha.domain.member.presentation.response.AccessTokenResponse;
 import sopio.acha.domain.member.presentation.response.MemberBasicInformationResponse;
@@ -95,7 +96,8 @@ public class MemberService {
 			.orElseThrow(MemberNotFoundException::new);
 	}
 
-	public void signOutAchaMember(Member currentMember) {
+	public void signOutAchaMember(Member currentMember, MemberSignOutRequest request) {
+		currentMember.validatePassword(request.password());
 		currentMember.delete();
 		memberRepository.save(currentMember);
 	}
