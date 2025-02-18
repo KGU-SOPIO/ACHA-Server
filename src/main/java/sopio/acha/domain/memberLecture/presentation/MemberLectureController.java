@@ -15,7 +15,7 @@ import sopio.acha.domain.memberLecture.presentation.response.MemberLectureListRe
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/member-lecture")
+@RequestMapping("/api/v1/member-courses")
 @Tag(name = "Member Lecture", description = "사용자 강의 API")
 public class MemberLectureController {
 	private final MemberLectureService memberLectureService;

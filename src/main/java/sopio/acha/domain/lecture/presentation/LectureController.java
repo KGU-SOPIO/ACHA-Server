@@ -17,7 +17,7 @@ import sopio.acha.domain.member.domain.Member;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/lecture")
+@RequestMapping("/api/v1/courses")
 @Tag(name = "Lecture", description = "강의 API")
 public class LectureController {
 	private final LectureService lectureService;
