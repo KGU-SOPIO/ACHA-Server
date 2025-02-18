@@ -2,6 +2,7 @@ package sopio.acha.domain.member.presentation;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,7 @@ import sopio.acha.domain.member.domain.AccessToken;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.presentation.request.MemberLoginRequest;
 import sopio.acha.domain.member.presentation.request.MemberSaveRequest;
+import sopio.acha.domain.member.presentation.request.MemberSignOutRequest;
 import sopio.acha.domain.member.presentation.request.RefreshTokenRequest;
 import sopio.acha.domain.member.presentation.response.AccessTokenResponse;
 import sopio.acha.domain.member.presentation.response.MemberBasicInformationResponse;
@@ -74,4 +76,13 @@ public class MemberController {
         return ResponseEntity.ok().body(response);
     }
 
+    @PatchMapping("/signout")
+    @Operation(summary = "아차 회원 탈퇴 API", description = "아차 계정을 비활성화하고 탈퇴합니다.")
+    public ResponseEntity<Void> signOutAchaMember(
+        @CurrentMember Member currentMember,
+        @RequestBody MemberSignOutRequest request
+    ) {
+        memberService.signOutAchaMember(currentMember, request);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -2,11 +2,13 @@ package sopio.acha.domain.member.domain;
 
 import static jakarta.persistence.EnumType.STRING;
 import static lombok.AccessLevel.PROTECTED;
+import static sopio.acha.common.handler.EncryptionHandler.decrypt;
 import static sopio.acha.common.handler.EncryptionHandler.encrypt;
 import static sopio.acha.domain.member.domain.Role.ROLE_USER;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,6 +24,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sopio.acha.common.domain.BaseTimeEntity;
+import sopio.acha.domain.member.presentation.exception.InvalidPasswordException;
 
 @Getter
 @Entity
@@ -68,6 +71,10 @@ public class Member extends BaseTimeEntity implements UserDetails {
 		this.college = college;
 		this.department = department;
 		this.major = major;
+	}
+
+	public void validatePassword(String password) {
+		if (!Objects.equals(decrypt(this.password), password)) throw new InvalidPasswordException();
 	}
 
 	@Override
