@@ -25,7 +25,7 @@ import sopio.acha.domain.member.presentation.response.MemberSummaryResponse;
 import sopio.acha.domain.member.presentation.response.MemberTokenResponse;
 
 @RestController
-@Tag(name = "Member", description = "회원관리")
+@Tag(name = "Member", description = "회원 관리")
 @RequestMapping("/api/v1/members")
 @RequiredArgsConstructor
 public class MemberController {

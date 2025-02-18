@@ -1,8 +1,14 @@
 package sopio.acha.domain.lecture.domain;
 
+import static jakarta.persistence.CascadeType.ALL;
 import static jakarta.persistence.EnumType.STRING;
+import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
+import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hibernate.annotations.Formula;
 
@@ -11,18 +17,20 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sopio.acha.common.domain.BaseTimeEntity;
 import sopio.acha.common.handler.DateHandler;
+import sopio.acha.domain.activity.domain.Activity;
 
 @Getter
 @Entity
 @Builder
 @NoArgsConstructor(access = PROTECTED)
-@AllArgsConstructor(access = PROTECTED)
+@AllArgsConstructor(access = PRIVATE)
 public class Lecture extends BaseTimeEntity {
 	@Id
 	@GeneratedValue(strategy = IDENTITY)
@@ -65,6 +73,9 @@ public class Lecture extends BaseTimeEntity {
 
 	private int endAt;
 
+	@Builder.Default
+	@OneToMany(mappedBy = "lecture", fetch = LAZY, cascade = ALL, orphanRemoval = true)
+	List<Activity> activities = new ArrayList<>();
 
 	public static Lecture save(String title, String identifier, String code, String professor) {
 		return Lecture.builder()
