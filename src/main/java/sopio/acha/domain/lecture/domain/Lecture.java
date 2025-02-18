@@ -34,6 +34,9 @@ public class Lecture extends BaseTimeEntity {
 	private String identifier;
 
 	@Column(nullable = false)
+	private String code;
+
+	@Column(nullable = false)
 	private String professor;
 
 	private String lectureRoom;
@@ -56,10 +59,11 @@ public class Lecture extends BaseTimeEntity {
 	private int endAt;
 
 
-	public static Lecture save(String title, String identifier, String professor) {
+	public static Lecture save(String title, String identifier, String code, String professor) {
 		return Lecture.builder()
 			.title(title)
 			.identifier(identifier)
+			.code(code)
 			.professor(professor)
 			.build();
 	}

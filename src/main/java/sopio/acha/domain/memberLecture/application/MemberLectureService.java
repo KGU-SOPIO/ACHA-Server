@@ -1,11 +1,15 @@
 package sopio.acha.domain.memberLecture.application;
 
+import static sopio.acha.common.handler.DateHandler.getTodayDate;
+
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import sopio.acha.domain.lecture.domain.Lecture;
+import sopio.acha.domain.lecture.domain.LectureDay;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.memberLecture.domain.MemberLecture;
 import sopio.acha.domain.memberLecture.infrastructure.MemberLectureRepository;
@@ -24,8 +28,11 @@ public class MemberLectureService {
 		memberLectureRepository.saveAll(memberLectures);
 	}
 
+	@Transactional(readOnly = true)
 	public MemberLectureHomeListResponse getTodayMemberLecture(Member currentMember) {
-
+		LectureDay today = LectureDay.valueOf(getTodayDate());
+		List<MemberLecture> memberLectures = memberLectureRepository.findAllByMemberIdAndLectureDay(currentMember.getId(), today);
+		return MemberLectureHomeListResponse.from(memberLectures);
 	}
 
 	private boolean isExistsMemberLecture(Member currentMember, Lecture lecture) {

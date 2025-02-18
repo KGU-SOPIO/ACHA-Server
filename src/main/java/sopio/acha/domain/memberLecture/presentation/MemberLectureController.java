@@ -20,12 +20,12 @@ import sopio.acha.domain.memberLecture.presentation.response.MemberLectureHomeLi
 public class MemberLectureController {
 	private final MemberLectureService memberLectureService;
 
-	// @GetMapping("/today")
-	// @Operation(summary = "오늘 수강 예정인 강의 조회 API", description = "사용자가 오늘 수강 예정인 강의 목록을 조회 합니다.")
-	// public ResponseEntity<MemberLectureHomeListResponse> getTodayMemberLecture(
-	// 	@CurrentMember Member currentMember
-	// ) {
-	// 	MemberLectureHomeListResponse response = memberLectureService.getTodayMemberLecture(currentMember);
-	// 	return ResponseEntity.ok().body(response);
-	// }
+	@GetMapping("/today")
+	@Operation(summary = "오늘 수강 예정인 강좌 조회 API", description = "사용자가 오늘 수강 예정인 강좌 목록을 조회 합니다.")
+	public ResponseEntity<MemberLectureHomeListResponse> getTodayMemberLecture(
+		@CurrentMember Member currentMember
+	) {
+		MemberLectureHomeListResponse response = memberLectureService.getTodayMemberLecture(currentMember);
+		return ResponseEntity.ok().body(response);
+	}
 }

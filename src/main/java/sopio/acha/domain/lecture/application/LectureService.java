@@ -42,7 +42,7 @@ public class LectureService {
 				requestCourse(currentMember.getId(), decrypt(currentMember.getPassword()))).get("data");
 			List<Lecture> lectures = StreamSupport.stream(courseData.spliterator(), false)
 				.map(node -> objectMapper.convertValue(node, LectureBasicInformationResponse.class))
-				.map(lecture -> save(lecture.title(), lecture.identifier(), lecture.professor()))
+				.map(lecture -> save(lecture.title(), lecture.identifier(), lecture.code(), lecture.professor()))
 				.filter(this::isExistsByIdentifier)
 				.toList();
 			if (!lectures.isEmpty()) lectureRepository.saveAll(lectures);
