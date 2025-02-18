@@ -2,6 +2,7 @@ package sopio.acha.domain.memberLecture.domain;
 
 import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
+import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
 import jakarta.persistence.Entity;
@@ -19,9 +20,7 @@ import sopio.acha.domain.member.domain.Member;
 
 @Getter
 @Entity
-@Builder
 @NoArgsConstructor(access = PROTECTED)
-@AllArgsConstructor(access = PROTECTED)
 public class MemberLecture extends BaseTimeEntity {
 	@Id
 	@GeneratedValue(strategy = IDENTITY)
@@ -35,10 +34,8 @@ public class MemberLecture extends BaseTimeEntity {
 	@JoinColumn(name = "lecture_id")
 	private Lecture lecture;
 
-	public static MemberLecture save(Member member, Lecture lecture) {
-		return MemberLecture.builder()
-			.member(member)
-			.lecture(lecture)
-			.build();
+	public MemberLecture(Member member, Lecture lecture) {
+		this.member = member;
+		this.lecture = lecture;
 	}
 }
