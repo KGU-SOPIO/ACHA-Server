@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import sopio.acha.domain.lecture.domain.Lecture;
 import sopio.acha.domain.lecture.infrastructure.LectureRepository;
 import sopio.acha.domain.lecture.presentation.exception.FailedParsingLectureDataException;
+import sopio.acha.domain.lecture.presentation.exception.LectureNotFoundException;
 import sopio.acha.domain.lecture.presentation.response.LectureBasicInformationResponse;
 import sopio.acha.domain.lecture.presentation.response.LectureTimeTableResponse;
 import sopio.acha.domain.member.domain.Member;
@@ -44,12 +45,10 @@ public class LectureService {
 				.map(lecture -> save(lecture.title(), lecture.identifier(), lecture.professor()))
 				.filter(this::isExistsByIdentifier)
 				.toList();
-			if (!lectures.isEmpty())
-				lectureRepository.saveAll(lectures);
+			if (!lectures.isEmpty()) lectureRepository.saveAll(lectures);
 
 			JsonNode timeTableData = objectMapper.readTree(
-				requestTimeTable(currentMember.getId(), decrypt(currentMember.getPassword()))
-			).get("data");
+				requestTimeTable(currentMember.getId(), decrypt(currentMember.getPassword()))).get("data");
 			Map<String, LectureTimeTableResponse> timeTableMap = StreamSupport.stream(timeTableData.spliterator(),
 					false)
 				.map(node -> objectMapper.convertValue(node, LectureTimeTableResponse.class))
@@ -63,9 +62,20 @@ public class LectureService {
 					);
 				}
 			});
+			List<Lecture> lectureHasTimeTable = StreamSupport.stream(timeTableData.spliterator(), false)
+				.map(node -> objectMapper.convertValue(node, LectureTimeTableResponse.class))
+				.map(LectureTimeTableResponse::identifier)
+				.map(this::getByIdentifier)
+				.toList();
+			memberLectureService.saveMyLectures(lectureHasTimeTable, currentMember);
 		} catch (JsonProcessingException e) {
 			throw new FailedParsingLectureDataException();
 		}
+	}
+
+	private Lecture getByIdentifier(String identifier) {
+		return lectureRepository.findByIdentifier(identifier)
+			.orElseThrow(LectureNotFoundException::new);
 	}
 
 	private boolean isExistsByIdentifier(Lecture lecture) {
