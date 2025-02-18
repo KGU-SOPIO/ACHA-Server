@@ -19,6 +19,7 @@ import sopio.acha.domain.member.domain.RefreshToken;
 import sopio.acha.domain.member.infrastructure.MemberRepository;
 import sopio.acha.domain.member.presentation.exception.FailedParsingMemberDataException;
 import sopio.acha.domain.member.presentation.exception.InvalidStudentIdOrPasswordException;
+import sopio.acha.domain.member.presentation.exception.MemberNotAuthenticatedException;
 import sopio.acha.domain.member.presentation.exception.MemberNotFoundException;
 import sopio.acha.domain.member.presentation.request.MemberLoginRequest;
 import sopio.acha.domain.member.presentation.request.MemberSaveRequest;
@@ -84,6 +85,7 @@ public class MemberService {
 	public AccessTokenResponse reissueAccessToken(RefreshTokenRequest request) {
 		RefreshToken refreshToken = refreshTokenService.getRefreshTokenObject(request);
 		Member loginMember = getMemberById(refreshToken.getStudentId());
+		if (loginMember.getDeletedAt() != null) throw new MemberNotAuthenticatedException();
 		AccessToken accessToken = AccessToken.of(jwtCreator.generateToken(loginMember, Duration.ofHours(2)));
 		return AccessTokenResponse.of(accessToken.getAccessToken());
 	}
@@ -93,7 +95,13 @@ public class MemberService {
 			.orElseThrow(MemberNotFoundException::new);
 	}
 
+	public void signOutAchaMember(Member currentMember) {
+		currentMember.delete();
+		memberRepository.save(currentMember);
+	}
+
 	private MemberTokenResponse issueAndSaveMemberToken(Member member) {
+		if (member.getDeletedAt() != null) throw new MemberNotAuthenticatedException();
 		AccessToken accessToken = AccessToken.of(jwtCreator.generateToken(member, Duration.ofHours(2)));
 		RefreshToken refreshToken = RefreshToken.of(member.getId(),
 			jwtCreator.generateToken(member, Duration.ofDays(7)));

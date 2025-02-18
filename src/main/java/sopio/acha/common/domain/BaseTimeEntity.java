@@ -23,4 +23,11 @@ public abstract class BaseTimeEntity {
 	@UpdateTimestamp
 	@Column(nullable = false)
 	protected LocalDateTime updatedAt;
+
+	@Column
+	protected LocalDateTime deletedAt;
+
+	public void delete(){
+		deletedAt = LocalDateTime.now();
+	}
 }
