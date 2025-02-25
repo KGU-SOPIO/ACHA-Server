@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import sopio.acha.common.logging.annotation.NoLogging;
-import sopio.acha.common.logging.utils.LoggingUtils;
+import sopio.acha.common.utils.LoggingUtils;
 
 @Component
 public class LoggingInterceptor implements HandlerInterceptor {

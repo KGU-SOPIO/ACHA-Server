@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 import sopio.acha.common.exception.CustomException;
-import sopio.acha.common.logging.utils.LoggingUtils;
+import sopio.acha.common.utils.LoggingUtils;
 
 @Slf4j
 @Aspect
