@@ -1,33 +1,127 @@
 package sopio.acha.domain.activity.domain;
 
-import jakarta.annotation.Nullable;
-import jakarta.persistence.*;
+import static jakarta.persistence.EnumType.STRING;
+import static jakarta.persistence.FetchType.LAZY;
+import static jakarta.persistence.GenerationType.IDENTITY;
+import static lombok.AccessLevel.PRIVATE;
+import static lombok.AccessLevel.PROTECTED;
+import static sopio.acha.domain.activity.domain.ActivityType.ASSIGNMENT;
+import static sopio.acha.domain.activity.domain.ActivityType.LECTURE;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Objects;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
+import sopio.acha.common.domain.BaseTimeEntity;
+import sopio.acha.common.handler.DateHandler;
+import sopio.acha.domain.activity.presentation.exception.InvalidActivityTypeException;
+import sopio.acha.domain.lecture.domain.Lecture;
+import sopio.acha.domain.member.domain.Member;
 
-import static jakarta.persistence.GenerationType.IDENTITY;
-
-@Entity
 @Getter
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn
-@SuperBuilder
-@NoArgsConstructor
-public abstract class Activity {
+@Entity
+@Builder
+@Table(indexes = {
+	@Index(name = "idx_activity_lecture_id", columnList = "lecture_id"),
+	@Index(name = "idx_activity_member_id", columnList = "member_id"),
+	@Index(name = "idx_activity_week", columnList = "week")
+})
+@NoArgsConstructor(access = PROTECTED)
+@AllArgsConstructor(access = PRIVATE)
+public class Activity extends BaseTimeEntity {
 
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = IDENTITY)
+	private Long id;
 
-    @Column(nullable = false)
-    private Boolean available;
+	@Column(nullable = false)
+	private boolean available;
 
-    @Column(nullable = false)
-    private String title;
+	@Column(nullable = false)
+	private int week;
 
-    @Column(length = 500)
-    private String link;
+	@Column(nullable = false)
+	private String title;
 
-    private String deadline;
+	@Column(length = 499)
+	private String link;
+
+	@Enumerated(STRING)
+	private ActivityType type;
+
+	private String code;
+
+	private LocalDateTime startAt;
+
+	private LocalDateTime deadline;
+
+	private String lectureTime;
+
+	private String timeLeft;
+
+	private String description;
+
+	@ManyToOne(fetch = LAZY)
+	@JoinColumn(name = "lecture_id")
+	private Lecture lecture;
+
+	@ManyToOne(fetch = LAZY)
+	@JoinColumn(name = "member_id")
+	private Member member;
+
+	public static Activity save(boolean available, int week, String title, String link, String type, String code, String deadline,
+		String startAt, String lectureTime, String timeLeft, String description, Lecture lecture, Member member) {
+		LocalDateTime convertedStartAt = null;
+		if (startAt != null) convertedStartAt = DateHandler.parseDateTime(startAt);
+		LocalDateTime convertedDeadline = null;
+		if (deadline != null) convertedDeadline = DateHandler.parseDateTime(deadline);
+		return switch (type) {
+			case "assignment" -> Activity.builder()
+				.available(available)
+				.title(title)
+				.week(week)
+				.link(link)
+				.type(ASSIGNMENT)
+				.code(code)
+				.deadline(convertedDeadline)
+				.timeLeft(timeLeft)
+				.description(description)
+				.lecture(lecture)
+				.member(member)
+				.build();
+			case "lecture" -> Activity.builder()
+				.available(available)
+				.title(title)
+				.week(week)
+				.link(link)
+				.type(LECTURE)
+				.code(code)
+				.startAt(convertedStartAt)
+				.deadline(convertedDeadline)
+				.lectureTime(lectureTime)
+				.lecture(lecture)
+				.member(member)
+				.build();
+			default -> Activity.builder()
+				.available(available)
+				.title(title)
+				.week(week)
+				.lecture(lecture)
+				.member(member)
+				.build();
+		};
+	}
 }

@@ -1,4 +1,4 @@
-package sopio.acha.common.logging.utils;
+package sopio.acha.common.utils;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;

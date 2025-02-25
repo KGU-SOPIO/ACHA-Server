@@ -18,7 +18,10 @@ public record MemberLectureResponse(
 	String professor,
 
 	@Schema(description = "강의실", example = "3306 강의실", requiredMode = REQUIRED)
-	String lectureRoom
+	String lectureRoom,
+
+	@Schema(description = "강좌 코드", example = "50742", requiredMode = REQUIRED)
+	String code
 ) {
 	public static MemberLectureResponse from(MemberLecture memberLecture) {
 		return MemberLectureResponse.builder()
@@ -26,6 +29,7 @@ public record MemberLectureResponse(
 			.title(memberLecture.getLecture().getTitle())
 			.professor(memberLecture.getLecture().getProfessor())
 			.lectureRoom(memberLecture.getLecture().getLectureRoom())
+			.code(memberLecture.getLecture().getCode())
 			.build();
 	}
 }

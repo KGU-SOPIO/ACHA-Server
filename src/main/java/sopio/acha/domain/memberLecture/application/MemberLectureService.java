@@ -44,6 +44,16 @@ public class MemberLectureService {
 		return MemberLectureListResponse.from(memberLectures);
 	}
 
+	@Transactional
+	public List<MemberLecture> getCurrentMemberLectureAndSetLastUpdatedAt(Member currentMember) {
+		return memberLectureRepository.findAllByMemberIdAndLectureYearAndLectureSemesterOrderByLectureDayOrderAsc(
+				currentMember.getId(), DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester())
+			.stream()
+			.peek(MemberLecture::setLastUpdatedAt)
+			.toList();
+	}
+
+
 	private boolean isExistsMemberLecture(Member currentMember, Lecture lecture) {
 		return !memberLectureRepository.existsByMemberAndLecture(currentMember, lecture);
 	}

@@ -65,6 +65,12 @@ public class ExtractorHandler {
 		return getJsonData(requestBody, uri).toString();
 	}
 
+	public static String requestActivity(String studentId, String password, String code) {
+		URI uri = buildUriByPath("/v1/course/" + code + "/activity/");
+		String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password + "\" }";
+		return getJsonData(requestBody, uri).toString();
+	}
+
 	private static URI buildUriByPath(String path) {
 		return UriComponentsBuilder
 			.fromUriString(requestUrl)
