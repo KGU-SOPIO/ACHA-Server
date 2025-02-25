@@ -17,19 +17,28 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sopio.acha.common.domain.BaseTimeEntity;
+import sopio.acha.common.handler.DateHandler;
 import sopio.acha.domain.activity.presentation.exception.InvalidActivityTypeException;
 import sopio.acha.domain.lecture.domain.Lecture;
+import sopio.acha.domain.member.domain.Member;
 
 @Getter
 @Entity
 @Builder
+@Table(indexes = {
+	@Index(name = "idx_activity_lecture_id", columnList = "lecture_id"),
+	@Index(name = "idx_activity_member_id", columnList = "member_id"),
+	@Index(name = "idx_activity_week", columnList = "week")
+})
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor(access = PRIVATE)
 public class Activity extends BaseTimeEntity {
@@ -42,15 +51,17 @@ public class Activity extends BaseTimeEntity {
 	private boolean available;
 
 	@Column(nullable = false)
+	private int week;
+
+	@Column(nullable = false)
 	private String title;
 
-	@Column(nullable = false, length = 499)
+	@Column(length = 499)
 	private String link;
 
 	@Enumerated(STRING)
 	private ActivityType type;
 
-	@Column(nullable = false)
 	private String code;
 
 	private LocalDateTime startAt;
@@ -67,36 +78,50 @@ public class Activity extends BaseTimeEntity {
 	@JoinColumn(name = "lecture_id")
 	private Lecture lecture;
 
-	public static Activity saveAssignment(boolean available, String title, String link, String type, String code,
-		String deadline, String timeLeft, String description) {
-		LocalDateTime convertedDeadline = LocalDateTime.parse(deadline, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-		if (!Objects.equals(type, ASSIGNMENT.toString())) throw new InvalidActivityTypeException();
-		return Activity.builder()
-			.available(available)
-			.title(title)
-			.link(link)
-			.type(ASSIGNMENT)
-			.code(code)
-			.deadline(convertedDeadline)
-			.timeLeft(timeLeft)
-			.description(description)
-			.build();
-	}
+	@ManyToOne(fetch = LAZY)
+	@JoinColumn(name = "member_id")
+	private Member member;
 
-	public static Activity saveLecture(boolean available, String title, String link, String type, String code,
-		String startAt, String deadline, String lectureTime) {
-		LocalDateTime convertedStartAt = LocalDateTime.parse(startAt, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-		LocalDateTime convertedDeadline = LocalDateTime.parse(deadline, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-		if (!Objects.equals(type, LECTURE.toString())) throw new InvalidActivityTypeException();
-		return Activity.builder()
-			.available(available)
-			.title(title)
-			.link(link)
-			.type(LECTURE)
-			.code(code)
-			.startAt(convertedStartAt)
-			.deadline(convertedDeadline)
-			.lectureTime(lectureTime)
-			.build();
+	public static Activity save(boolean available, int week, String title, String link, String type, String code, String deadline,
+		String startAt, String lectureTime, String timeLeft, String description, Lecture lecture, Member member) {
+		LocalDateTime convertedStartAt = null;
+		if (startAt != null) convertedStartAt = DateHandler.parseDateTime(startAt);
+		LocalDateTime convertedDeadline = null;
+		if (deadline != null) convertedDeadline = DateHandler.parseDateTime(deadline);
+		return switch (type) {
+			case "assignment" -> Activity.builder()
+				.available(available)
+				.title(title)
+				.week(week)
+				.link(link)
+				.type(ASSIGNMENT)
+				.code(code)
+				.deadline(convertedDeadline)
+				.timeLeft(timeLeft)
+				.description(description)
+				.lecture(lecture)
+				.member(member)
+				.build();
+			case "lecture" -> Activity.builder()
+				.available(available)
+				.title(title)
+				.week(week)
+				.link(link)
+				.type(LECTURE)
+				.code(code)
+				.startAt(convertedStartAt)
+				.deadline(convertedDeadline)
+				.lectureTime(lectureTime)
+				.lecture(lecture)
+				.member(member)
+				.build();
+			default -> Activity.builder()
+				.available(available)
+				.title(title)
+				.week(week)
+				.lecture(lecture)
+				.member(member)
+				.build();
+		};
 	}
 }

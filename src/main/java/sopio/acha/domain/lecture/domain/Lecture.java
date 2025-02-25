@@ -73,10 +73,6 @@ public class Lecture extends BaseTimeEntity {
 
 	private int endAt;
 
-	@Builder.Default
-	@OneToMany(mappedBy = "lecture", fetch = LAZY, cascade = ALL, orphanRemoval = true)
-	List<Activity> activities = new ArrayList<>();
-
 	public static Lecture save(String title, String identifier, String code, String professor) {
 		return Lecture.builder()
 			.title(title)
