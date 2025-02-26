@@ -7,4 +7,5 @@ import sopio.acha.domain.activity.domain.Activity;
 
 @Repository
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
+	boolean existsActivityByTitleAndMemberId(String title, String memberId);
 }

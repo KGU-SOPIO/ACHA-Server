@@ -52,6 +52,7 @@ public class ActivityService {
 
 					activities.addAll(StreamSupport.stream(activitiesNode.spliterator(), false)
 						.map(node -> objectMapper.convertValue(node, ActivityResponse.class))
+						.filter(activityResponse -> !isExistsActivity(activityResponse.title(), currentMember.getId()))
 						.map(activityResponse -> Activity.save(
 							activityResponse.available(),
 							week,
@@ -76,5 +77,8 @@ public class ActivityService {
 		}
 	}
 
+	private boolean isExistsActivity(String title, String memberId) {
+		return activityRepository.existsActivityByTitleAndMemberId(title, memberId);
+	}
 
 }
