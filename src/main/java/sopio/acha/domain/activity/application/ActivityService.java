@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,14 +32,29 @@ public class ActivityService {
 	private final MemberLectureService memberLectureService;
 
 	@Transactional
+	@Scheduled(fixedDelay = 300000) // 5min
+	public void scheduledExtractActivity() {
+		scheduledActivityExtraction();
+	}
+
+	@Transactional
 	public void extractActivity(Member currentMember) {
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<MemberLecture> currentLectures = memberLectureService.getCurrentMemberLectureAndSetLastUpdatedAt(currentMember);
+		saveExtractedActivity(currentLectures, objectMapper);
+	}
 
+	public void scheduledActivityExtraction() {
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<MemberLecture> allLectureList = memberLectureService.getAllMemberLecture();
+		saveExtractedActivity(allLectureList, objectMapper);
+	}
+
+	private void saveExtractedActivity(List<MemberLecture> currentLectures, ObjectMapper objectMapper) {
 		try {
 			for (MemberLecture memberLecture : currentLectures) {
 				JsonNode responseNode = objectMapper.readTree(
-					requestActivity(currentMember.getId(), decrypt(currentMember.getPassword()),
+					requestActivity(memberLecture.getMember().getId(), decrypt(memberLecture.getMember().getPassword()),
 						memberLecture.getLecture().getCode()));
 
 				JsonNode dataNodes = responseNode.get("data");
@@ -52,7 +68,7 @@ public class ActivityService {
 
 					activities.addAll(StreamSupport.stream(activitiesNode.spliterator(), false)
 						.map(node -> objectMapper.convertValue(node, ActivityResponse.class))
-						.filter(activityResponse -> !isExistsActivity(activityResponse.title(), currentMember.getId()))
+						.filter(activityResponse -> !isExistsActivity(activityResponse.title(), memberLecture.getMember().getId()))
 						.map(activityResponse -> Activity.save(
 							activityResponse.available(),
 							week,
@@ -66,7 +82,7 @@ public class ActivityService {
 							Optional.ofNullable(activityResponse.timeLeft()).orElse(""),
 							Optional.ofNullable(activityResponse.description()).orElse(""),
 							memberLecture.getLecture(),
-							currentMember
+							memberLecture.getMember()
 							))
 						.toList());
 				}

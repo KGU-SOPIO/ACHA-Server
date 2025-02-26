@@ -19,4 +19,6 @@ public interface MemberLectureRepository extends JpaRepository<MemberLecture, Lo
 		LectureDay lectureDay, String year, String semester);
 
 	List<MemberLecture> findAllByMemberIdAndLectureYearAndLectureSemesterOrderByLectureDayOrderAsc(String memberId, String year, String semester);
+
+	List<MemberLecture> findAllByLectureYearAndLectureSemesterOrderByLectureDayOrderAsc(String year, String semester);
 }

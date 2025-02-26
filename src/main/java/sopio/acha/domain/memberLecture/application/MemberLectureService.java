@@ -53,6 +53,14 @@ public class MemberLectureService {
 			.toList();
 	}
 
+	@Transactional
+	public List<MemberLecture> getAllMemberLecture() {
+		return memberLectureRepository.findAllByLectureYearAndLectureSemesterOrderByLectureDayOrderAsc(
+			DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester())
+			.stream()
+			.peek(MemberLecture::setLastUpdatedAt)
+			.toList();
+	}
 
 	private boolean isExistsMemberLecture(Member currentMember, Lecture lecture) {
 		return !memberLectureRepository.existsByMemberAndLecture(currentMember, lecture);
