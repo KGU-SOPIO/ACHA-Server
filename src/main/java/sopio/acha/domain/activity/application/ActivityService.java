@@ -6,6 +6,7 @@ import static sopio.acha.common.handler.ExtractorHandler.requestActivity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.StreamSupport;
 
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,6 +18,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import sopio.acha.common.domain.BaseTimeEntity;
 import sopio.acha.domain.activity.domain.Activity;
 import sopio.acha.domain.activity.infrastructure.ActivityRepository;
 import sopio.acha.domain.activity.presentation.exception.FailedParsingActivityDataException;
@@ -32,7 +34,7 @@ public class ActivityService {
 	private final MemberLectureService memberLectureService;
 
 	@Transactional
-	@Scheduled(fixedDelay = 300000) // 5min
+	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
 	public void scheduledExtractActivity() {
 		scheduledActivityExtraction();
 	}
@@ -46,7 +48,11 @@ public class ActivityService {
 
 	public void scheduledActivityExtraction() {
 		ObjectMapper objectMapper = new ObjectMapper();
-		List<MemberLecture> allLectureList = memberLectureService.getAllMemberLecture();
+		List<MemberLecture> allLectureList = memberLectureService.getAllMemberLecture()
+				.stream()
+				.filter(MemberLecture::checkLastUpdatedAt)
+				.peek(MemberLecture::setLastUpdatedAt)
+				.toList();
 		saveExtractedActivity(allLectureList, objectMapper);
 	}
 

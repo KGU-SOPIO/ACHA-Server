@@ -2,6 +2,7 @@ package sopio.acha.domain.memberLecture.domain;
 
 import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
+import static java.time.LocalDateTime.now;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
@@ -37,5 +38,11 @@ public class MemberLecture extends BaseTimeEntity {
 	public MemberLecture(Member member, Lecture lecture) {
 		this.member = member;
 		this.lecture = lecture;
+	}
+
+	private static final long BASE_HOUR = 1;
+
+	public boolean checkLastUpdatedAt() {
+		return updatedAt.plusHours(BASE_HOUR).isBefore(now());
 	}
 }
