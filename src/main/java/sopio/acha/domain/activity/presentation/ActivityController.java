@@ -1,6 +1,8 @@
 package sopio.acha.domain.activity.presentation;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +27,16 @@ public class ActivityController {
 		@CurrentMember Member currentMember
 	) {
 		activityService.extractActivity(currentMember);
+
 		return ResponseEntity.ok().build();
 	}
+
+	// @GetMapping("/my")
+	// @Operation(summary = "내 활동 목록 조회 API", description = "활동 제출 남은 시간을 기준으로 활동 목록을 조회합니다.")
+	// public ResponseEntity<Void> getMyActivityList(
+	// 	@CurrentMember Member currentMember
+	// ) {
+	// 	activityService.getMyActivityList(currentMember);
+	// 	return ResponseEntity.ok().build();
+	// }
 }
