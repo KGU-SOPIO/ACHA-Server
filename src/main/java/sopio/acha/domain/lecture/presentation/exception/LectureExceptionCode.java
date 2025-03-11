@@ -13,7 +13,7 @@ import sopio.acha.common.exception.ExceptionCode;
 @AllArgsConstructor
 public enum LectureExceptionCode implements ExceptionCode {
 	FAILED_PARSING_LECTURE_DATA(BAD_REQUEST, "강좌 정보 파싱 중 에러가 발생했습니다."),
-	LECTURE_NOT_FOUND(NOT_FOUND, "강좌를 찾을 수 없습니다.")
+	LECTURE_NOT_FOUND(NOT_FOUND, "강좌를 찾을 수 없습니다."),
 	;
 
 	private final HttpStatus status;
