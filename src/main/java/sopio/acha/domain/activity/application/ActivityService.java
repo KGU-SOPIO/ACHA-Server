@@ -3,6 +3,7 @@ package sopio.acha.domain.activity.application;
 import static sopio.acha.common.handler.EncryptionHandler.decrypt;
 import static sopio.acha.common.handler.ExtractorHandler.requestActivity;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import sopio.acha.domain.activity.domain.Activity;
 import sopio.acha.domain.activity.infrastructure.ActivityRepository;
 import sopio.acha.domain.activity.presentation.exception.FailedParsingActivityDataException;
 import sopio.acha.domain.activity.presentation.response.ActivityResponse;
+import sopio.acha.domain.activity.presentation.response.ActivitySummaryListResponse;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.memberLecture.application.MemberLectureService;
 import sopio.acha.domain.memberLecture.domain.MemberLecture;
@@ -42,18 +44,26 @@ public class ActivityService {
 	@Transactional
 	public void extractActivity(Member currentMember) {
 		ObjectMapper objectMapper = new ObjectMapper();
-		List<MemberLecture> currentLectures = memberLectureService.getCurrentMemberLectureAndSetLastUpdatedAt(currentMember);
+		List<MemberLecture> currentLectures = memberLectureService.getCurrentMemberLectureAndSetLastUpdatedAt(
+			currentMember);
 		saveExtractedActivity(currentLectures, objectMapper);
 	}
 
 	public void scheduledActivityExtraction() {
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<MemberLecture> allLectureList = memberLectureService.getAllMemberLecture()
-				.stream()
-				.filter(MemberLecture::checkLastUpdatedAt)
-				.peek(MemberLecture::setLastUpdatedAt)
-				.toList();
+			.stream()
+			.filter(MemberLecture::checkLastUpdatedAt)
+			.peek(MemberLecture::setLastUpdatedAt)
+			.toList();
 		saveExtractedActivity(allLectureList, objectMapper);
+	}
+
+	@Transactional
+	public ActivitySummaryListResponse getMyActivityList(Member currentMember) {
+		List<Activity> activities = activityRepository.findTop10ByMemberIdAndDeadlineAfterOrderByDeadlineAsc(
+			currentMember.getId(), LocalDateTime.now());
+		return ActivitySummaryListResponse.from(activities);
 	}
 
 	private void saveExtractedActivity(List<MemberLecture> currentLectures, ObjectMapper objectMapper) {
@@ -64,17 +74,20 @@ public class ActivityService {
 						memberLecture.getLecture().getCode()));
 
 				JsonNode dataNodes = responseNode.get("data");
-				if (dataNodes == null || !dataNodes.isArray()) continue;
+				if (dataNodes == null || !dataNodes.isArray())
+					continue;
 				List<Activity> activities = new ArrayList<>();
 
 				for (JsonNode dataNode : dataNodes) {
 					int week = dataNode.get("week").asInt();
 					JsonNode activitiesNode = dataNode.get("activities");
-					if (activitiesNode == null || !activitiesNode.isArray()) continue;
+					if (activitiesNode == null || !activitiesNode.isArray())
+						continue;
 
 					activities.addAll(StreamSupport.stream(activitiesNode.spliterator(), false)
 						.map(node -> objectMapper.convertValue(node, ActivityResponse.class))
-						.filter(activityResponse -> !isExistsActivity(activityResponse.title(), memberLecture.getMember().getId()))
+						.filter(activityResponse -> !isExistsActivity(activityResponse.title(),
+							memberLecture.getMember().getId()))
 						.map(activityResponse -> Activity.save(
 							activityResponse.available(),
 							week,
@@ -89,7 +102,7 @@ public class ActivityService {
 							Optional.ofNullable(activityResponse.description()).orElse(""),
 							memberLecture.getLecture(),
 							memberLecture.getMember()
-							))
+						))
 						.toList());
 				}
 				activityRepository.saveAll(activities);
