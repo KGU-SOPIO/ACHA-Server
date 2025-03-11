@@ -20,6 +20,9 @@ public record ActivityWeekResponse(
 	@Schema(description = "주차 종료 날짜", example = "2024-09-08", requiredMode = REQUIRED)
 	String weekEndAt,
 
+	@Schema(description = "접근 여부", example = "true", requiredMode = REQUIRED)
+	boolean available,
+
 	@Schema(description = "주차", example = "2", requiredMode = REQUIRED)
 	int week,
 
@@ -42,11 +45,12 @@ public record ActivityWeekResponse(
 		return ActivityWeekResponse.builder()
 			.weekStartAt(startOfWeek.toString())
 			.weekEndAt(endOfWeek.toString())
+			.available(activity.isAvailable())
 			.week(activity.getWeek())
 			.title(activity.getTitle())
 			.code(activity.getCode())
 			.link(activity.getLink())
-			.type(activity.getType().toString())
+			.type(activity.getType().toString().toLowerCase())
 			.build();
 	}
 }
