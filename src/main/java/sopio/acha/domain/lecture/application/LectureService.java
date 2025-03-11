@@ -1,5 +1,6 @@
 package sopio.acha.domain.lecture.application;
 
+import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 import static sopio.acha.common.handler.EncryptionHandler.decrypt;
 import static sopio.acha.common.handler.ExtractorHandler.requestCourse;
 import static sopio.acha.common.handler.ExtractorHandler.requestTimeTable;
@@ -34,7 +35,7 @@ public class LectureService {
 	private final LectureRepository lectureRepository;
 	private final MemberLectureService memberLectureService;
 
-	@Transactional
+	@Transactional(propagation = REQUIRES_NEW)
 	public void extractLectureAndSave(Member currentMember) {
 		try {
 			ObjectMapper objectMapper = new ObjectMapper();
