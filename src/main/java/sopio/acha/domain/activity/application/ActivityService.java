@@ -25,6 +25,9 @@ import sopio.acha.domain.activity.infrastructure.ActivityRepository;
 import sopio.acha.domain.activity.presentation.exception.FailedParsingActivityDataException;
 import sopio.acha.domain.activity.presentation.response.ActivityResponse;
 import sopio.acha.domain.activity.presentation.response.ActivitySummaryListResponse;
+import sopio.acha.domain.activity.presentation.response.ActivityWeekListResponse;
+import sopio.acha.domain.lecture.application.LectureService;
+import sopio.acha.domain.lecture.domain.Lecture;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.memberLecture.application.MemberLectureService;
 import sopio.acha.domain.memberLecture.domain.MemberLecture;
@@ -34,6 +37,7 @@ import sopio.acha.domain.memberLecture.domain.MemberLecture;
 public class ActivityService {
 	private final ActivityRepository activityRepository;
 	private final MemberLectureService memberLectureService;
+	private final LectureService lectureService;
 
 	@Transactional
 	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
@@ -64,6 +68,14 @@ public class ActivityService {
 		List<Activity> activities = activityRepository.findTop10ByMemberIdAndDeadlineAfterOrderByDeadlineAsc(
 			currentMember.getId(), LocalDateTime.now());
 		return ActivitySummaryListResponse.from(activities);
+	}
+
+	@Transactional
+	public ActivityWeekListResponse getLectureActivityList(Member currentMember, String code) {
+		Lecture targetLecture = lectureService.getLectureByCode(code);
+		List<Activity> activities = activityRepository.findAllByMemberIdAndLectureIdOrderByWeekAsc(
+			currentMember.getId(), targetLecture.getId());
+		return ActivityWeekListResponse.from(targetLecture, activities);
 	}
 
 	private void saveExtractedActivity(List<MemberLecture> currentLectures, ObjectMapper objectMapper) {

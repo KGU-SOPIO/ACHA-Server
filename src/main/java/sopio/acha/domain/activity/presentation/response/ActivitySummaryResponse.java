@@ -16,7 +16,7 @@ public record ActivitySummaryResponse(
 	String title,
 
 	@Schema(description = "활동 타입", example = "ASSIGNMENT", requiredMode = REQUIRED)
-	String activityType,
+	String type,
 
 	@Schema(description = "활동 코드", example = "50251", requiredMode = REQUIRED)
 	String code,
@@ -34,7 +34,7 @@ public record ActivitySummaryResponse(
 		return ActivitySummaryResponse.builder()
 			.lectureTitle(activity.getLecture().getTitle())
 			.title(activity.getTitle())
-			.activityType(activity.getType().toString())
+			.type(activity.getType().toString())
 			.code(activity.getCode())
 			.deadlineDay(activity.getDeadline().toLocalDate().toString())
 			.deadlineTime(activity.getDeadline().toLocalTime().toString())

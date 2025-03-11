@@ -73,6 +73,11 @@ public class LectureService {
 		}
 	}
 
+	public Lecture getLectureByCode(String code) {
+		return lectureRepository.findByCode(code)
+			.orElseThrow(LectureNotFoundException::new);
+	}
+
 	private Lecture getByIdentifier(String identifier) {
 		return lectureRepository.findByIdentifier(identifier)
 			.orElseThrow(LectureNotFoundException::new);
