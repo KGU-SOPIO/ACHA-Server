@@ -6,8 +6,10 @@ import static sopio.acha.common.handler.ExtractorHandler.requestActivity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,7 +21,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
-import sopio.acha.common.domain.BaseTimeEntity;
 import sopio.acha.domain.activity.domain.Activity;
 import sopio.acha.domain.activity.infrastructure.ActivityRepository;
 import sopio.acha.domain.activity.presentation.exception.FailedParsingActivityDataException;
@@ -75,7 +76,11 @@ public class ActivityService {
 		Lecture targetLecture = lectureService.getLectureByCode(code);
 		List<Activity> activities = activityRepository.findAllByMemberIdAndLectureIdOrderByWeekAsc(
 			currentMember.getId(), targetLecture.getId());
-		return ActivityWeekListResponse.from(targetLecture, activities);
+		System.out.println(activities);
+		Map<Integer, List<Activity>> groupedActivities = activities.stream()
+			.collect(Collectors.groupingBy(Activity::getWeek));
+		System.out.println(groupedActivities);
+		return ActivityWeekListResponse.from(targetLecture, groupedActivities);
 	}
 
 	private void saveExtractedActivity(List<MemberLecture> currentLectures, ObjectMapper objectMapper) {

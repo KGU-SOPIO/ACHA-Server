@@ -3,6 +3,7 @@ package sopio.acha.domain.activity.presentation.response;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 import java.util.List;
+import java.util.Map;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -20,12 +21,12 @@ public record ActivityWeekListResponse(
 	@Schema(description = "활동 목록", requiredMode = REQUIRED)
 	List<ActivityWeekResponse> contents
 ) {
-	public static ActivityWeekListResponse from(Lecture lecture, List<Activity> activities) {
+	public static ActivityWeekListResponse from(Lecture lecture, Map<Integer, List<Activity>> activities) {
 		return ActivityWeekListResponse.builder()
 			.lectureTitle(lecture.getTitle())
 			.professor(lecture.getProfessor())
-			.contents(activities.stream()
-				.map(ActivityWeekResponse::from)
+			.contents(activities.entrySet().stream()
+				.map(entry -> ActivityWeekResponse.from(entry.getKey(), entry.getValue()))
 				.toList())
 			.build();
 	}

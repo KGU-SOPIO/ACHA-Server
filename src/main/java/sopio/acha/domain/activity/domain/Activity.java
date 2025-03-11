@@ -74,6 +74,7 @@ public class Activity extends BaseTimeEntity {
 
 	private String timeLeft;
 
+	@Column(length = 999)
 	private String description;
 
 	@ManyToOne(fetch = LAZY)
