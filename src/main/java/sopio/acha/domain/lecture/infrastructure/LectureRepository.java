@@ -13,4 +13,6 @@ public interface LectureRepository extends JpaRepository<Lecture, Long> {
 	boolean existsByIdentifier(String identifier);
 
 	Optional<Lecture> findByIdentifier(String identifier);
+
+	Optional<Lecture> findByCode(String code);
 }

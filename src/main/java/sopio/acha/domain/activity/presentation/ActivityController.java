@@ -5,6 +5,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import sopio.acha.common.auth.annotation.CurrentMember;
 import sopio.acha.domain.activity.application.ActivityService;
 import sopio.acha.domain.activity.presentation.response.ActivitySummaryListResponse;
+import sopio.acha.domain.activity.presentation.response.ActivityWeekListResponse;
 import sopio.acha.domain.member.domain.Member;
 
 @RestController
@@ -37,6 +39,16 @@ public class ActivityController {
 		@CurrentMember Member currentMember
 	) {
 		ActivitySummaryListResponse response = activityService.getMyActivityList(currentMember);
+		return ResponseEntity.ok().body(response);
+	}
+
+	@GetMapping("/lecture")
+	@Operation(summary = "강의별 활동 목록 조회 API", description = "강의별 활동 목록을 조회합니다.")
+	public ResponseEntity<ActivityWeekListResponse> getLectureActivityList(
+		@CurrentMember Member currentMember,
+		@RequestParam String code
+	) {
+		ActivityWeekListResponse response = activityService.getLectureActivityList(currentMember, code);
 		return ResponseEntity.ok().body(response);
 	}
 }

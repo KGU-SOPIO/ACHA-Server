@@ -12,4 +12,5 @@ import sopio.acha.domain.activity.domain.Activity;
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
 	boolean existsActivityByTitleAndMemberId(String title, String memberId);
 	List<Activity> findTop10ByMemberIdAndDeadlineAfterOrderByDeadlineAsc(String memberId, LocalDateTime now);
+	List<Activity> findAllByMemberIdAndLectureIdOrderByWeekAsc(String memberId, Long lectureId);
 }
