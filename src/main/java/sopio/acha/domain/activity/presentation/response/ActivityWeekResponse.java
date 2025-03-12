@@ -13,12 +13,12 @@ public record ActivityWeekResponse(
 	@Schema(description = "주차", example = "2", requiredMode = REQUIRED)
 	int week,
 
-	List<ActivityWeekDetailResponse> activities
+	List<ActivityWeekDetailResponse> contents
 ) {
 	public static ActivityWeekResponse from(int week, List<Activity> activities) {
 		return ActivityWeekResponse.builder()
 			.week(week)
-			.activities(activities.stream()
+			.contents(activities.stream()
 				.map(ActivityWeekDetailResponse::from)
 				.toList())
 			.build();
