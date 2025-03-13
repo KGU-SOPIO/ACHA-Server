@@ -9,6 +9,9 @@ import sopio.acha.domain.activity.domain.Activity;
 
 @Builder
 public record ActivitySummaryResponse(
+	@Schema(description = "강의 제목", example = "컴퓨터 네트워크", requiredMode = REQUIRED)
+	String lectureTitle,
+
 	@Schema(description = "접근 여부", example = "true", requiredMode = REQUIRED)
 	boolean available,
 
@@ -29,6 +32,7 @@ public record ActivitySummaryResponse(
 ) {
 	public static ActivitySummaryResponse from(Activity activity) {
 		return ActivitySummaryResponse.builder()
+			.lectureTitle(activity.getLecture().getTitle())
 			.available(activity.isAvailable())
 			.title(activity.getTitle())
 			.type(activity.getType().toString().toLowerCase())
