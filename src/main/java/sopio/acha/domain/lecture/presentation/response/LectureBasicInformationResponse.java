@@ -1,10 +1,14 @@
 package sopio.acha.domain.lecture.presentation.response;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import sopio.acha.domain.notification.application.response.NotificationScrapingResponse;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record LectureBasicInformationResponse (
@@ -18,6 +22,9 @@ public record LectureBasicInformationResponse (
 	String code,
 
 	@Schema(description = "담당 교수", requiredMode = REQUIRED)
-	String professor
+	String professor,
+
+	@Schema(description = "공지사항 목록", requiredMode = NOT_REQUIRED)
+	List<NotificationScrapingResponse> notices
 ) {
 }

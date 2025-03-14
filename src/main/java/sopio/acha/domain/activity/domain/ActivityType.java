@@ -2,6 +2,9 @@ package sopio.acha.domain.activity.domain;
 
 public enum ActivityType {
 	ASSIGNMENT,
-	LECTURE
+	LECTURE,
+	URL,
+	FILE,
+	ETC
 	;
 }

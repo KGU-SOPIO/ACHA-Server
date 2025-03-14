@@ -6,7 +6,10 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 import static sopio.acha.domain.activity.domain.ActivityType.ASSIGNMENT;
+import static sopio.acha.domain.activity.domain.ActivityType.ETC;
+import static sopio.acha.domain.activity.domain.ActivityType.FILE;
 import static sopio.acha.domain.activity.domain.ActivityType.LECTURE;
+import static sopio.acha.domain.activity.domain.ActivityType.URL;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -72,6 +75,7 @@ public class Activity extends BaseTimeEntity {
 
 	private String timeLeft;
 
+	@Column(length = 999)
 	private String description;
 
 	@ManyToOne(fetch = LAZY)
@@ -115,10 +119,29 @@ public class Activity extends BaseTimeEntity {
 				.lecture(lecture)
 				.member(member)
 				.build();
+			case "url" -> Activity.builder()
+				.available(available)
+				.title(title)
+				.week(week)
+				.link(link)
+				.type(URL)
+				.lecture(lecture)
+				.member(member)
+				.build();
+			case "file" -> Activity.builder()
+				.available(available)
+				.title(title)
+				.week(week)
+				.link(link)
+				.type(FILE)
+				.lecture(lecture)
+				.member(member)
+				.build();
 			default -> Activity.builder()
 				.available(available)
 				.title(title)
 				.week(week)
+				.type(ETC)
 				.lecture(lecture)
 				.member(member)
 				.build();
