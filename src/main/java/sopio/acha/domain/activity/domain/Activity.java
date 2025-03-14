@@ -125,6 +125,7 @@ public class Activity extends BaseTimeEntity {
 				.week(week)
 				.link(link)
 				.type(URL)
+				.code(code)
 				.lecture(lecture)
 				.member(member)
 				.build();
@@ -132,6 +133,7 @@ public class Activity extends BaseTimeEntity {
 				.available(available)
 				.title(title)
 				.week(week)
+				.code(code)
 				.link(link)
 				.type(FILE)
 				.lecture(lecture)
@@ -141,6 +143,7 @@ public class Activity extends BaseTimeEntity {
 				.available(available)
 				.title(title)
 				.week(week)
+				.code(code)
 				.type(ETC)
 				.lecture(lecture)
 				.member(member)

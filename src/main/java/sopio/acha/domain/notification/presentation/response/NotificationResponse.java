@@ -8,6 +8,9 @@ import sopio.acha.domain.notification.domain.Notification;
 
 @Builder
 public record NotificationResponse(
+	@Schema(description = "공지 ID", example = "1", requiredMode = REQUIRED)
+	Long id,
+
 	@Schema(description = "공지 제목", example = "중간고사 일정 안내", requiredMode = REQUIRED)
 	String title,
 
@@ -22,6 +25,7 @@ public record NotificationResponse(
 ) {
 	public static NotificationResponse from(Notification notification) {
 		return NotificationResponse.builder()
+			.id(notification.getId())
 			.title(notification.getTitle())
 			.professor(notification.getLecture().getProfessor())
 			.date(notification.getDate())
