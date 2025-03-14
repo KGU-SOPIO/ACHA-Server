@@ -13,7 +13,7 @@ import sopio.acha.domain.lecture.domain.Lecture;
 @Builder
 public record ActivityWeekListResponse(
 	@Schema(description = "강의 제목", example = "컴퓨터 네트워크", requiredMode = REQUIRED)
-	String lectureTitle,
+	String courseName,
 
 	@Schema(description = "교수 이름", example = "홍길동", requiredMode = REQUIRED)
 	String professor,
@@ -23,7 +23,7 @@ public record ActivityWeekListResponse(
 ) {
 	public static ActivityWeekListResponse from(Lecture lecture, Map<Integer, List<Activity>> activities) {
 		return ActivityWeekListResponse.builder()
-			.lectureTitle(lecture.getTitle())
+			.courseName(lecture.getTitle())
 			.professor(lecture.getProfessor())
 			.contents(activities.entrySet().stream()
 				.map(entry -> ActivityWeekResponse.from(entry.getKey(), entry.getValue()))

@@ -36,7 +36,7 @@ public class Notification extends BaseTimeEntity {
 
 	private String date;
 
-	@Column(length = 999)
+	@Column(columnDefinition = "TEXT")
 	private String content;
 
 	private String link;

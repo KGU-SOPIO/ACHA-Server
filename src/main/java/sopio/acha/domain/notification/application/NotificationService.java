@@ -12,6 +12,7 @@ import sopio.acha.domain.notification.application.response.NotificationScrapingR
 import sopio.acha.domain.notification.domain.Notification;
 import sopio.acha.domain.notification.infrastructure.NotificationRepository;
 import sopio.acha.domain.notification.presentation.exception.NotificationNotFoundException;
+import sopio.acha.domain.notification.presentation.response.NotificationDetailResponse;
 import sopio.acha.domain.notification.presentation.response.NotificationListResponse;
 
 @Service
@@ -29,10 +30,23 @@ public class NotificationService {
 
 	@Transactional(readOnly = true)
 	public NotificationListResponse getNotifications(String code) {
-		List<Notification> notifications = notificationRepository.findAllByLectureCode(code);
+		List<Notification> notifications = notificationRepository.findAllByLectureCodeOrderByIndexDesc(code);
 		if (notifications.isEmpty())
 			throw new NotificationNotFoundException();
 		return NotificationListResponse.from(notifications.getFirst().getLecture().getTitle(), notifications);
+	}
+
+	@Transactional(readOnly = true)
+	public NotificationDetailResponse getNotificationDetail(Long notificationId) {
+		Notification currentNotification = notificationRepository.findById(notificationId)
+			.orElseThrow(NotificationNotFoundException::new);
+		Notification prevNotification = notificationRepository.findByIndexAndLectureId(
+			currentNotification.getIndex() - 1, currentNotification.getLecture().getId())
+			.orElse(null);
+		Notification nextNotification = notificationRepository.findByIndexAndLectureId(
+			currentNotification.getIndex() + 1, currentNotification.getLecture().getId())
+			.orElse(null);
+		return NotificationDetailResponse.of(currentNotification, prevNotification, nextNotification);
 	}
 
 	private boolean isExistsByIndexAndLectureId(int index, Long lectureId) {

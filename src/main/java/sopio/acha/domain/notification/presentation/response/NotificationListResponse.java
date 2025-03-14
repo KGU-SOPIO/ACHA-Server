@@ -15,7 +15,7 @@ public record NotificationListResponse(
 	String courseName,
 
 	@Schema(description = "공지 목록",
-		example = "[{\"title\":\"중간고사 일정 안내\",\"professor\":\"이병대\",\"date\":\"2021-06-30\",\"index\":1}]",
+		example = "[{\"id\":\"1\",\"title\":\"중간고사 일정 안내\",\"professor\":\"이병대\",\"date\":\"2021-06-30\",\"index\":1}]",
 		requiredMode = REQUIRED)
 	List<NotificationResponse> contents
 ) {
