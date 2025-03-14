@@ -7,6 +7,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 import static sopio.acha.domain.activity.domain.ActivityType.ASSIGNMENT;
 import static sopio.acha.domain.activity.domain.ActivityType.ETC;
+import static sopio.acha.domain.activity.domain.ActivityType.FILE;
 import static sopio.acha.domain.activity.domain.ActivityType.LECTURE;
 import static sopio.acha.domain.activity.domain.ActivityType.URL;
 
@@ -124,6 +125,15 @@ public class Activity extends BaseTimeEntity {
 				.week(week)
 				.link(link)
 				.type(URL)
+				.lecture(lecture)
+				.member(member)
+				.build();
+			case "file" -> Activity.builder()
+				.available(available)
+				.title(title)
+				.week(week)
+				.link(link)
+				.type(FILE)
 				.lecture(lecture)
 				.member(member)
 				.build();

@@ -4,6 +4,7 @@ public enum ActivityType {
 	ASSIGNMENT,
 	LECTURE,
 	URL,
+	FILE,
 	ETC
 	;
 }
