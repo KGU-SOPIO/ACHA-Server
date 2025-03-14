@@ -7,6 +7,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.Formula;
@@ -72,8 +73,8 @@ public class Lecture extends BaseTimeEntity {
 
 	private int endAt;
 
-	@OneToMany(mappedBy = "notification", cascade = ALL, fetch = LAZY)
-	private List<Notification> notifications;
+	@OneToMany(mappedBy = "lecture", cascade = ALL, fetch = LAZY)
+	private List<Notification> notifications = new ArrayList<>();
 
 	public static Lecture save(String title, String identifier, String code, String professor) {
 		return Lecture.builder()
