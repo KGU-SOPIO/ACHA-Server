@@ -7,7 +7,6 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.Formula;
@@ -24,7 +23,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sopio.acha.common.domain.BaseTimeEntity;
 import sopio.acha.common.handler.DateHandler;
-import sopio.acha.domain.activity.domain.Activity;
+import sopio.acha.domain.notification.domain.Notification;
 
 @Getter
 @Entity
@@ -72,6 +71,9 @@ public class Lecture extends BaseTimeEntity {
 	private int startAt;
 
 	private int endAt;
+
+	@OneToMany(mappedBy = "notification", cascade = ALL, fetch = LAZY)
+	private List<Notification> notifications;
 
 	public static Lecture save(String title, String identifier, String code, String professor) {
 		return Lecture.builder()
