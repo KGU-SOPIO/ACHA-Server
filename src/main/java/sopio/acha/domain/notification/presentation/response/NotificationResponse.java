@@ -1,0 +1,31 @@
+package sopio.acha.domain.notification.presentation.response;
+
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
+import sopio.acha.domain.notification.domain.Notification;
+
+@Builder
+public record NotificationResponse(
+	@Schema(description = "공지 제목", example = "중간고사 일정 안내", requiredMode = REQUIRED)
+	String title,
+
+	@Schema(description = "교수", example = "이병대", requiredMode = REQUIRED)
+	String professor,
+
+	@Schema(description = "공지 날짜", example = "2021-06-30", requiredMode = REQUIRED)
+	String date,
+
+	@Schema(description = "공지 식별 번호", example = "1", requiredMode = REQUIRED)
+	int index
+) {
+	public static NotificationResponse from(Notification notification) {
+		return NotificationResponse.builder()
+			.title(notification.getTitle())
+			.professor(notification.getLecture().getProfessor())
+			.date(notification.getDate())
+			.index(notification.getIndex())
+			.build();
+	}
+}
