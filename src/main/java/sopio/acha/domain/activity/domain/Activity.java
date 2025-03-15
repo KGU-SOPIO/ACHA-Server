@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
@@ -75,6 +77,8 @@ public class Activity extends BaseTimeEntity {
 
 	private String timeLeft;
 
+	private boolean notifyScheduled = false;
+
 	@Column(length = 999)
 	private String description;
 
@@ -85,6 +89,10 @@ public class Activity extends BaseTimeEntity {
 	@ManyToOne(fetch = LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
+
+	public void updateNotifyScheduledTrue() {
+		this.notifyScheduled = true;
+	}
 
 	public static Activity save(boolean available, int week, String title, String link, String type, String code, String deadline,
 		String startAt, String lectureTime, String timeLeft, String description, Lecture lecture, Member member) {

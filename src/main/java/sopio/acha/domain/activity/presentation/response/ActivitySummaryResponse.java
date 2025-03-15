@@ -38,7 +38,7 @@ public record ActivitySummaryResponse(
 			.type(activity.getType().toString().toLowerCase())
 			.code(activity.getCode())
 			.deadline(activity.getDeadline().toString())
-			.link(activity.getLink())
+			.link(activity.getLink().isBlank() ? null : activity.getLink())
 			.build();
 	}
 }

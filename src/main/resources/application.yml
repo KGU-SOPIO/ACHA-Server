@@ -35,3 +35,6 @@ encryption:
 jwt:
   issuer: ${JWT_ISSUER}
   secret_key: ${JWT_SECRET_KEY}
+
+firebase:
+  key-path: ${FIREBASE_PATH}

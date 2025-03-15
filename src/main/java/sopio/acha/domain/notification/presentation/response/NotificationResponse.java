@@ -21,7 +21,7 @@ public record NotificationResponse(
 	String date,
 
 	@Schema(description = "공지 식별 번호", example = "1", requiredMode = REQUIRED)
-	int index
+	String index
 ) {
 	public static NotificationResponse from(Notification notification) {
 		return NotificationResponse.builder()
@@ -29,7 +29,7 @@ public record NotificationResponse(
 			.title(notification.getTitle())
 			.professor(notification.getLecture().getProfessor())
 			.date(notification.getDate())
-			.index(notification.getIndex())
+			.index(notification.getIndex() == 9999 ? "중요" : String.valueOf(notification.getIndex()))
 			.build();
 	}
 }
