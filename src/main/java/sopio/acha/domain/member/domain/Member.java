@@ -1,13 +1,17 @@
 package sopio.acha.domain.member.domain;
 
+import static jakarta.persistence.CascadeType.ALL;
 import static jakarta.persistence.EnumType.STRING;
+import static jakarta.persistence.FetchType.LAZY;
 import static lombok.AccessLevel.PROTECTED;
 import static sopio.acha.common.handler.EncryptionHandler.decrypt;
 import static sopio.acha.common.handler.EncryptionHandler.encrypt;
 import static sopio.acha.domain.member.domain.Role.ROLE_USER;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -18,12 +22,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sopio.acha.common.domain.BaseTimeEntity;
+import sopio.acha.domain.fcm.domain.Device;
 import sopio.acha.domain.member.presentation.exception.InvalidPasswordException;
 
 @Getter
@@ -52,6 +58,9 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	@Column(nullable = false)
 	@Enumerated(STRING)
 	private Role role;
+
+	@OneToMany(mappedBy = "member", cascade = ALL, fetch = LAZY)
+	private List<Device> devices = new ArrayList<>();
 
 	public static Member save(String id, String password, String name, String college, String department,
 		String major) {

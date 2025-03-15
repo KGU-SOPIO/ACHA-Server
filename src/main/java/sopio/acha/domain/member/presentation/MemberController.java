@@ -1,6 +1,7 @@
 package sopio.acha.domain.member.presentation;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import sopio.acha.domain.member.application.MemberService;
 import sopio.acha.domain.member.domain.AccessToken;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.presentation.request.MemberLoginRequest;
+import sopio.acha.domain.member.presentation.request.MemberLogoutRequest;
 import sopio.acha.domain.member.presentation.request.MemberSaveRequest;
 import sopio.acha.domain.member.presentation.request.MemberSignOutRequest;
 import sopio.acha.domain.member.presentation.request.RefreshTokenRequest;
@@ -85,4 +87,15 @@ public class MemberController {
         memberService.signOutAchaMember(currentMember, request);
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/logout")
+    @Operation(summary = "로그아웃 API", description = "현재 로그인된 회원을 로그아웃 처리하고 디바이스 토큰을 삭제합니다.")
+    public ResponseEntity<Void> logoutMember(
+        @CurrentMember Member currentMember,
+        @RequestBody MemberLogoutRequest request
+    ) {
+        memberService.logoutMemberAndDeleteDeviceToken(currentMember, request);
+        return ResponseEntity.ok().build();
+    }
+
 }

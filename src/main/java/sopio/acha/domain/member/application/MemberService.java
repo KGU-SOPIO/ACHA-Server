@@ -13,6 +13,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import sopio.acha.common.auth.jwt.JwtCreator;
+import sopio.acha.domain.fcm.domain.Device;
+import sopio.acha.domain.fcm.infrastructure.DeviceRepository;
 import sopio.acha.domain.member.domain.AccessToken;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.domain.RefreshToken;
@@ -22,6 +24,7 @@ import sopio.acha.domain.member.presentation.exception.InvalidStudentIdOrPasswor
 import sopio.acha.domain.member.presentation.exception.MemberNotAuthenticatedException;
 import sopio.acha.domain.member.presentation.exception.MemberNotFoundException;
 import sopio.acha.domain.member.presentation.request.MemberLoginRequest;
+import sopio.acha.domain.member.presentation.request.MemberLogoutRequest;
 import sopio.acha.domain.member.presentation.request.MemberSaveRequest;
 import sopio.acha.domain.member.presentation.request.MemberSignOutRequest;
 import sopio.acha.domain.member.presentation.request.RefreshTokenRequest;
@@ -34,6 +37,7 @@ import sopio.acha.domain.member.presentation.response.MemberTokenResponse;
 @RequiredArgsConstructor
 public class MemberService {
 	private final MemberRepository memberRepository;
+	private final DeviceRepository deviceRepository;
 	private final RefreshTokenService refreshTokenService;
 	private final JwtCreator jwtCreator;
 
@@ -45,8 +49,10 @@ public class MemberService {
 	public MemberTokenResponse validateIsAchaMemberAndLogin(MemberLoginRequest request) {
 		validateIsAchaMember(request.studentId());
 		Member loginMember = validatePasswordAndGetMemberInfoFromExtractor(request.studentId(), request.password());
+		saveNewDeviceToken(request.deviceToken(), loginMember);
 		return issueAndSaveMemberToken(loginMember);
 	}
+
 
 	public MemberSummaryResponse getNewMemberDataFromLMS(MemberLoginRequest request) {
 		JSONObject json = new JSONObject(requestAuthenticationAndUserInfo(request.studentId(), request.password()));
@@ -60,11 +66,13 @@ public class MemberService {
 		}
 	}
 
+	@Transactional
 	public MemberTokenResponse saveMemberAndLogin(MemberSaveRequest request) {
 		Member savedMember = memberRepository.save(
 			Member.save(request.studentId(), request.password(), request.name(), request.college(),
 				request.department(), request.major())
 		);
+		saveNewDeviceToken(request.deviceToken(), savedMember);
 		return issueAndSaveMemberToken(savedMember);
 	}
 
@@ -100,6 +108,17 @@ public class MemberService {
 		currentMember.validatePassword(request.password());
 		currentMember.delete();
 		memberRepository.save(currentMember);
+	}
+
+	public void logoutMemberAndDeleteDeviceToken(Member currentMember, MemberLogoutRequest request) {
+		deviceRepository.findByMemberIdAndDeviceToken(currentMember.getId(), request.deviceToken())
+			.ifPresent(deviceRepository::delete);
+	}
+
+	private void saveNewDeviceToken(String deviceToken, Member member) {
+		if (!deviceRepository.existsByDeviceToken(deviceToken)) {
+			deviceRepository.save(new Device(member, deviceToken));
+		}
 	}
 
 	private MemberTokenResponse issueAndSaveMemberToken(Member member) {

@@ -3,8 +3,11 @@ package sopio.acha.domain.member.presentation.request;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
+@JsonIgnoreProperties
 public record MemberSaveRequest(
 	@Schema(description = "학번", requiredMode = REQUIRED)
 	String studentId,
@@ -22,6 +25,9 @@ public record MemberSaveRequest(
 	String department,
 
 	@Schema(description = "전공", requiredMode = NOT_REQUIRED)
-	String major
+	String major,
+
+	@Schema(description = "디바이스 토큰", requiredMode = NOT_REQUIRED)
+	String deviceToken
 ) {
 }
