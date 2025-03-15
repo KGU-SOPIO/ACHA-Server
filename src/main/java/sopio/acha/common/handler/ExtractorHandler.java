@@ -54,7 +54,7 @@ public class ExtractorHandler {
 		URI uri = buildUriByPath("/v1/course/");
 		String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password
 			+ "\", \"year\": " + getCurrentSemesterYear() + ", \"semester\": " + getCurrentSemester()
-			+ ", \"extract\": true }";
+			+ ", \"extract\": false }";
 		return getJsonData(requestBody, uri).toString();
 	}
 
