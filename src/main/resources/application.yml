@@ -23,11 +23,6 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD}
 
-management:
-  endpoint:
-    health:
-      show-details: always
-
 extractor:
   request-url: ${EXTRACTOR_URL}
 
