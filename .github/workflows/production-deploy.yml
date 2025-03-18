@@ -11,6 +11,8 @@ jobs:
     name: "도커 이미지를 빌드한다."
     runs-on: ubuntu-22.04
     environment: production
+    permissions:
+      contents: write
 
     steps:
       - name: "레포지토리에서 체크아웃한다."
