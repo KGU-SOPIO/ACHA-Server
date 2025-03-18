@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx
+    container_name: onepiece-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always
+    volumes:
+      - ./nginx/:/etc/nginx/
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    networks:
+      - acha-network
+
+  certbot:
+    image: certbot/certbot
+    container_name: onepiece-certbot
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - acha-network
+
+  acha-api:
+    image: ${DOCKER_USERNAME}/acha-api:latest
+    container_name: acha-api
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      - mysql
+    networks:
+      - acha-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: acha-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    env_file:
+      - .env
+    volumes:
+      - acha-data:/var/lib/mysql
+    networks:
+      - acha-network
+
+  redis:
+    image: redis:latest
+    container_name: acha-redis
+    restart: always
+    command: redis-server
+    env_file:
+      - .env
+    ports:
+      - "6379:6379"
+    networks:
+      - acha-network
+
+networks:
+  acha-network:
+    driver: bridge
+
+volumes:
+  acha-data:
