@@ -67,7 +67,6 @@ public class MemberService {
 		}
 	}
 
-	@Transactional
 	public MemberTokenResponse saveMemberAndLogin(MemberSaveRequest request) {
 		Member savedMember = memberRepository.save(
 			Member.save(request.studentId(), request.password(), request.name(), request.college(),

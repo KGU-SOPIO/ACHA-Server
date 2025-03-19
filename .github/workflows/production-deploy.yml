@@ -118,21 +118,15 @@ jobs:
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: TIME_LETTER_BOT
         with:
-          args: |
-            ✅ 배포 성공 🎉  
-            - 애플리케이션 정상 구동됨  
-            - 환경: Production  
-            - 버전: `${{ needs.build.outputs.version }}`  
+          args: '✅ 배포 성공 🎉 : production 애플리케이션 서버 정상 구동됨'
 
       - name: "디스코드 알림 (실패)"
         if: failure()
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: TIME_LETTER_BOT
         with:
-          args: |
-            ❌ 배포 실패 🚨  
-            - 서버 점검 실패  
-            - 환경: Production  
-            - 조치 필요! 🛠
+          args: '❌ 배포 실패 🚨 : production 애플리케이션 서버 점검 실패'
