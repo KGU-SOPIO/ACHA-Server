@@ -25,6 +25,7 @@ import sopio.acha.domain.member.presentation.exception.MemberNotAuthenticatedExc
 import sopio.acha.domain.member.presentation.exception.MemberNotFoundException;
 import sopio.acha.domain.member.presentation.request.MemberLoginRequest;
 import sopio.acha.domain.member.presentation.request.MemberLogoutRequest;
+import sopio.acha.domain.member.presentation.request.MemberRequest;
 import sopio.acha.domain.member.presentation.request.MemberSaveRequest;
 import sopio.acha.domain.member.presentation.request.MemberSignOutRequest;
 import sopio.acha.domain.member.presentation.request.RefreshTokenRequest;
@@ -54,7 +55,7 @@ public class MemberService {
 	}
 
 
-	public MemberSummaryResponse getNewMemberDataFromLMS(MemberLoginRequest request) {
+	public MemberSummaryResponse getNewMemberDataFromLMS(MemberRequest request) {
 		JSONObject json = new JSONObject(requestAuthenticationAndUserInfo(request.studentId(), request.password()));
 		if (!json.optBoolean("verification", false))
 			throw new InvalidStudentIdOrPasswordException();
@@ -104,14 +105,20 @@ public class MemberService {
 			.orElseThrow(MemberNotFoundException::new);
 	}
 
+	@Transactional
 	public void signOutAchaMember(Member currentMember, MemberSignOutRequest request) {
+		findByMemberIdAndDeviceToken(currentMember, request.deviceToken());
 		currentMember.validatePassword(request.password());
 		currentMember.delete();
 		memberRepository.save(currentMember);
 	}
 
 	public void logoutMemberAndDeleteDeviceToken(Member currentMember, MemberLogoutRequest request) {
-		deviceRepository.findByMemberIdAndDeviceToken(currentMember.getId(), request.deviceToken())
+		findByMemberIdAndDeviceToken(currentMember, request.deviceToken());
+	}
+
+	private void findByMemberIdAndDeviceToken(Member currentMember, String deviceToken) {
+		deviceRepository.findByMemberIdAndDeviceToken(currentMember.getId(), deviceToken)
 			.ifPresent(deviceRepository::delete);
 	}
 
