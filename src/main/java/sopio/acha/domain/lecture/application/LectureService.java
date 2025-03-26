@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import sopio.acha.domain.activity.application.ActivityService;
 import sopio.acha.domain.lecture.domain.Lecture;
 import sopio.acha.domain.lecture.infrastructure.LectureRepository;
 import sopio.acha.domain.lecture.presentation.exception.FailedParsingLectureDataException;
@@ -28,6 +29,7 @@ import sopio.acha.domain.lecture.presentation.response.LectureBasicInformationRe
 import sopio.acha.domain.lecture.presentation.response.LectureTimeTableResponse;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.memberLecture.application.MemberLectureService;
+import sopio.acha.domain.memberLecture.domain.MemberLecture;
 import sopio.acha.domain.notification.application.NotificationService;
 
 @Service
@@ -36,51 +38,53 @@ public class LectureService {
 	private final LectureRepository lectureRepository;
 	private final MemberLectureService memberLectureService;
 	private final NotificationService notificationService;
+	private final LectureServiceHelper lectureServiceHelper;
 
 	@Transactional(propagation = REQUIRES_NEW)
 	public void extractLectureAndSave(Member currentMember) {
 		try {
 			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode timeTableData = objectMapper.readTree(
+					requestTimeTable(currentMember.getId(), decrypt(currentMember.getPassword()))).get("data");
 			JsonNode courseData = objectMapper.readTree(
-				requestCourse(currentMember.getId(), decrypt(currentMember.getPassword()))).get("data");
+					requestCourse(currentMember.getId(), decrypt(currentMember.getPassword()))).get("data");
 
 			List<Lecture> lectures = StreamSupport.stream(courseData.spliterator(), false)
-				.map(node -> objectMapper.convertValue(node, LectureBasicInformationResponse.class))
-				.map(lectureData -> save(lectureData.title(), lectureData.identifier(), lectureData.code(),
-					lectureData.professor()))
-				.filter(this::isExistsByIdentifier)
-				.toList();
+					.map(node -> objectMapper.convertValue(node, LectureBasicInformationResponse.class))
+					.map(lectureData -> save(lectureData.title(), lectureData.identifier(), lectureData.code(),
+							lectureData.professor()))
+					.filter(this::isExistsByIdentifier)
+					.toList();
 			if (!lectures.isEmpty()) lectureRepository.saveAll(lectures);
 
 			StreamSupport.stream(courseData.spliterator(), false)
-				.map(node -> objectMapper.convertValue(node, LectureBasicInformationResponse.class))
-				.filter(lectureData -> lectureData.notices() != null && !lectureData.notices().isEmpty())
-				.forEach(lectureData -> {
-					Lecture lecture = getLectureByCode(lectureData.code());
-					notificationService.extractNotifications(lectureData.notices(), lecture);
-				});
+					.map(node -> objectMapper.convertValue(node, LectureBasicInformationResponse.class))
+					.filter(lectureData -> lectureData.notices() != null && !lectureData.notices().isEmpty())
+					.forEach(lectureData -> {
+						Lecture lecture = getLectureByCode(lectureData.code());
+						notificationService.extractNotifications(lectureData.notices(), lecture);
+					});
 
-			JsonNode timeTableData = objectMapper.readTree(
-				requestTimeTable(currentMember.getId(), decrypt(currentMember.getPassword()))).get("data");
 			Map<String, LectureTimeTableResponse> timeTableMap = StreamSupport.stream(timeTableData.spliterator(),
-					false)
-				.map(node -> objectMapper.convertValue(node, LectureTimeTableResponse.class))
-				.collect(Collectors.toMap(LectureTimeTableResponse::identifier, Function.identity()));
+							false)
+					.map(node -> objectMapper.convertValue(node, LectureTimeTableResponse.class))
+					.collect(Collectors.toMap(LectureTimeTableResponse::identifier, Function.identity()));
 			lectures.forEach(lecture -> {
 				LectureTimeTableResponse timeTable = timeTableMap.get(lecture.getIdentifier());
 				if (timeTable != null) {
 					lecture.setTimeTable(
-						timeTable.day(), timeTable.classTime(), timeTable.startAt(), timeTable.endAt(),
-						timeTable.lectureRoom()
+							timeTable.day(), timeTable.classTime(), timeTable.startAt(), timeTable.endAt(),
+							timeTable.lectureRoom()
 					);
 				}
 			});
 			List<Lecture> lectureHasTimeTable = StreamSupport.stream(timeTableData.spliterator(), false)
-				.map(node -> objectMapper.convertValue(node, LectureTimeTableResponse.class))
-				.map(LectureTimeTableResponse::identifier)
-				.map(this::getByIdentifier)
-				.toList();
+					.map(node -> objectMapper.convertValue(node, LectureTimeTableResponse.class))
+					.map(LectureTimeTableResponse::identifier)
+					.map(this::getByIdentifier)
+					.toList();
 			memberLectureService.saveMyLectures(lectureHasTimeTable, currentMember);
+			lectureServiceHelper.saveLectureAndActivities(courseData, lectureHasTimeTable, currentMember, objectMapper);
 		} catch (JsonProcessingException e) {
 			throw new FailedParsingLectureDataException();
 		}
