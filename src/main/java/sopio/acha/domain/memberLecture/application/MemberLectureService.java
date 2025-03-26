@@ -59,7 +59,7 @@ public class MemberLectureService {
 			DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
 	}
 
-	private boolean isExistsMemberLecture(Member currentMember, Lecture lecture) {
+	public boolean isExistsMemberLecture(Member currentMember, Lecture lecture) {
 		return !memberLectureRepository.existsByMemberAndLecture(currentMember, lecture);
 	}
 }
