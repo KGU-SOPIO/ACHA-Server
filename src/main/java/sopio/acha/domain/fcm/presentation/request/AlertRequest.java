@@ -7,6 +7,8 @@ public record AlertRequest(
     boolean status
 ) {
     public static AlertRequest of(Boolean alert) {
+        if (alert == null)
+            alert = true;
         return new AlertRequest(alert);
     }
 }
