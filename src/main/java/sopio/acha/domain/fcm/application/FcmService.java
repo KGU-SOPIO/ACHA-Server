@@ -16,12 +16,17 @@ import lombok.RequiredArgsConstructor;
 import sopio.acha.domain.fcm.application.exception.FcmSendFailedException;
 import sopio.acha.domain.fcm.domain.FcmSchedule;
 import sopio.acha.domain.fcm.infrastructure.FcmScheduleRepository;
+import sopio.acha.domain.fcm.presentation.request.NotificationRequest;
+import sopio.acha.domain.fcm.presentation.response.NotificationResponse;
 import sopio.acha.domain.member.domain.Member;
+import sopio.acha.domain.member.infrastructure.MemberRepository;
+import sopio.acha.domain.member.presentation.exception.MemberNotFoundException;
 
 @Service
 @RequiredArgsConstructor
 public class FcmService {
 	private final FcmScheduleRepository fcmScheduleRepository;
+	private final MemberRepository memberRepository;
 
 	@Transactional
 	@Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
@@ -34,6 +39,19 @@ public class FcmService {
 					throw new FcmSendFailedException();
 				}
 			});
+	}
+
+	public void setNotificationStatus(Member currentMember, NotificationRequest notificationRequest) {
+		Member member = memberRepository.findMemberById(currentMember.getId())
+			.orElseThrow(MemberNotFoundException::new);
+		member.updateNotification(notificationRequest.status());
+		memberRepository.save(member);
+	}
+
+	public NotificationResponse getNotificationStatus(Member currentMember) {
+		Member member = memberRepository.findMemberById(currentMember.getId())
+			.orElseThrow(MemberNotFoundException::new);
+		return NotificationResponse.from(member.getNotification());
 	}
 
 	public void saveFcmEvent(Member currentMember, String title, String body, LocalDateTime sendTime) {
