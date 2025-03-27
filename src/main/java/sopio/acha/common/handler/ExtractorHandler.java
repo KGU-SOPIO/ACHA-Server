@@ -10,14 +10,18 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import sopio.acha.common.exception.ExtractorErrorException;
+import sopio.acha.common.exception.KutisPasswordErrorException;
+
 
 @Component
 @RequiredArgsConstructor
@@ -54,7 +58,7 @@ public class ExtractorHandler {
 		URI uri = buildUriByPath("/v1/course/");
 		String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password
 			+ "\", \"year\": " + getCurrentSemesterYear() + ", \"semester\": " + getCurrentSemester()
-			+ ", \"extract\": false }";
+			+ ", \"extract\": true }";
 		return getJsonData(requestBody, uri).toString();
 	}
 
@@ -88,7 +92,14 @@ public class ExtractorHandler {
 		HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
 		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> response = restTemplate.exchange(uri, POST, entity, String.class);
-		return new JSONObject(response.getBody());
+		try {
+			ResponseEntity<String> response = restTemplate.exchange(uri, POST, entity, String.class);
+			return new JSONObject(response.getBody());
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+				throw new KutisPasswordErrorException();
+			}
+			throw e;
+		}
 	}
 }

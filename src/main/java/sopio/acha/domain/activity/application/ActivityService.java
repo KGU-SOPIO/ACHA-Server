@@ -78,14 +78,6 @@ public class ActivityService {
 		}
 	}
 
-	@Transactional
-	public void extractActivity(Member currentMember) {
-		ObjectMapper objectMapper = new ObjectMapper();
-		List<MemberLecture> currentLectures = memberLectureService.getCurrentMemberLectureAndSetLastUpdatedAt(
-			currentMember);
-		saveExtractedActivity(currentLectures, objectMapper);
-	}
-
 	public void scheduledActivityExtraction() {
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<MemberLecture> allLectureList = memberLectureService.getAllMemberLecture()
