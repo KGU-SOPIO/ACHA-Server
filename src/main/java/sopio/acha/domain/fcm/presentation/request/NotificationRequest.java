@@ -9,8 +9,8 @@ public record NotificationRequest (
     @Schema(description = "알림 상태")
     boolean status
 ) {
-    public static NotificationResponse from(Boolean notification) {
-        return NotificationResponse.builder().status(notification)
+    public static NotificationRequest from(Boolean notification) {
+        return NotificationRequest.builder().status(notification)
             .build();
     }
 }
