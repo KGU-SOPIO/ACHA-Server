@@ -97,12 +97,7 @@ public class ExtractorHandler {
 			return new JSONObject(response.getBody());
 		} catch (HttpClientErrorException e) {
 			if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-				String responseBody = e.getResponseBodyAsString();
-				JSONObject errorJson = new JSONObject(responseBody);
-
-				if (errorJson.has("message") && errorJson.getString("message").contains("비밀번호 변경")) {
-					throw new KutisPasswordErrorException();
-				}
+				throw new KutisPasswordErrorException();
 			}
 			throw e;
 		}
