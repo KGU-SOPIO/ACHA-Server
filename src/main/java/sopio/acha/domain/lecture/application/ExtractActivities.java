@@ -20,7 +20,7 @@ import java.util.stream.StreamSupport;
 
 @Component
 @RequiredArgsConstructor
-public class LectureServiceHelper {
+public class ExtractActivities {
     private final MemberLectureService memberLectureService;
     private final ActivityRepository activityRepository;
 

@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
-import sopio.acha.domain.activity.application.ActivityService;
 import sopio.acha.domain.lecture.domain.Lecture;
 import sopio.acha.domain.lecture.infrastructure.LectureRepository;
 import sopio.acha.domain.lecture.presentation.exception.FailedParsingLectureDataException;
@@ -29,7 +28,6 @@ import sopio.acha.domain.lecture.presentation.response.LectureBasicInformationRe
 import sopio.acha.domain.lecture.presentation.response.LectureTimeTableResponse;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.memberLecture.application.MemberLectureService;
-import sopio.acha.domain.memberLecture.domain.MemberLecture;
 import sopio.acha.domain.notification.application.NotificationService;
 
 @Service
@@ -38,7 +36,7 @@ public class LectureService {
 	private final LectureRepository lectureRepository;
 	private final MemberLectureService memberLectureService;
 	private final NotificationService notificationService;
-	private final LectureServiceHelper lectureServiceHelper;
+	private final ExtractActivities extractActivities;
 
 	@Transactional(propagation = REQUIRES_NEW)
 	public void extractLectureAndSave(Member currentMember) {
@@ -84,7 +82,7 @@ public class LectureService {
 					.map(this::getByIdentifier)
 					.toList();
 			memberLectureService.saveMyLectures(lectureHasTimeTable, currentMember);
-			lectureServiceHelper.saveLectureAndActivities(courseData, lectureHasTimeTable, currentMember, objectMapper);
+			extractActivities.saveLectureAndActivities(courseData, lectureHasTimeTable, currentMember, objectMapper);
 		} catch (JsonProcessingException e) {
 			throw new FailedParsingLectureDataException();
 		}
