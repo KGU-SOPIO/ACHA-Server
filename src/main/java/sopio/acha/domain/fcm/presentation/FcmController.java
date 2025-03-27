@@ -7,8 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sopio.acha.common.auth.annotation.CurrentMember;
 import sopio.acha.domain.fcm.application.FcmService;
-import sopio.acha.domain.fcm.presentation.request.NotificationRequest;
-import sopio.acha.domain.fcm.presentation.response.NotificationResponse;
+import sopio.acha.domain.fcm.presentation.request.AlertRequest;
+import sopio.acha.domain.fcm.presentation.response.AlertResponse;
 import sopio.acha.domain.member.domain.Member;
 
 @RestController
@@ -19,22 +19,22 @@ public class FcmController {
 
     private final FcmService fcmService;
 
-    @PostMapping("")
+    @PostMapping
     @Operation(summary = "알림 설정", description = "알림 기능을 켜고 끕니다.")
-    public ResponseEntity<?> setNotificationStatus(
+    public ResponseEntity<?> setAlertStatus(
         @CurrentMember Member currentMember,
-        @RequestBody NotificationRequest notificationRequest
+        @RequestBody AlertRequest alertRequest
         ) {
-        fcmService.setNotificationStatus(currentMember, notificationRequest);
+        fcmService.setAlertStatus(currentMember, alertRequest);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("")
+    @GetMapping
     @Operation(summary = "알림 상태", description = "현재 유저의 알림 상태를 반환합니다.")
-    public ResponseEntity<NotificationResponse> getNotificationStatus(
+    public ResponseEntity<AlertResponse> getAlertStatus(
         @CurrentMember Member currentMember
     ) {
-        NotificationResponse response = fcmService.getNotificationStatus(currentMember);
+        AlertResponse response = fcmService.getAlertStatus(currentMember);
         return ResponseEntity.ok().body(response);
     }
 
