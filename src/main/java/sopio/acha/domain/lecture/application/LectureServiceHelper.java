@@ -51,7 +51,7 @@ public class LectureServiceHelper {
                         .map(activityResponse -> {
                             Activity activity = Activity.save(
                                 activityResponse.available(),
-                                0,
+                                week,
                                 activityResponse.title(),
                                 Optional.ofNullable(activityResponse.link()).orElse(""),
                                 activityResponse.type(),
@@ -69,8 +69,8 @@ public class LectureServiceHelper {
                         .toList());
                 }
             }
-            activityRepository.saveAll(activities);
         }
+        activityRepository.saveAll(activities);
     }
 
     private boolean isExistsActivity(String title, String memberId) {
