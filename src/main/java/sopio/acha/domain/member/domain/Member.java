@@ -57,7 +57,7 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	private String major;
 
 	@ColumnDefault("true")
-	private Boolean notification;
+	private Boolean alert;
 
 	@Column(nullable = false)
 	@Enumerated(STRING)
@@ -75,13 +75,13 @@ public class Member extends BaseTimeEntity implements UserDetails {
 			.college(college)
 			.department(department)
 			.major(major)
-			.notification(true)
+			.alert(true)
 			.role(ROLE_USER)
 			.build();
 	}
 
-	public void updateNotification(Boolean notification) {
-		this.notification = notification;
+	public void updateAlert(Boolean alert) {
+		this.alert = alert;
 	}
 
 	public void updateBasicInformation(String name, String college, String department, String major) {
