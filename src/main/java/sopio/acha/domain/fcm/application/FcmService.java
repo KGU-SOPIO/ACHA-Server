@@ -16,8 +16,8 @@ import lombok.RequiredArgsConstructor;
 import sopio.acha.domain.fcm.application.exception.FcmSendFailedException;
 import sopio.acha.domain.fcm.domain.FcmSchedule;
 import sopio.acha.domain.fcm.infrastructure.FcmScheduleRepository;
-import sopio.acha.domain.fcm.presentation.request.NotificationRequest;
-import sopio.acha.domain.fcm.presentation.response.NotificationResponse;
+import sopio.acha.domain.fcm.presentation.request.AlertRequest;
+import sopio.acha.domain.fcm.presentation.response.AlertResponse;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.infrastructure.MemberRepository;
 import sopio.acha.domain.member.presentation.exception.MemberNotFoundException;
@@ -41,17 +41,15 @@ public class FcmService {
 			});
 	}
 
-	public void setNotificationStatus(Member currentMember, NotificationRequest notificationRequest) {
-		Member member = memberRepository.findMemberById(currentMember.getId())
-			.orElseThrow(MemberNotFoundException::new);
-		member.updateNotification(notificationRequest.status());
-		memberRepository.save(member);
+	public void setAlertStatus(Member currentMember, AlertRequest alertRequest) {
+		currentMember.updateAlert(alertRequest.status());
+		memberRepository.save(currentMember);
 	}
 
-	public NotificationResponse getNotificationStatus(Member currentMember) {
+	public AlertResponse getAlertStatus(Member currentMember) {
 		Member member = memberRepository.findMemberById(currentMember.getId())
 			.orElseThrow(MemberNotFoundException::new);
-		return NotificationResponse.from(member.getNotification());
+		return AlertResponse.of(member.getAlert());
 	}
 
 	public void saveFcmEvent(Member currentMember, String title, String body, LocalDateTime sendTime) {
