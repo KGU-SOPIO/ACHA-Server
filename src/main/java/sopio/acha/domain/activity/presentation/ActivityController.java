@@ -24,15 +24,6 @@ import sopio.acha.domain.member.domain.Member;
 public class ActivityController {
 	private final ActivityService activityService;
 
-	@PostMapping
-	@Operation(summary = "활동 정보 스크래핑 요청 API", description = "활동 정보를 스크래핑하고 해당 데이터를 DB에 저장합니다.")
-	public ResponseEntity<Void> extractActivityAndSave(
-		@CurrentMember Member currentMember
-	) {
-		activityService.extractActivity(currentMember);
-		return ResponseEntity.ok().build();
-	}
-
 	@GetMapping("/my")
 	@Operation(summary = "내 활동 목록 조회 API", description = "활동 제출 남은 시간을 기준으로 활동 목록을 조회합니다.")
 	public ResponseEntity<ActivitySummaryListResponse> getMyActivityList(
