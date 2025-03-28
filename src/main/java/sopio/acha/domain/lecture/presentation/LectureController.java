@@ -28,7 +28,7 @@ public class LectureController {
 	public ResponseEntity<Void> extractLectureAndSave(
 		@CurrentMember Member currentMember
 	) {
-		lectureService.extractLectureAndSave(currentMember);
+		lectureService.extractCourseAndSave(currentMember);
 		return ResponseEntity.ok().build();
 	}
 }
