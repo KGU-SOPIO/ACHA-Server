@@ -31,7 +31,7 @@ public class FcmService {
 	@Transactional
 	@Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
 	public void sendActivityNotificationToFCM() {
-		fcmScheduleRepository.findAllBySendTimeBefore(LocalDateTime.now())
+		fcmScheduleRepository.findAllBySendTimeBeforeAndMember_AlertIsTrue(LocalDateTime.now())
 			.forEach(msg -> {
 				try {
 					sendNotification(msg.getDeviceToken(), msg.getTitle(), msg.getBody());
@@ -55,7 +55,7 @@ public class FcmService {
 	public void saveFcmEvent(Member currentMember, String title, String body, LocalDateTime sendTime) {
 		currentMember.getDevices()
 			.forEach(
-				device -> fcmScheduleRepository.save(new FcmSchedule(title, body, device.getDeviceToken(), sendTime)));
+				device -> fcmScheduleRepository.save(new FcmSchedule(title, body, device.getDeviceToken(), currentMember, sendTime)));
 	}
 
 	public void sendNotification(String token, String title, String body) throws FirebaseMessagingException {
