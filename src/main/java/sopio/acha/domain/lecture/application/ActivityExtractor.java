@@ -3,10 +3,8 @@ package sopio.acha.domain.lecture.application;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.springframework.stereotype.Component;
 
@@ -16,7 +14,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import sopio.acha.domain.activity.domain.Activity;
 import sopio.acha.domain.activity.infrastructure.ActivityRepository;
-import sopio.acha.domain.activity.presentation.response.ActivityResponse;
+import sopio.acha.domain.activity.presentation.response.ActivityScrapingResponse;
+import sopio.acha.domain.activity.presentation.response.ActivityScrapingWeekResponse;
 import sopio.acha.domain.lecture.domain.Lecture;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.memberLecture.application.MemberLectureService;
@@ -42,8 +41,8 @@ public class ActivityExtractor {
 
         for (JsonNode dataNode : courseData) {
             String identifier = dataNode.get("identifier").asText();
-            JsonNode activitiesWrapper = dataNode.get("activities");
-            if (activitiesWrapper == null || !activitiesWrapper.isArray()) {
+            JsonNode activitiesNode = dataNode.get("activities");
+            if (activitiesNode == null || !activitiesNode.isArray()) {
                 continue;
             }
             MemberLecture memberCourse = memberCourseMap.get(identifier);
@@ -51,31 +50,23 @@ public class ActivityExtractor {
                 continue;
             }
 
-            for (JsonNode weekNode : activitiesWrapper) {
-                int week = weekNode.get("week").asInt();
-                JsonNode activityArray = weekNode.get("activities");
-                if (activityArray == null || !activityArray.isArray()) {
-                    continue;
-                }
-
-                List<ActivityResponse> activityResponses = StreamSupport.stream(activityArray.spliterator(), false)
-                        .map(node -> objectMapper.convertValue(node, ActivityResponse.class))
-                        .toList();
-
-                for (ActivityResponse activityResponse : activityResponses) {
+            for (JsonNode weekNode : activitiesNode) {
+                ActivityScrapingWeekResponse weekResponse = objectMapper.convertValue(weekNode, ActivityScrapingWeekResponse.class);
+                int week = weekResponse.week();
+                for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
                     if (!activityRepository.existsActivityByTitleAndMemberId(activityResponse.title(), memberId)) {
                         Activity activity = Activity.save(
                             activityResponse.available(),
                             week,
                             activityResponse.title(),
-                            Optional.ofNullable(activityResponse.link()).orElse(""),
+                            activityResponse.link(),
                             activityResponse.type(),
-                            Optional.ofNullable(activityResponse.code()).orElse(""),
-                            Optional.ofNullable(activityResponse.deadline()).orElse(""),
+                            activityResponse.code(),
+                            activityResponse.deadline(),
                             activityResponse.startAt(),
                             activityResponse.lectureTime(),
-                            Optional.ofNullable(activityResponse.timeLeft()).orElse(""),
-                            Optional.ofNullable(activityResponse.description()).orElse(""),
+                            activityResponse.timeLeft(),
+                            activityResponse.description(),
                             memberCourse.getLecture(),
                             memberCourse.getMember()
                         );
@@ -83,9 +74,9 @@ public class ActivityExtractor {
                     }
                 }
             }
-        }
-        if (!activities.isEmpty()) {
-            activityRepository.saveAll(activities);
+            if (!activities.isEmpty()) {
+                activityRepository.saveAll(activities);
+            }
         }
     }
 }

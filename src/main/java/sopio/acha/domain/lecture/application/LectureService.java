@@ -57,7 +57,7 @@ public class LectureService {
 			timetableExtractor.extractAndUpdate(timetableData);
 
 			// 멤버 - 강좌 연결 저장
-			List<Lecture> courseWithTimetable = getLecturesFromTimetable(timetableData);
+			List<Lecture> courseWithTimetable = getCoursesFromTimetable(timetableData);
 			memberLectureService.saveMyLectures(courseWithTimetable, currentMember);
 
 			// 활동 데이터 처리
@@ -85,7 +85,7 @@ public class LectureService {
 		}
 	}
 
-	private List<Lecture> getLecturesFromTimetable(JsonNode timetableData) {
+	private List<Lecture> getCoursesFromTimetable(JsonNode timetableData) {
 		List<LectureTimeTableResponse> timetableList = StreamSupport.stream(timetableData.spliterator(), false)
             .map(node -> objectMapper.convertValue(node, LectureTimeTableResponse.class))
             .toList();

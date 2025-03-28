@@ -8,7 +8,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import sopio.acha.domain.activity.presentation.response.ActivityWeekResponse;
+import sopio.acha.domain.activity.presentation.response.ActivityScrapingWeekResponse;
 import sopio.acha.domain.notification.application.response.NotificationScrapingResponse;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -32,6 +32,6 @@ public record LectureBasicInformationResponse (
 	List<NotificationScrapingResponse> notices,
 
 	@Schema(description = "활동 목록", requiredMode = NOT_REQUIRED)
-	List<ActivityWeekResponse> activities
+	List<ActivityScrapingWeekResponse> activities
 ) {
 }
