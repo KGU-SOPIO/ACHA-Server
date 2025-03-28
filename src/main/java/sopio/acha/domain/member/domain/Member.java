@@ -91,6 +91,10 @@ public class Member extends BaseTimeEntity implements UserDetails {
 		this.major = major;
 	}
 
+	public void updatePassword(String password) {
+		this.password = encrypt(password);
+	}
+
 	public void validatePassword(String password) {
 		if (!Objects.equals(decrypt(this.password), password)) throw new InvalidPasswordException();
 	}
