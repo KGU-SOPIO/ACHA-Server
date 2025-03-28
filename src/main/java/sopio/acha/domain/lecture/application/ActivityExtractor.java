@@ -43,7 +43,7 @@ public class ActivityExtractor {
         for (JsonNode dataNode : courseData) {
             String identifier = dataNode.get("identifier").asText();
             JsonNode activitiesWrapper = dataNode.get("activities");
-            if (activitiesWrapper == null || activitiesWrapper.isArray()) {
+            if (activitiesWrapper == null || !activitiesWrapper.isArray()) {
                 continue;
             }
             MemberLecture memberCourse = memberCourseMap.get(identifier);
@@ -54,7 +54,7 @@ public class ActivityExtractor {
             for (JsonNode weekNode : activitiesWrapper) {
                 int week = weekNode.get("week").asInt();
                 JsonNode activityArray = weekNode.get("activities");
-                if (activityArray == null || activityArray.isArray()) {
+                if (activityArray == null || !activityArray.isArray()) {
                     continue;
                 }
 

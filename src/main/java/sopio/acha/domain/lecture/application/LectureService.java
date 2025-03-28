@@ -41,12 +41,10 @@ public class LectureService {
 	@Transactional(propagation = REQUIRES_NEW)
 	public void extractCourseAndSave(Member currentMember) {
 		try {
-			String decryptedPassword = decrypt(currentMember.getPassword());
-
 			JsonNode timetableData = objectMapper.readTree(
-					requestTimeTable(currentMember.getId(), decryptedPassword)).get("data");
+					requestTimeTable(currentMember.getId(), decrypt(currentMember.getPassword()))).get("data");
 			JsonNode courseData = objectMapper.readTree(
-					requestCourse(currentMember.getId(), decryptedPassword)).get("data");
+					requestCourse(currentMember.getId(), decrypt(currentMember.getPassword()))).get("data");
 
 			// 강좌 정보 추출 및 저장
 			Map<String, LectureBasicInformationResponse> courseMap = extractCourseMap(courseData);
