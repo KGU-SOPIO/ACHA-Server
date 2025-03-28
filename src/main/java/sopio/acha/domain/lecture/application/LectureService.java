@@ -27,94 +27,78 @@ import sopio.acha.domain.lecture.presentation.response.LectureBasicInformationRe
 import sopio.acha.domain.lecture.presentation.response.LectureTimeTableResponse;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.memberLecture.application.MemberLectureService;
-import sopio.acha.domain.notification.application.NotificationService;
 
 @Service
 @RequiredArgsConstructor
 public class LectureService {
 	private final LectureRepository lectureRepository;
 	private final MemberLectureService memberLectureService;
-	private final NotificationService notificationService;
-	private final ExtractActivities extractActivities;
+	private final NoticeExtractor noticeExtractor;
+	private final TimetableExtractor timetableExtractor;
+	private final ActivityExtractor activityExtractor;
 	private final ObjectMapper objectMapper;
 
 	@Transactional(propagation = REQUIRES_NEW)
-	public void extractLectureAndSave(Member currentMember) {
+	public void extractCourseAndSave(Member currentMember) {
 		try {
 			String decryptedPassword = decrypt(currentMember.getPassword());
 
-			JsonNode timeTableData = objectMapper.readTree(
+			JsonNode timetableData = objectMapper.readTree(
 					requestTimeTable(currentMember.getId(), decryptedPassword)).get("data");
 			JsonNode courseData = objectMapper.readTree(
 					requestCourse(currentMember.getId(), decryptedPassword)).get("data");
 
-			List<LectureBasicInformationResponse> courseList = StreamSupport.stream(courseData.spliterator(), false)
-					.map(node -> objectMapper.convertValue(node, LectureBasicInformationResponse.class))
-					.toList();
-			Map<String, LectureBasicInformationResponse> courseMap = courseList.stream()
-					.collect(Collectors.toMap(LectureBasicInformationResponse::identifier, Function.identity()));
+			// 강좌 정보 추출 및 저장
+			Map<String, LectureBasicInformationResponse> courseMap = extractCourseMap(courseData);
+			saveNewCourses(courseMap);
 
-			List<Lecture> newCourses = courseMap.values().stream()
-					.map(course -> Lecture.save(
-							course.title(),
-							course.identifier(),
-							course.code(),
-							course.professor()))
-					.filter(this::isExistsByIdentifier)
-					.toList();
-			if (!newCourses.isEmpty()) {
-				lectureRepository.saveAll(newCourses);
-			}
+			// 공지사항 데이터 처리
+			noticeExtractor.extractAndSave(courseMap);
 
-			courseMap.values().stream()
-					.filter(course -> course.notices() != null && !course.notices().isEmpty())
-					.forEach(course -> {
-						Lecture lecture = lectureRepository.findByIdentifier(course.identifier())
-								.orElseThrow(LectureNotFoundException::new);
-						notificationService.extractNotifications(course.notices(), lecture);
-					});
+			// 시간표 데이터 처리
+			timetableExtractor.extractAndUpdate(timetableData);
 
-			List<LectureTimeTableResponse> timeTableList = StreamSupport.stream(timeTableData.spliterator(), false)
-					.map(node -> objectMapper.convertValue(node, LectureTimeTableResponse.class))
-					.toList();
+			// 멤버 - 강좌 연결 저장
+			List<Lecture> courseWithTimetable = getLecturesFromTimetable(timetableData);
+			memberLectureService.saveMyLectures(courseWithTimetable, currentMember);
 
-			Map<String, LectureTimeTableResponse> timeTableMap = timeTableList.stream()
-					.collect(Collectors.toMap(LectureTimeTableResponse::identifier, Function.identity()));
-
-			timeTableMap.forEach((identifier, timeTable) -> {
-				Lecture lecture = lectureRepository.findByIdentifier(identifier)
-						.orElseThrow(LectureNotFoundException::new);
-				lecture.setTimeTable(
-						timeTable.day(),
-						timeTable.classTime(),
-						timeTable.startAt(),
-						timeTable.endAt(),
-						timeTable.lectureRoom()
-				);
-			});
-
-			List<Lecture> coursesWithTimetable = timeTableMap.keySet().stream()
-					.map(this::getByIdentifier)
-					.toList();
-
-			memberLectureService.saveMyLectures(coursesWithTimetable, currentMember);
-			extractActivities.saveLectureAndActivities(courseData, coursesWithTimetable, currentMember, objectMapper);
+			// 활동 데이터 처리
+			activityExtractor.extractAndSave(objectMapper, courseData, courseWithTimetable, currentMember);
 		} catch (JsonProcessingException e) {
 			throw new FailedParsingLectureDataException();
 		}
 	}
 
+	private Map<String, LectureBasicInformationResponse> extractCourseMap(JsonNode courseData) {
+		List<LectureBasicInformationResponse> courseList = StreamSupport.stream(courseData.spliterator(), false)
+			.map(node -> objectMapper.convertValue(node, LectureBasicInformationResponse.class))
+			.toList();
+		return courseList.stream()
+			.collect(Collectors.toMap(LectureBasicInformationResponse::identifier, Function.identity()));
+	}
+
+	private void saveNewCourses(Map<String, LectureBasicInformationResponse> courseMap) {
+		List<Lecture> newCourseList = courseMap.values().stream()
+			.map(course -> Lecture.save(course.title(), course.identifier(), course.code(), course.noticeCode(), course.professor()))
+			.filter(course -> !lectureRepository.existsByIdentifier(course.getIdentifier()))
+			.toList();
+		if (!newCourseList.isEmpty()) {
+			lectureRepository.saveAll(newCourseList);
+		}
+	}
+
+	private List<Lecture> getLecturesFromTimetable(JsonNode timetableData) {
+		List<LectureTimeTableResponse> timetableList = StreamSupport.stream(timetableData.spliterator(), false)
+            .map(node -> objectMapper.convertValue(node, LectureTimeTableResponse.class))
+            .toList();
+        return timetableList.stream()
+            .map(timeTable -> lectureRepository.findByIdentifier(timeTable.identifier())
+                .orElseThrow(LectureNotFoundException::new))
+            .toList();
+	}
+
 	public Lecture getLectureByCode(String code) {
 		return lectureRepository.findByCode(code)
 			.orElseThrow(LectureNotFoundException::new);
-	}
-
-	private Lecture getByIdentifier(String identifier) {
-		return lectureRepository.findByIdentifier(identifier)
-			.orElseThrow(LectureNotFoundException::new);
-	}
-
-	private boolean isExistsByIdentifier(Lecture lecture) {
-		return !lectureRepository.existsByIdentifier(lecture.getIdentifier());
 	}
 }

@@ -8,6 +8,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import sopio.acha.domain.activity.presentation.response.ActivityWeekResponse;
 import sopio.acha.domain.notification.application.response.NotificationScrapingResponse;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -24,7 +25,13 @@ public record LectureBasicInformationResponse (
 	@Schema(description = "담당 교수", requiredMode = REQUIRED)
 	String professor,
 
+	@Schema(description = "공지사항 페이지 코드", requiredMode = REQUIRED)
+	String noticeCode,
+
 	@Schema(description = "공지사항 목록", requiredMode = NOT_REQUIRED)
-	List<NotificationScrapingResponse> notices
+	List<NotificationScrapingResponse> notices,
+
+	@Schema(description = "활동 목록", requiredMode = NOT_REQUIRED)
+	List<ActivityWeekResponse> activities
 ) {
 }
