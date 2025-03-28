@@ -12,10 +12,6 @@ import static sopio.acha.domain.activity.domain.ActivityType.LECTURE;
 import static sopio.acha.domain.activity.domain.ActivityType.URL;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Objects;
-
-import org.hibernate.annotations.ColumnDefault;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,7 +28,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sopio.acha.common.domain.BaseTimeEntity;
 import sopio.acha.common.handler.DateHandler;
-import sopio.acha.domain.activity.presentation.exception.InvalidActivityTypeException;
 import sopio.acha.domain.lecture.domain.Lecture;
 import sopio.acha.domain.member.domain.Member;
 

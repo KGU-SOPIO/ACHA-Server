@@ -44,5 +44,4 @@ public record ActivityResponse(
 
 	@Schema(description = "활동 설명", example = "활동 설명 예시", requiredMode = NOT_REQUIRED)
 	String description
-) {
-}
+) {}

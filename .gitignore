@@ -17,3 +17,5 @@ Thumbs.db
 
 # Firebase Secret
 service-account.json
+
+.gradle

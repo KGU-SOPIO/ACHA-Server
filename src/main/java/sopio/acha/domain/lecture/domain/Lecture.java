@@ -46,6 +46,9 @@ public class Lecture extends BaseTimeEntity {
 	private String code;
 
 	@Column(nullable = false)
+	private String noticeCode;
+
+	@Column(nullable = false)
 	private String professor;
 
 	private String lectureRoom;
@@ -76,11 +79,12 @@ public class Lecture extends BaseTimeEntity {
 	@OneToMany(mappedBy = "lecture", cascade = ALL, fetch = LAZY)
 	private List<Notification> notifications = new ArrayList<>();
 
-	public static Lecture save(String title, String identifier, String code, String professor) {
+	public static Lecture save(String title, String identifier, String code, String noticeCode, String professor) {
 		return Lecture.builder()
 			.title(title)
 			.identifier(identifier)
 			.code(code)
+			.noticeCode(noticeCode)
 			.professor(professor)
 			.year(DateHandler.getCurrentSemesterYear())
 			.semester(DateHandler.getCurrentSemester())
