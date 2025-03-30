@@ -108,7 +108,7 @@ jobs:
           max-attempts: 3
           retry-delay: 1s
 
-      - name: "현재 실행되고 있는 컨테이너를 제외한 도커 이미지를 삭제한다."
+      - name: "최근 3개 이미지를 제외한 도커 이미지를 삭제한다."
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -116,7 +116,12 @@ jobs:
           key: ${{ secrets.SERVER_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            docker images --format "{{.Repository}}:{{.Tag}}" | grep "${{ secrets.DOCKER_USERNAME }}/acha-api" | grep -v "$(docker ps --format "{{.Image}}")" | xargs -r docker rmi -f
+            docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | \
+              grep '${{ secrets.DOCKER_USERNAME }}/acha-api' | \
+              sort -r | \
+              tail -n +4 | \
+              awk '{print $2}' | \
+              xargs -r docker rmi -f
 
       - name: "디스코드 알림 (성공)"
         if: success()
