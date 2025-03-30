@@ -80,6 +80,10 @@ public class Member extends BaseTimeEntity implements UserDetails {
 			.build();
 	}
 
+	public void updatePassword(String password) {
+		this.password = encrypt(password);
+  }
+  
 	public void updateAlert(Boolean alert) {
 		this.alert = alert;
 	}
