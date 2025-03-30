@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -55,10 +56,14 @@ public class Member extends BaseTimeEntity implements UserDetails {
 
 	private String major;
 
+	@ColumnDefault("true")
+	private Boolean alert;
+
 	@Column(nullable = false)
 	@Enumerated(STRING)
 	private Role role;
 
+	@Builder.Default
 	@OneToMany(mappedBy = "member", cascade = ALL, fetch = LAZY)
 	private List<Device> devices = new ArrayList<>();
 
@@ -71,8 +76,17 @@ public class Member extends BaseTimeEntity implements UserDetails {
 			.college(college)
 			.department(department)
 			.major(major)
+			.alert(true)
 			.role(ROLE_USER)
 			.build();
+	}
+
+	public void updatePassword(String password) {
+		this.password = encrypt(password);
+  }
+  
+	public void updateAlert(Boolean alert) {
+		this.alert = alert;
 	}
 
 	public void updateBasicInformation(String name, String college, String department, String major) {

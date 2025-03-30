@@ -4,7 +4,6 @@ import static org.springframework.transaction.annotation.Propagation.REQUIRES_NE
 import static sopio.acha.common.handler.EncryptionHandler.decrypt;
 import static sopio.acha.common.handler.ExtractorHandler.requestCourse;
 import static sopio.acha.common.handler.ExtractorHandler.requestTimeTable;
-import static sopio.acha.domain.lecture.domain.Lecture.save;
 
 import java.util.List;
 import java.util.Map;
@@ -28,75 +27,76 @@ import sopio.acha.domain.lecture.presentation.response.LectureBasicInformationRe
 import sopio.acha.domain.lecture.presentation.response.LectureTimeTableResponse;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.memberLecture.application.MemberLectureService;
-import sopio.acha.domain.notification.application.NotificationService;
 
 @Service
 @RequiredArgsConstructor
 public class LectureService {
 	private final LectureRepository lectureRepository;
 	private final MemberLectureService memberLectureService;
-	private final NotificationService notificationService;
+	private final NoticeExtractor noticeExtractor;
+	private final TimetableExtractor timetableExtractor;
+	private final ActivityExtractor activityExtractor;
+	private final ObjectMapper objectMapper;
 
 	@Transactional(propagation = REQUIRES_NEW)
-	public void extractLectureAndSave(Member currentMember) {
+	public void extractCourseAndSave(Member currentMember) {
 		try {
-			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode timetableData = objectMapper.readTree(
+					requestTimeTable(currentMember.getId(), decrypt(currentMember.getPassword()))).get("data");
 			JsonNode courseData = objectMapper.readTree(
-				requestCourse(currentMember.getId(), decrypt(currentMember.getPassword()))).get("data");
+					requestCourse(currentMember.getId(), decrypt(currentMember.getPassword()))).get("data");
 
-			List<Lecture> lectures = StreamSupport.stream(courseData.spliterator(), false)
-				.map(node -> objectMapper.convertValue(node, LectureBasicInformationResponse.class))
-				.map(lectureData -> save(lectureData.title(), lectureData.identifier(), lectureData.code(),
-					lectureData.professor()))
-				.filter(this::isExistsByIdentifier)
-				.toList();
-			if (!lectures.isEmpty()) lectureRepository.saveAll(lectures);
+			// 강좌 정보 추출 및 저장
+			Map<String, LectureBasicInformationResponse> courseMap = extractCourseMap(courseData);
+			saveNewCourses(courseMap);
 
-			StreamSupport.stream(courseData.spliterator(), false)
-				.map(node -> objectMapper.convertValue(node, LectureBasicInformationResponse.class))
-				.filter(lectureData -> lectureData.notices() != null && !lectureData.notices().isEmpty())
-				.forEach(lectureData -> {
-					Lecture lecture = getLectureByCode(lectureData.code());
-					notificationService.extractNotifications(lectureData.notices(), lecture);
-				});
+			// 공지사항 데이터 처리
+			noticeExtractor.extractAndSave(courseMap);
 
-			JsonNode timeTableData = objectMapper.readTree(
-				requestTimeTable(currentMember.getId(), decrypt(currentMember.getPassword()))).get("data");
-			Map<String, LectureTimeTableResponse> timeTableMap = StreamSupport.stream(timeTableData.spliterator(),
-					false)
-				.map(node -> objectMapper.convertValue(node, LectureTimeTableResponse.class))
-				.collect(Collectors.toMap(LectureTimeTableResponse::identifier, Function.identity()));
-			lectures.forEach(lecture -> {
-				LectureTimeTableResponse timeTable = timeTableMap.get(lecture.getIdentifier());
-				if (timeTable != null) {
-					lecture.setTimeTable(
-						timeTable.day(), timeTable.classTime(), timeTable.startAt(), timeTable.endAt(),
-						timeTable.lectureRoom()
-					);
-				}
-			});
-			List<Lecture> lectureHasTimeTable = StreamSupport.stream(timeTableData.spliterator(), false)
-				.map(node -> objectMapper.convertValue(node, LectureTimeTableResponse.class))
-				.map(LectureTimeTableResponse::identifier)
-				.map(this::getByIdentifier)
-				.toList();
-			memberLectureService.saveMyLectures(lectureHasTimeTable, currentMember);
+			// 시간표 데이터 처리
+			timetableExtractor.extractAndUpdate(timetableData);
+
+			// 멤버 - 강좌 연결 저장
+			List<Lecture> courseWithTimetable = getCoursesFromTimetable(timetableData);
+			memberLectureService.saveMyLectures(courseWithTimetable, currentMember);
+
+			// 활동 데이터 처리
+			activityExtractor.extractAndSave(objectMapper, courseData, courseWithTimetable, currentMember);
 		} catch (JsonProcessingException e) {
 			throw new FailedParsingLectureDataException();
 		}
 	}
 
+	private Map<String, LectureBasicInformationResponse> extractCourseMap(JsonNode courseData) {
+		List<LectureBasicInformationResponse> courseList = StreamSupport.stream(courseData.spliterator(), false)
+			.map(node -> objectMapper.convertValue(node, LectureBasicInformationResponse.class))
+			.toList();
+		return courseList.stream()
+			.collect(Collectors.toMap(LectureBasicInformationResponse::identifier, Function.identity()));
+	}
+
+	private void saveNewCourses(Map<String, LectureBasicInformationResponse> courseMap) {
+		List<Lecture> newCourseList = courseMap.values().stream()
+			.map(course -> Lecture.save(course.title(), course.identifier(), course.code(), course.noticeCode(), course.professor()))
+			.filter(course -> !lectureRepository.existsByIdentifier(course.getIdentifier()))
+			.toList();
+		if (!newCourseList.isEmpty()) {
+			lectureRepository.saveAll(newCourseList);
+		}
+	}
+
+	private List<Lecture> getCoursesFromTimetable(JsonNode timetableData) {
+		List<LectureTimeTableResponse> timetableList = StreamSupport.stream(timetableData.spliterator(), false)
+            .map(node -> objectMapper.convertValue(node, LectureTimeTableResponse.class))
+            .toList();
+        return timetableList.stream()
+            .map(timeTable -> lectureRepository.findByIdentifier(timeTable.identifier())
+                .orElseThrow(LectureNotFoundException::new))
+            .toList();
+	}
+
 	public Lecture getLectureByCode(String code) {
 		return lectureRepository.findByCode(code)
 			.orElseThrow(LectureNotFoundException::new);
-	}
-
-	private Lecture getByIdentifier(String identifier) {
-		return lectureRepository.findByIdentifier(identifier)
-			.orElseThrow(LectureNotFoundException::new);
-	}
-
-	private boolean isExistsByIdentifier(Lecture lecture) {
-		return !lectureRepository.existsByIdentifier(lecture.getIdentifier());
 	}
 }

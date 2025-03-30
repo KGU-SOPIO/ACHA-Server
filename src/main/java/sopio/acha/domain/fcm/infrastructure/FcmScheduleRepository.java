@@ -10,5 +10,5 @@ import sopio.acha.domain.fcm.domain.FcmSchedule;
 
 @Repository
 public interface FcmScheduleRepository extends JpaRepository<FcmSchedule, Long> {
-	List<FcmSchedule> findAllBySendTimeBefore(LocalDateTime now);
+	List<FcmSchedule> findAllBySendTimeBeforeAndMember_AlertIsTrue(LocalDateTime now);
 }

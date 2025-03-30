@@ -45,21 +45,12 @@ public class MemberLectureService {
 	}
 
 	@Transactional
-	public List<MemberLecture> getCurrentMemberLectureAndSetLastUpdatedAt(Member currentMember) {
-		return memberLectureRepository.findAllByMemberIdAndLectureYearAndLectureSemesterOrderByLectureDayOrderAsc(
-				currentMember.getId(), DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester())
-			.stream()
-			.peek(MemberLecture::setLastUpdatedAt)
-			.toList();
-	}
-
-	@Transactional
 	public List<MemberLecture> getAllMemberLecture() {
 		return memberLectureRepository.findAllByLectureYearAndLectureSemesterOrderByLectureDayOrderAsc(
 			DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
 	}
 
-	private boolean isExistsMemberLecture(Member currentMember, Lecture lecture) {
+	public boolean isExistsMemberLecture(Member currentMember, Lecture lecture) {
 		return !memberLectureRepository.existsByMemberAndLecture(currentMember, lecture);
 	}
 }

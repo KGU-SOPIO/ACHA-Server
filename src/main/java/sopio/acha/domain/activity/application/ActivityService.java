@@ -30,7 +30,6 @@ import sopio.acha.domain.activity.presentation.response.ActivityResponse;
 import sopio.acha.domain.activity.presentation.response.ActivitySummaryListResponse;
 import sopio.acha.domain.activity.presentation.response.ActivityWeekListResponse;
 import sopio.acha.domain.fcm.application.FcmService;
-import sopio.acha.domain.fcm.domain.Device;
 import sopio.acha.domain.lecture.application.LectureService;
 import sopio.acha.domain.lecture.domain.Lecture;
 import sopio.acha.domain.member.domain.Member;
@@ -76,14 +75,6 @@ public class ActivityService {
 				throw new FailedScheduleActivityEventException();
 			}
 		}
-	}
-
-	@Transactional
-	public void extractActivity(Member currentMember) {
-		ObjectMapper objectMapper = new ObjectMapper();
-		List<MemberLecture> currentLectures = memberLectureService.getCurrentMemberLectureAndSetLastUpdatedAt(
-			currentMember);
-		saveExtractedActivity(currentLectures, objectMapper);
 	}
 
 	public void scheduledActivityExtraction() {
