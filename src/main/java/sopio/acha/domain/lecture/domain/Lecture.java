@@ -76,6 +76,7 @@ public class Lecture extends BaseTimeEntity {
 
 	private int endAt;
 
+	@Builder.Default
 	@OneToMany(mappedBy = "lecture", cascade = ALL, fetch = LAZY)
 	private List<Notification> notifications = new ArrayList<>();
 

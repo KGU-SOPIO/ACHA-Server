@@ -63,6 +63,7 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	@Enumerated(STRING)
 	private Role role;
 
+	@Builder.Default
 	@OneToMany(mappedBy = "member", cascade = ALL, fetch = LAZY)
 	private List<Device> devices = new ArrayList<>();
 
