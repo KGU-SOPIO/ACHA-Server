@@ -122,12 +122,12 @@ jobs:
         if: success()
         uses: appleboy/discord-action@v1.2.0
         with:
-          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
           message: '✅ 배포 성공 🎉 : production 애플리케이션 서버 정상 구동됨'
 
       - name: "디스코드 알림 (실패)"
         if: failure()
         uses: appleboy/discord-action@v1.2.0
         with:
-          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
           message: '❌ 배포 실패 🚨 : production 애플리케이션 서버 점검 실패'
