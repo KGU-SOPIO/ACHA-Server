@@ -83,23 +83,5 @@ jobs:
           uses: jtalk/url-health-check-action@v3
           with:
             url: ${{ secrets.HEALTH_CHECK_ENDPOINT }}
-            max-attempts: 3
-            retry-delay: 1s
-
-        - name: "디스코드 알림 (성공)"
-          if: success()
-          uses: Ilshidur/action-discord@master
-          env:
-            DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-            DISCORD_USERNAME: TIME_LETTER_BOT
-          with:
-            args: '✅ 배포 성공 🎉 : production 애플리케이션 서버 정상 구동됨'
-
-        - name: "디스코드 알림 (실패)"
-          if: failure()
-          uses: Ilshidur/action-discord@master
-          env:
-            DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-            DISCORD_USERNAME: TIME_LETTER_BOT
-          with:
-            args: '❌ 배포 실패 🚨 : production 애플리케이션 서버 점검 실패'
+            max-attempts: 5
+            retry-delay: 5s
