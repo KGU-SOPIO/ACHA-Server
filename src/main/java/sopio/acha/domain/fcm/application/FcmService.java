@@ -16,17 +16,22 @@ import lombok.RequiredArgsConstructor;
 import sopio.acha.domain.fcm.application.exception.FcmSendFailedException;
 import sopio.acha.domain.fcm.domain.FcmSchedule;
 import sopio.acha.domain.fcm.infrastructure.FcmScheduleRepository;
+import sopio.acha.domain.fcm.presentation.request.AlertRequest;
+import sopio.acha.domain.fcm.presentation.response.AlertResponse;
 import sopio.acha.domain.member.domain.Member;
+import sopio.acha.domain.member.infrastructure.MemberRepository;
+import sopio.acha.domain.member.presentation.exception.MemberNotFoundException;
 
 @Service
 @RequiredArgsConstructor
 public class FcmService {
 	private final FcmScheduleRepository fcmScheduleRepository;
+	private final MemberRepository memberRepository;
 
 	@Transactional
 	@Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
 	public void sendActivityNotificationToFCM() {
-		fcmScheduleRepository.findAllBySendTimeBefore(LocalDateTime.now())
+		fcmScheduleRepository.findAllBySendTimeBeforeAndMember_AlertIsTrue(LocalDateTime.now())
 			.forEach(msg -> {
 				try {
 					sendNotification(msg.getDeviceToken(), msg.getTitle(), msg.getBody());
@@ -36,10 +41,21 @@ public class FcmService {
 			});
 	}
 
+	public void setAlertStatus(Member currentMember, AlertRequest alertRequest) {
+		currentMember.updateAlert(alertRequest.status());
+		memberRepository.save(currentMember);
+	}
+
+	public AlertResponse getAlertStatus(Member currentMember) {
+		Member member = memberRepository.findMemberById(currentMember.getId())
+			.orElseThrow(MemberNotFoundException::new);
+		return AlertResponse.of(member.getAlert());
+	}
+
 	public void saveFcmEvent(Member currentMember, String title, String body, LocalDateTime sendTime) {
 		currentMember.getDevices()
 			.forEach(
-				device -> fcmScheduleRepository.save(new FcmSchedule(title, body, device.getDeviceToken(), sendTime)));
+				device -> fcmScheduleRepository.save(new FcmSchedule(title, body, device.getDeviceToken(), currentMember, sendTime)));
 	}
 
 	public void sendNotification(String token, String title, String body) throws FirebaseMessagingException {

@@ -5,12 +5,11 @@ import static lombok.AccessLevel.PROTECTED;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sopio.acha.common.domain.BaseTimeEntity;
+import sopio.acha.domain.member.domain.Member;
 
 @Getter
 @Entity
@@ -26,12 +25,17 @@ public class FcmSchedule extends BaseTimeEntity {
 
 	private String deviceToken;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "member_id")
+	private Member member;
+
 	private LocalDateTime sendTime;
 
-	public FcmSchedule(String title, String body, String deviceToken, LocalDateTime sendTime) {
+	public FcmSchedule(String title, String body, String deviceToken, Member member, LocalDateTime sendTime) {
 		this.title = title;
 		this.body = body;
 		this.deviceToken = deviceToken;
+		this.member = member;
 		this.sendTime = sendTime;
 	}
 }
