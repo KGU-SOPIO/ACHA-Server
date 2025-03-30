@@ -63,6 +63,7 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	@Enumerated(STRING)
 	private Role role;
 
+	@Builder.Default
 	@OneToMany(mappedBy = "member", cascade = ALL, fetch = LAZY)
 	private List<Device> devices = new ArrayList<>();
 
@@ -93,10 +94,6 @@ public class Member extends BaseTimeEntity implements UserDetails {
 		this.college = college;
 		this.department = department;
 		this.major = major;
-	}
-
-	public void updatePassword(String password) {
-		this.password = encrypt(password);
 	}
 
 	public void validatePassword(String password) {
