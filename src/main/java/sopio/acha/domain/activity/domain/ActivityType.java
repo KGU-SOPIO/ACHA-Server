@@ -5,6 +5,5 @@ public enum ActivityType {
 	LECTURE,
 	URL,
 	FILE,
-	ETC
-	;
+	ETC;
 }

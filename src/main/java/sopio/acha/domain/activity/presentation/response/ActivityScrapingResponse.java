@@ -21,9 +21,6 @@ public record ActivityScrapingResponse(
     @Schema(description = "활동 타입", example = "assignment", requiredMode = REQUIRED)
 	String type,
 
-    @Schema(description = "강의 출석 여부", example = "true", requiredMode = REQUIRED)
-	boolean attendance,
-
     @Schema(description = "활동 코드", example = "50251", requiredMode = NOT_REQUIRED)
 	String code,
 
@@ -41,6 +38,9 @@ public record ActivityScrapingResponse(
 
 	@Schema(description = "활동 설명", example = "활동 설명 예시", requiredMode = NOT_REQUIRED)
 	String description,
+
+	@Schema(description = "강의 출석 여부", example = "true", requiredMode = REQUIRED)
+	boolean attendance,
 
     @Schema(description = "과제 제출 여부", example = "miss", requiredMode = NOT_REQUIRED)
     String submitStatus

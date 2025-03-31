@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import sopio.acha.common.handler.DateHandler;
 import sopio.acha.domain.lecture.domain.Lecture;
 import sopio.acha.domain.lecture.domain.LectureDay;
 import sopio.acha.domain.member.domain.Member;

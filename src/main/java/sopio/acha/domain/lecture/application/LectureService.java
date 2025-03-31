@@ -90,7 +90,7 @@ public class LectureService {
             .map(node -> objectMapper.convertValue(node, LectureTimeTableResponse.class))
             .toList();
         return timetableList.stream()
-            .map(timeTable -> lectureRepository.findByIdentifier(timeTable.identifier())
+            .map(timetable -> lectureRepository.findByIdentifier(timetable.identifier())
                 .orElseThrow(LectureNotFoundException::new))
             .toList();
 	}

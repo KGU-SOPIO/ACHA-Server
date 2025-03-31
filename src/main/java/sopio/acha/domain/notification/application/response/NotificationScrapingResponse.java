@@ -1,6 +1,9 @@
 package sopio.acha.domain.notification.application.response;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -21,6 +24,8 @@ public record NotificationScrapingResponse(
 	String title,
 
 	@Schema(description = "공지사항 날짜", example = "2021-09-01", requiredMode = REQUIRED)
-	String date
-) {
-}
+	String date,
+
+	@Schema(description = "공지사항 파일 목록", requiredMode = NOT_REQUIRED)
+	List<FileScrapingResponse> files
+) {}

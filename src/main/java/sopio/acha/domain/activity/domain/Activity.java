@@ -77,6 +77,10 @@ public class Activity extends BaseTimeEntity {
 	@Column(length = 999)
 	private String description;
 
+	private SubmitType submitStatus;
+
+	private boolean attendance;
+
 	@ManyToOne(fetch = LAZY)
 	@JoinColumn(name = "lecture_id")
 	private Lecture lecture;
@@ -90,11 +94,11 @@ public class Activity extends BaseTimeEntity {
 	}
 
 	public static Activity save(boolean available, int week, String title, String link, String type, String code, String deadline,
-		String startAt, String lectureTime, String timeLeft, String description, Lecture lecture, Member member) {
-		LocalDateTime convertedStartAt = null;
-		if (startAt != null) convertedStartAt = DateHandler.parseDateTime(startAt);
-		LocalDateTime convertedDeadline = null;
-		if (deadline != null) convertedDeadline = DateHandler.parseDateTime(deadline);
+		String startAt, String lectureTime, String timeLeft, String description, boolean attendance, String submitStatus, Lecture lecture, Member member) {
+		
+		LocalDateTime convertedStartAt = (startAt != null) ? DateHandler.parseDateTime(startAt) : null;
+		LocalDateTime convertedDeadline = (deadline != null) ? DateHandler.parseDateTime(deadline) : null;
+
 		return switch (type) {
 			case "assignment" -> Activity.builder()
 				.available(available)
@@ -106,6 +110,7 @@ public class Activity extends BaseTimeEntity {
 				.deadline(convertedDeadline)
 				.timeLeft(timeLeft)
 				.description(description)
+				.submitStatus(SubmitType.fronString(submitStatus))
 				.lecture(lecture)
 				.member(member)
 				.build();
@@ -119,6 +124,7 @@ public class Activity extends BaseTimeEntity {
 				.startAt(convertedStartAt)
 				.deadline(convertedDeadline)
 				.lectureTime(lectureTime)
+				.attendance(attendance)
 				.lecture(lecture)
 				.member(member)
 				.build();

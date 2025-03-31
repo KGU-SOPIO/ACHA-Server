@@ -67,6 +67,8 @@ public class ActivityExtractor {
                             activityResponse.lectureTime(),
                             activityResponse.timeLeft(),
                             activityResponse.description(),
+                            activityResponse.attendance(),
+                            activityResponse.submitStatus(),
                             memberCourse.getLecture(),
                             memberCourse.getMember()
                         );

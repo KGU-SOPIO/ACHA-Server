@@ -146,10 +146,11 @@ public class ActivityService {
 							activityResponse.lectureTime(),
 							Optional.ofNullable(activityResponse.timeLeft()).orElse(""),
 							Optional.ofNullable(activityResponse.description()).orElse(""),
+							activityResponse.attendance(),
+							activityResponse.submitStatus(),
 							memberLecture.getLecture(),
 							memberLecture.getMember()
-						))
-						.toList());
+						)).toList());
 				}
 				activityRepository.saveAll(activities);
 			}
