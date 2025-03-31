@@ -6,7 +6,7 @@ public enum SubmitType {
     MISS,
     NONE;
 
-    public static SubmitType fronString(String value) {
+    public static SubmitType fromString(String value) {
         if (value == null || value.isBlank()) return SubmitType.NONE;
         return SubmitType.valueOf(value.toUpperCase());
     }

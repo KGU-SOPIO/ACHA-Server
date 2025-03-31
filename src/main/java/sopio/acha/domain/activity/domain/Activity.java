@@ -111,7 +111,7 @@ public class Activity extends BaseTimeEntity {
 				.deadline(convertedDeadline)
 				.timeLeft(timeLeft)
 				.description(description)
-				.submitStatus(SubmitType.fronString(submitStatus))
+				.submitStatus(SubmitType.fromString(submitStatus))
 				.lecture(lecture)
 				.member(member)
 				.build();
