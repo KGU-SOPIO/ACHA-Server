@@ -48,8 +48,8 @@ public class MemberService {
 	}
 
 	public MemberTokenResponse validateIsAchaMemberAndLogin(MemberLoginRequest request) {
-		validateIsAchaMember(request.studentId());
 		Member loginMember = validatePasswordAndGetMemberInfoFromExtractor(request.studentId(), request.password());
+		validateIsAchaMember(request.studentId());
 		saveNewDeviceToken(request.deviceToken(), loginMember);
 		return issueAndSaveMemberToken(loginMember);
 	}
@@ -84,6 +84,7 @@ public class MemberService {
 			MemberSummaryResponse response = new ObjectMapper().readValue(
 				json.getJSONObject("userData").toString(), MemberSummaryResponse.class);
 			Member member = getMemberById(studentId);
+			member.updatePassword(password);
 			member.updateBasicInformation(response.name(), response.college(), response.department(), response.major());
 			return memberRepository.save(member);
 		} catch (JsonProcessingException e) {

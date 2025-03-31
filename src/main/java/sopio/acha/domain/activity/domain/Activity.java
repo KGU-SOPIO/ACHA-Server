@@ -72,6 +72,7 @@ public class Activity extends BaseTimeEntity {
 
 	private String timeLeft;
 
+	@Builder.Default
 	private boolean notifyScheduled = false;
 
 	@Column(length = 999)
