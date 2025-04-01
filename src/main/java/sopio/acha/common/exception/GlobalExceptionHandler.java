@@ -35,7 +35,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler(KutisPasswordErrorException.class)
 	protected ResponseEntity<ExceptionResponse> handleKutisPasswordErrorException(KutisPasswordErrorException exception) {
-		ExceptionResponse response = ExceptionResponse.from(GlobalExceptionCode.KUTIS_PASSWORD_ERROR);
+		ExceptionResponse response = ExceptionResponse.from(exception.getCode());
 		return ResponseEntity.status(response.status()).body(response);
 	}
 
