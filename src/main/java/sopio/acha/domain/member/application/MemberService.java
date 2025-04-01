@@ -98,8 +98,11 @@ public class MemberService {
 		RefreshToken refreshToken = refreshTokenService.getRefreshTokenObject(request);
 		Member loginMember = getMemberById(refreshToken.getStudentId());
 		if (loginMember.getDeletedAt() != null) throw new MemberNotAuthenticatedException();
-		AccessToken accessToken = AccessToken.of(jwtCreator.generateToken(loginMember, Duration.ofHours(2)));
-		return AccessTokenResponse.of(accessToken.getAccessToken());
+		if (refreshTokenService.getExistingToken(loginMember.getId()) != null) {
+			AccessToken accessToken = AccessToken.of(jwtCreator.generateToken(loginMember, Duration.ofHours(2)));
+			return AccessTokenResponse.of(accessToken.getAccessToken());
+		}
+		return AccessTokenResponse.of(issueAndSaveMemberToken(loginMember).accessToken());
 	}
 
 	public Member getMemberById(String studentId) {
