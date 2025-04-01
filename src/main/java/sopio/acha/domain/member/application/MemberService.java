@@ -50,8 +50,9 @@ public class MemberService {
 	public MemberTokenResponse validateIsAchaMemberAndLogin(MemberLoginRequest request) {
 		Member loginMember = validatePasswordAndGetMemberInfoFromExtractor(request.studentId(), request.password());
 		validateIsAchaMember(request.studentId());
-
-		saveNewDeviceToken(request.deviceToken(), loginMember);
+		if (loginMember.getExtract()) {
+			saveNewDeviceToken(request.deviceToken(), loginMember);
+		}
 		return issueAndSaveMemberToken(loginMember);
 	}
 
@@ -135,7 +136,7 @@ public class MemberService {
 		RefreshToken refreshToken = RefreshToken.of(member.getId(),
 			jwtCreator.generateToken(member, Duration.ofDays(7)));
 		refreshTokenService.saveRefreshToken(refreshToken);
-		return MemberTokenResponse.of(accessToken.getAccessToken(), refreshToken.getRefreshToken());
+		return MemberTokenResponse.of(accessToken.getAccessToken(), refreshToken.getRefreshToken(), member.getExtract());
 	}
 
 	private void validateIsAchaMember(final String studentId) {

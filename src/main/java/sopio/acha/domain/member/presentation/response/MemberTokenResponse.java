@@ -11,12 +11,16 @@ public record MemberTokenResponse(
 	String accessToken,
 
 	@Schema(description = "리프레시토큰", requiredMode = REQUIRED)
-	String refreshToken
+	String refreshToken,
+
+	@Schema(description = "추출성공 상태", requiredMode = REQUIRED)
+	Boolean extract
 ) {
-	public static MemberTokenResponse of(String accessToken, String refreshToken) {
+	public static MemberTokenResponse of(String accessToken, String refreshToken, Boolean extract) {
 		return MemberTokenResponse.builder()
 			.accessToken(accessToken)
 			.refreshToken(refreshToken)
+			.extract(extract)
 			.build();
 	}
 }
