@@ -53,6 +53,11 @@ public class MemberService {
 		if (loginMember.getExtract()) {
 			saveNewDeviceToken(request.deviceToken(), loginMember);
 		}
+		RefreshToken refreshToken = refreshTokenService.getExistingToken(request.studentId());
+		if (refreshToken != null) {
+			AccessToken accessToken = AccessToken.of(jwtCreator.generateToken(loginMember, Duration.ofHours(2)));
+			return MemberTokenResponse.of(accessToken.getAccessToken(), refreshToken.getRefreshToken(), loginMember.getExtract());
+		}
 		return issueAndSaveMemberToken(loginMember);
 	}
 
@@ -98,10 +103,6 @@ public class MemberService {
 		RefreshToken refreshToken = refreshTokenService.getRefreshTokenObject(request);
 		Member loginMember = getMemberById(refreshToken.getStudentId());
 		if (loginMember.getDeletedAt() != null) throw new MemberNotAuthenticatedException();
-		if (refreshTokenService.getExistingToken(loginMember.getId()) != null) {
-			AccessToken accessToken = AccessToken.of(jwtCreator.generateToken(loginMember, Duration.ofHours(2)));
-			return AccessTokenResponse.of(accessToken.getAccessToken());
-		}
 		return AccessTokenResponse.of(issueAndSaveMemberToken(loginMember).accessToken());
 	}
 
