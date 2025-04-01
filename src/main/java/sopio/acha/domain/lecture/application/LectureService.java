@@ -64,7 +64,7 @@ public class LectureService {
 
 			// 활동 데이터 처리
 			activityExtractor.extractAndSave(objectMapper, courseData, courseWithTimetable, currentMember);
-			currentMember.updateExtractState(true);
+			currentMember.updateExtract(true);
 			memberRepository.save(currentMember);
 		} catch (JsonProcessingException e) {
 			throw new FailedParsingLectureDataException();
