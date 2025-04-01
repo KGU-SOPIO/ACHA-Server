@@ -22,7 +22,7 @@ public class MemberCourseController {
 
 	@GetMapping("/today")
 	@Operation(summary = "오늘 수강 예정인 강좌 조회 API", description = "사용자가 오늘 수강 예정인 강좌 목록을 조회 합니다.")
-	public ResponseEntity<MemberCourseListResponse> getTodayMemberLecture(
+	public ResponseEntity<MemberCourseListResponse> getTodayMemberCourse(
 		@CurrentMember Member currentMember
 	) {
 		MemberCourseListResponse response = memberCourseService.getTodayMemberCourse(currentMember);
@@ -31,7 +31,7 @@ public class MemberCourseController {
 
 	@GetMapping
 	@Operation(summary = "내 강좌 목록 요일 순 조회 API", description = "이번 학기에 수강하는 강좌를 요일 순으로 목록 조회 합니다.")
-	public ResponseEntity<MemberCourseListResponse> getThisSemesterMemberLecture(
+	public ResponseEntity<MemberCourseListResponse> getThisSemesterMemberCourse(
 		@CurrentMember Member currentMember
 	) {
 		MemberCourseListResponse response = memberCourseService.getThisSemesterMemberCourse(currentMember);

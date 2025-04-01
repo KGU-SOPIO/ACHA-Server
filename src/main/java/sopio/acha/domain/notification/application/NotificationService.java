@@ -49,7 +49,7 @@ public class NotificationService {
 		return NotificationDetailResponse.of(currentNotification, prevNotification, nextNotification);
 	}
 
-	private boolean isExistsByIndexAndCourseId(int index, Long lectureId) {
-		return notificationRepository.existsByIndexAndCourseId(index, lectureId);
+	private boolean isExistsByIndexAndCourseId(int index, Long courseId) {
+		return notificationRepository.existsByIndexAndCourseId(index, courseId);
 	}
 }

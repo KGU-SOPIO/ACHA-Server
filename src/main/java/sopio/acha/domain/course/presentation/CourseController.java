@@ -25,7 +25,7 @@ public class CourseController {
 	@PostMapping
 	@Operation(summary = "회원 가입 직후 강좌 정보 스크래핑 요청 API",
 		description = "회원 가입 직후, 강좌 정보를 스크래핑하고 해당 데이터를 DB에 저장한 뒤 캐시 서버로 푸시합니다.")
-	public ResponseEntity<Void> extractLectureAndSave(
+	public ResponseEntity<Void> extractCourseAndSave(
 		@CurrentMember Member currentMember
 	) {
 		courseService.extractCourseAndSave(currentMember);
