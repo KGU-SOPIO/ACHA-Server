@@ -134,7 +134,7 @@ public class MemberService {
 		RefreshToken refreshToken = RefreshToken.of(member.getId(),
 			jwtCreator.generateToken(member, Duration.ofDays(7)));
 		refreshTokenService.saveRefreshToken(refreshToken);
-		return MemberTokenResponse.of(accessToken.getAccessToken(), refreshToken.getRefreshToken());
+		return MemberTokenResponse.of(accessToken.getAccessToken(), refreshToken.getRefreshToken(), member.getExtractState());
 	}
 
 	private void validateIsAchaMember(final String studentId) {

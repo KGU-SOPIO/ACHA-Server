@@ -59,6 +59,9 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	@ColumnDefault("true")
 	private Boolean alert;
 
+	@ColumnDefault("false")
+	private Boolean extractState;
+
 	@Column(nullable = false)
 	@Enumerated(STRING)
 	private Role role;
@@ -77,6 +80,7 @@ public class Member extends BaseTimeEntity implements UserDetails {
 			.department(department)
 			.major(major)
 			.alert(true)
+			.extractState(false)
 			.role(ROLE_USER)
 			.build();
 	}
@@ -84,6 +88,8 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	public void updatePassword(String password) {
 		this.password = encrypt(password);
   }
+
+    public void updateExtractState(Boolean extractState) { this.extractState = extractState; }
   
 	public void updateAlert(Boolean alert) {
 		this.alert = alert;
