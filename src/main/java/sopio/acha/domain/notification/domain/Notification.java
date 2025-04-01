@@ -51,7 +51,7 @@ public class Notification extends BaseTimeEntity {
 
 	@Builder.Default
 	@OneToMany(fetch = LAZY, orphanRemoval = true, mappedBy = "notification")
-	private List<Notification> notifications = new ArrayList<>();
+	private List<NotificationFile> notificationFiles = new ArrayList<>();
 
 	public static Notification save(int index, String title, String date, String content, String link,
 		Course course) {
