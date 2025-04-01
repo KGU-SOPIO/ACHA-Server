@@ -2,7 +2,7 @@ package sopio.acha.domain.member.domain;
 
 import static jakarta.persistence.CascadeType.ALL;
 import static jakarta.persistence.EnumType.STRING;
-import static jakarta.persistence.FetchType.LAZY;
+import static jakarta.persistence.FetchType.EAGER;
 import static lombok.AccessLevel.PROTECTED;
 import static sopio.acha.common.handler.EncryptionHandler.decrypt;
 import static sopio.acha.common.handler.EncryptionHandler.encrypt;
@@ -67,7 +67,7 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	private Role role;
 
 	@Builder.Default
-	@OneToMany(mappedBy = "member", cascade = ALL, fetch = LAZY)
+	@OneToMany(mappedBy = "member", cascade = ALL, fetch = EAGER)
 	private List<Device> devices = new ArrayList<>();
 
 	public static Member save(String id, String password, String name, String college, String department,

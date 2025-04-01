@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.method.ParameterValidationResult;
@@ -32,16 +31,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	protected ResponseEntity<ExceptionResponse> handleCustomException(CustomException exception) {
 		ExceptionResponse response = ExceptionResponse.from(exception);
 		return ResponseEntity.status(response.status()).body(response);
-	}
-
-	@ExceptionHandler(org.hibernate.LazyInitializationException.class)
-	public ResponseEntity<ExceptionResponse> handleLazyInitializationException(org.hibernate.LazyInitializationException ex) {
-		ExceptionResponse response = ExceptionResponse.of(
-			HttpStatus.UNAUTHORIZED,
-			"LAZY_INITIALIZATION_ERROR",
-			ex.getMessage()
-		);
-		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
 	}
 
 	@ExceptionHandler(KutisPasswordErrorException.class)

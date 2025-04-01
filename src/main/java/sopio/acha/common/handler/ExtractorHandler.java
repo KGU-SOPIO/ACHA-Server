@@ -63,10 +63,18 @@ public class ExtractorHandler {
 	}
 
 	public static String requestTimeTable(String studentId, String password) {
-		URI uri = buildUriByPath("/v1/timetable/");
-		String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password
-			+ "\", \"year\": " + getCurrentSemesterYear() + ", \"semester\": " + getCurrentSemester() + " }";
-		return getJsonData(requestBody, uri).toString();
+		try {
+			URI uri = buildUriByPath("/v1/timetable/");
+			String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password
+					+ "\", \"year\": " + getCurrentSemesterYear() + ", \"semester\": " + getCurrentSemester() + " }";
+			return getJsonData(requestBody, uri).toString();
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+				throw new KutisPasswordErrorException();
+			} else {
+				throw e;
+			}
+		}
 	}
 
 	public static String requestActivity(String studentId, String password, String code) {
@@ -92,14 +100,7 @@ public class ExtractorHandler {
 		HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
 		RestTemplate restTemplate = new RestTemplate();
-		try {
-			ResponseEntity<String> response = restTemplate.exchange(uri, POST, entity, String.class);
-			return new JSONObject(response.getBody());
-		} catch (HttpClientErrorException e) {
-			if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-				throw new KutisPasswordErrorException();
-			}
-			throw e;
-		}
+		ResponseEntity<String> response = restTemplate.exchange(uri, POST, entity, String.class);
+		return new JSONObject(response.getBody());
 	}
 }
