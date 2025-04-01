@@ -10,9 +10,9 @@ import sopio.acha.domain.notification.domain.Notification;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
-	boolean existsByIndexAndLectureId(int index, Long lectureId);
+	boolean existsByIndexAndCourseId(int index, Long lectureId);
 
-	Optional<Notification> findByIndexAndLectureId(int index, Long lectureId);
+	Optional<Notification> findByIndexAndCourseId(int index, Long lectureId);
 
-	List<Notification> findAllByLectureCodeOrderByIndexDesc(String code);
+	List<Notification> findAllByCourseCodeOrderByIndexDesc(String code);
 }

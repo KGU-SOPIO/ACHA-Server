@@ -28,14 +28,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sopio.acha.common.domain.BaseTimeEntity;
 import sopio.acha.common.handler.DateHandler;
-import sopio.acha.domain.lecture.domain.Lecture;
+import sopio.acha.domain.course.domain.Course;
 import sopio.acha.domain.member.domain.Member;
 
 @Getter
 @Entity
 @Builder
 @Table(indexes = {
-	@Index(name = "idx_activity_lecture_id", columnList = "lecture_id"),
+	@Index(name = "idx_activity_course_id", columnList = "course_id"),
 	@Index(name = "idx_activity_member_id", columnList = "member_id"),
 	@Index(name = "idx_activity_week", columnList = "week")
 })
@@ -68,7 +68,7 @@ public class Activity extends BaseTimeEntity {
 
 	private LocalDateTime deadline;
 
-	private String lectureTime;
+	private String courseTime;
 
 	private String timeLeft;
 
@@ -79,8 +79,8 @@ public class Activity extends BaseTimeEntity {
 	private String description;
 
 	@ManyToOne(fetch = LAZY)
-	@JoinColumn(name = "lecture_id")
-	private Lecture lecture;
+	@JoinColumn(name = "course_id")
+	private Course course;
 
 	@ManyToOne(fetch = LAZY)
 	@JoinColumn(name = "member_id")
@@ -91,7 +91,7 @@ public class Activity extends BaseTimeEntity {
 	}
 
 	public static Activity save(boolean available, int week, String title, String link, String type, String code, String deadline,
-		String startAt, String lectureTime, String timeLeft, String description, Lecture lecture, Member member) {
+								String startAt, String courseTime, String timeLeft, String description, Course course, Member member) {
 		LocalDateTime convertedStartAt = null;
 		if (startAt != null) convertedStartAt = DateHandler.parseDateTime(startAt);
 		LocalDateTime convertedDeadline = null;
@@ -107,10 +107,10 @@ public class Activity extends BaseTimeEntity {
 				.deadline(convertedDeadline)
 				.timeLeft(timeLeft)
 				.description(description)
-				.lecture(lecture)
+				.course(course)
 				.member(member)
 				.build();
-			case "lecture" -> Activity.builder()
+			case "course" -> Activity.builder()
 				.available(available)
 				.title(title)
 				.week(week)
@@ -119,8 +119,8 @@ public class Activity extends BaseTimeEntity {
 				.code(code)
 				.startAt(convertedStartAt)
 				.deadline(convertedDeadline)
-				.lectureTime(lectureTime)
-				.lecture(lecture)
+				.courseTime(courseTime)
+				.course(course)
 				.member(member)
 				.build();
 			case "url" -> Activity.builder()
@@ -130,7 +130,7 @@ public class Activity extends BaseTimeEntity {
 				.link(link)
 				.type(URL)
 				.code(code)
-				.lecture(lecture)
+				.course(course)
 				.member(member)
 				.build();
 			case "file" -> Activity.builder()
@@ -140,7 +140,7 @@ public class Activity extends BaseTimeEntity {
 				.code(code)
 				.link(link)
 				.type(FILE)
-				.lecture(lecture)
+				.course(course)
 				.member(member)
 				.build();
 			default -> Activity.builder()
@@ -149,7 +149,7 @@ public class Activity extends BaseTimeEntity {
 				.week(week)
 				.code(code)
 				.type(ETC)
-				.lecture(lecture)
+				.course(course)
 				.member(member)
 				.build();
 		};

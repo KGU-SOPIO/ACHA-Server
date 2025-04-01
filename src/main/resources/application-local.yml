@@ -1,9 +1,14 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD}
+      host: 127.0.0.1
+      port: 6379
+      password: "foobared"
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:acha}?useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver

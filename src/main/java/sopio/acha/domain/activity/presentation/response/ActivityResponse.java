@@ -34,7 +34,7 @@ public record ActivityResponse(
 	String startAt,
 
 	@Schema(description = "강좌 수강 시간", example = "00:00:00", requiredMode = NOT_REQUIRED)
-	String lectureTime,
+	String courseTime,
 
 	@Schema(description = "제출 기한", example = "2021-06-30 23:59:59", requiredMode = NOT_REQUIRED)
 	String deadline,

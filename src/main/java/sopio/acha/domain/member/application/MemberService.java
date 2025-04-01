@@ -50,6 +50,7 @@ public class MemberService {
 	public MemberTokenResponse validateIsAchaMemberAndLogin(MemberLoginRequest request) {
 		Member loginMember = validatePasswordAndGetMemberInfoFromExtractor(request.studentId(), request.password());
 		validateIsAchaMember(request.studentId());
+
 		saveNewDeviceToken(request.deviceToken(), loginMember);
 		return issueAndSaveMemberToken(loginMember);
 	}

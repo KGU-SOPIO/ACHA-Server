@@ -16,7 +16,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sopio.acha.common.domain.BaseTimeEntity;
-import sopio.acha.domain.lecture.domain.Lecture;
+import sopio.acha.domain.course.domain.Course;
 
 @Getter
 @Entity
@@ -42,18 +42,18 @@ public class Notification extends BaseTimeEntity {
 	private String link;
 
 	@ManyToOne(fetch = LAZY)
-	@JoinColumn(name = "lecture_id")
-	private Lecture lecture;
+	@JoinColumn(name = "course_id")
+	private Course course;
 
 	public static Notification save(int index, String title, String date, String content, String link,
-		Lecture lecture) {
+		Course course) {
 		return Notification.builder()
 			.index(index)
 			.title(title)
 			.date(date)
 			.content(content)
 			.link(link)
-			.lecture(lecture)
+			.course(course)
 			.build();
 	}
 }

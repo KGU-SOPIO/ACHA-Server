@@ -33,13 +33,13 @@ public class ActivityController {
 		return ResponseEntity.ok().body(response);
 	}
 
-	@GetMapping("/lecture")
+	@GetMapping("/course")
 	@Operation(summary = "강의별 활동 목록 조회 API", description = "강의별 활동 목록을 조회합니다.")
-	public ResponseEntity<ActivityWeekListResponse> getLectureActivityList(
+	public ResponseEntity<ActivityWeekListResponse> getCourseActivityList(
 		@CurrentMember Member currentMember,
 		@RequestParam String code
 	) {
-		ActivityWeekListResponse response = activityService.getLectureActivityList(currentMember, code);
+		ActivityWeekListResponse response = activityService.getCourseActivityList(currentMember, code);
 		return ResponseEntity.ok().body(response);
 	}
 }

@@ -35,8 +35,8 @@ public record NotificationDetailResponse(
 	public static NotificationDetailResponse of(Notification notification, Notification prev, Notification next) {
 		return NotificationDetailResponse.builder()
 			.id(notification.getId())
-			.courseName(notification.getLecture().getTitle())
-			.professor(notification.getLecture().getProfessor())
+			.courseName(notification.getCourse().getTitle())
+			.professor(notification.getCourse().getProfessor())
 			.title(notification.getTitle())
 			.date(notification.getDate())
 			.content(notification.getContent())

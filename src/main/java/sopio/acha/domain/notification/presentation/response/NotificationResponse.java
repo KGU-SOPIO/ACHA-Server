@@ -27,7 +27,7 @@ public record NotificationResponse(
 		return NotificationResponse.builder()
 			.id(notification.getId())
 			.title(notification.getTitle())
-			.professor(notification.getLecture().getProfessor())
+			.professor(notification.getCourse().getProfessor())
 			.date(notification.getDate())
 			.index(notification.getIndex() == 9999 ? "중요" : String.valueOf(notification.getIndex()))
 			.build();

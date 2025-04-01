@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import sopio.acha.domain.lecture.domain.Lecture;
+import sopio.acha.domain.course.domain.Course;
 import sopio.acha.domain.notification.application.response.NotificationScrapingResponse;
 import sopio.acha.domain.notification.domain.Notification;
 import sopio.acha.domain.notification.infrastructure.NotificationRepository;
@@ -20,36 +20,36 @@ import sopio.acha.domain.notification.presentation.response.NotificationListResp
 public class NotificationService {
 	private final NotificationRepository notificationRepository;
 
-	public void extractNotifications(List<NotificationScrapingResponse> notifications, Lecture lecture) {
+	public void extractNotifications(List<NotificationScrapingResponse> notifications, Course course) {
 		notificationRepository.saveAll(notifications.stream()
-			.filter(n -> !isExistsByIndexAndLectureId(Integer.parseInt(n.index()), lecture.getId()))
+			.filter(n -> !isExistsByIndexAndCourseId(Integer.parseInt(n.index()), course.getId()))
 			.map(n -> Notification.save(Integer.parseInt(n.index()), n.title(), n.date(),
-				n.content(), n.link(), lecture))
+				n.content(), n.link(), course))
 			.collect(Collectors.toList()));
 	}
 
 	@Transactional(readOnly = true)
 	public NotificationListResponse getNotifications(String code) {
-		List<Notification> notifications = notificationRepository.findAllByLectureCodeOrderByIndexDesc(code);
+		List<Notification> notifications = notificationRepository.findAllByCourseCodeOrderByIndexDesc(code);
 		if (notifications.isEmpty())
 			throw new NotificationNotFoundException();
-		return NotificationListResponse.from(notifications.getFirst().getLecture().getTitle(), notifications);
+		return NotificationListResponse.from(notifications.getFirst().getCourse().getTitle(), notifications);
 	}
 
 	@Transactional(readOnly = true)
 	public NotificationDetailResponse getNotificationDetail(Long notificationId) {
 		Notification currentNotification = notificationRepository.findById(notificationId)
 			.orElseThrow(NotificationNotFoundException::new);
-		Notification prevNotification = notificationRepository.findByIndexAndLectureId(
-			currentNotification.getIndex() - 1, currentNotification.getLecture().getId())
+		Notification prevNotification = notificationRepository.findByIndexAndCourseId(
+			currentNotification.getIndex() - 1, currentNotification.getCourse().getId())
 			.orElse(null);
-		Notification nextNotification = notificationRepository.findByIndexAndLectureId(
-			currentNotification.getIndex() + 1, currentNotification.getLecture().getId())
+		Notification nextNotification = notificationRepository.findByIndexAndCourseId(
+			currentNotification.getIndex() + 1, currentNotification.getCourse().getId())
 			.orElse(null);
 		return NotificationDetailResponse.of(currentNotification, prevNotification, nextNotification);
 	}
 
-	private boolean isExistsByIndexAndLectureId(int index, Long lectureId) {
-		return notificationRepository.existsByIndexAndLectureId(index, lectureId);
+	private boolean isExistsByIndexAndCourseId(int index, Long lectureId) {
+		return notificationRepository.existsByIndexAndCourseId(index, lectureId);
 	}
 }
