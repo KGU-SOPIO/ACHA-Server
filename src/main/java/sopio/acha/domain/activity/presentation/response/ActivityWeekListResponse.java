@@ -8,7 +8,7 @@ import java.util.Map;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import sopio.acha.domain.activity.domain.Activity;
-import sopio.acha.domain.lecture.domain.Lecture;
+import sopio.acha.domain.course.domain.Course;
 
 @Builder
 public record ActivityWeekListResponse(
@@ -21,10 +21,10 @@ public record ActivityWeekListResponse(
 	@Schema(description = "활동 목록", requiredMode = REQUIRED)
 	List<ActivityWeekResponse> contents
 ) {
-	public static ActivityWeekListResponse from(Lecture lecture, Map<Integer, List<Activity>> activities) {
+	public static ActivityWeekListResponse from(Course course, Map<Integer, List<Activity>> activities) {
 		return ActivityWeekListResponse.builder()
-			.courseName(lecture.getTitle())
-			.professor(lecture.getProfessor())
+			.courseName(course.getTitle())
+			.professor(course.getProfessor())
 			.contents(activities.entrySet().stream()
 				.map(entry -> ActivityWeekResponse.from(entry.getKey(), entry.getValue()))
 				.toList())

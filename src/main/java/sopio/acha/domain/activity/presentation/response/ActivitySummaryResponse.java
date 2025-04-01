@@ -32,7 +32,7 @@ public record ActivitySummaryResponse(
 ) {
 	public static ActivitySummaryResponse from(Activity activity) {
 		return ActivitySummaryResponse.builder()
-			.courseName(activity.getLecture().getTitle())
+			.courseName(activity.getCourse().getTitle())
 			.available(activity.isAvailable())
 			.title(activity.getTitle())
 			.type(activity.getType().toString().toLowerCase())

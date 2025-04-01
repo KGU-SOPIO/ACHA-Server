@@ -30,18 +30,18 @@ import sopio.acha.domain.activity.presentation.response.ActivityResponse;
 import sopio.acha.domain.activity.presentation.response.ActivitySummaryListResponse;
 import sopio.acha.domain.activity.presentation.response.ActivityWeekListResponse;
 import sopio.acha.domain.fcm.application.FcmService;
-import sopio.acha.domain.lecture.application.LectureService;
-import sopio.acha.domain.lecture.domain.Lecture;
+import sopio.acha.domain.course.application.CourseService;
+import sopio.acha.domain.course.domain.Course;
 import sopio.acha.domain.member.domain.Member;
-import sopio.acha.domain.memberLecture.application.MemberLectureService;
-import sopio.acha.domain.memberLecture.domain.MemberLecture;
+import sopio.acha.domain.memberCourse.application.MemberCourseService;
+import sopio.acha.domain.memberCourse.domain.MemberCourse;
 
 @Service
 @RequiredArgsConstructor
 public class ActivityService {
 	private final ActivityRepository activityRepository;
-	private final MemberLectureService memberLectureService;
-	private final LectureService lectureService;
+	private final MemberCourseService memberCourseService;
+	private final CourseService courseService;
 	private final FcmService fcmService;
 
 	@Transactional
@@ -79,45 +79,50 @@ public class ActivityService {
 
 	public void scheduledActivityExtraction() {
 		ObjectMapper objectMapper = new ObjectMapper();
-		List<MemberLecture> allLectureList = memberLectureService.getAllMemberLecture()
+		List<MemberCourse> allCourseList = memberCourseService.getAllMemberCourse()
 			.stream()
-			.filter(MemberLecture::checkLastUpdatedAt)
-			.peek(MemberLecture::setLastUpdatedAt)
+			.filter(MemberCourse::checkLastUpdatedAt)
+			.peek(MemberCourse::setLastUpdatedAt)
 			.toList();
-		saveExtractedActivity(allLectureList, objectMapper);
+		saveExtractedActivity(allCourseList, objectMapper);
 	}
 
 	@Transactional
 	public ActivitySummaryListResponse getMyActivityList(Member currentMember) {
-		List<Activity> activities = activityRepository.findTop10ByMemberIdAndDeadlineAfterOrderByDeadlineAsc(
-			currentMember.getId(), LocalDateTime.now());
-		return ActivitySummaryListResponse.from(activities);
+		try {
+			List<Activity> activities = activityRepository.findTop10ByMemberIdAndDeadlineAfterOrderByDeadlineAsc(
+				currentMember.getId(), LocalDateTime.now());
+			return ActivitySummaryListResponse.from(activities);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			throw e;
+		}
 	}
 
 	@Transactional
-	public ActivityWeekListResponse getLectureActivityList(Member currentMember, String code) {
-		Lecture targetLecture = lectureService.getLectureByCode(code);
-		List<Activity> activities = activityRepository.findAllByMemberIdAndLectureIdOrderByWeekAsc(
-			currentMember.getId(), targetLecture.getId());
+	public ActivityWeekListResponse getCourseActivityList(Member currentMember, String code) {
+		Course targetCourse = courseService.getCourseByCode(code);
+		List<Activity> activities = activityRepository.findAllByMemberIdAndCourseIdOrderByWeekAsc(
+			currentMember.getId(), targetCourse.getId());
 		System.out.println(activities);
 		Map<Integer, List<Activity>> groupedActivities = activities.stream()
 			.collect(Collectors.groupingBy(Activity::getWeek));
 		System.out.println(groupedActivities);
-		return ActivityWeekListResponse.from(targetLecture, groupedActivities);
+		return ActivityWeekListResponse.from(targetCourse, groupedActivities);
 	}
 
 	private void scheduleNotification(Activity activity, String description, LocalDateTime triggerTime) {
 		if (triggerTime.isAfter(LocalDateTime.now())) {
-			fcmService.saveFcmEvent(activity.getMember(), activity.getLecture().getTitle(), description, triggerTime);
+			fcmService.saveFcmEvent(activity.getMember(), activity.getCourse().getTitle(), description, triggerTime);
 		}
 	}
 
-	private void saveExtractedActivity(List<MemberLecture> currentLectures, ObjectMapper objectMapper) {
+	private void saveExtractedActivity(List<MemberCourse> currentCourses, ObjectMapper objectMapper) {
 		try {
-			for (MemberLecture memberLecture : currentLectures) {
+			for (MemberCourse memberCourse : currentCourses) {
 				JsonNode responseNode = objectMapper.readTree(
-					requestActivity(memberLecture.getMember().getId(), decrypt(memberLecture.getMember().getPassword()),
-						memberLecture.getLecture().getCode()));
+					requestActivity(memberCourse.getMember().getId(), decrypt(memberCourse.getMember().getPassword()),
+						memberCourse.getCourse().getCode()));
 
 				JsonNode dataNodes = responseNode.get("data");
 				if (dataNodes == null || !dataNodes.isArray())
@@ -133,7 +138,7 @@ public class ActivityService {
 					activities.addAll(StreamSupport.stream(activitiesNode.spliterator(), false)
 						.map(node -> objectMapper.convertValue(node, ActivityResponse.class))
 						.filter(activityResponse -> !isExistsActivity(activityResponse.title(),
-							memberLecture.getMember().getId()))
+							memberCourse.getMember().getId()))
 						.map(activityResponse -> Activity.save(
 							activityResponse.available(),
 							week,
@@ -143,11 +148,11 @@ public class ActivityService {
 							Optional.ofNullable(activityResponse.code()).orElse(""),
 							Optional.ofNullable(activityResponse.deadline()).orElse(""),
 							activityResponse.startAt(),
-							activityResponse.lectureTime(),
+							activityResponse.courseTime(),
 							Optional.ofNullable(activityResponse.timeLeft()).orElse(""),
 							Optional.ofNullable(activityResponse.description()).orElse(""),
-							memberLecture.getLecture(),
-							memberLecture.getMember()
+							memberCourse.getCourse(),
+							memberCourse.getMember()
 						))
 						.toList());
 				}
