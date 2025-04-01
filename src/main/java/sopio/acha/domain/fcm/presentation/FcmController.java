@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import sopio.acha.common.auth.annotation.CurrentMember;
 import sopio.acha.domain.fcm.application.FcmService;
 import sopio.acha.domain.fcm.presentation.request.AlertRequest;
+import sopio.acha.domain.fcm.presentation.request.DeviceTokenRequest;
 import sopio.acha.domain.fcm.presentation.response.AlertResponse;
 import sopio.acha.domain.member.domain.Member;
 
@@ -16,7 +17,6 @@ import sopio.acha.domain.member.domain.Member;
 @RequestMapping("/api/v1/alert")
 @RequiredArgsConstructor
 public class FcmController {
-
     private final FcmService fcmService;
 
     @PostMapping
@@ -38,5 +38,14 @@ public class FcmController {
         return ResponseEntity.ok().body(response);
     }
 
+    @PostMapping("/fcm-token")
+    @Operation(summary = "디바이스 토큰 추가", description = "디바이스 토큰을 추가로 저장합니다")
+    public ResponseEntity<Void> addFcmToken(
+        @CurrentMember Member currentMember,
+        @RequestBody DeviceTokenRequest request
+    ) {
+        fcmService.addFcmToken(currentMember, request.deviceToken());
+        return ResponseEntity.ok().build();
+    }
 
 }

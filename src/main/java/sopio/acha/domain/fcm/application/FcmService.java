@@ -14,7 +14,9 @@ import com.google.firebase.messaging.Notification;
 
 import lombok.RequiredArgsConstructor;
 import sopio.acha.domain.fcm.application.exception.FcmSendFailedException;
+import sopio.acha.domain.fcm.domain.Device;
 import sopio.acha.domain.fcm.domain.FcmSchedule;
+import sopio.acha.domain.fcm.infrastructure.DeviceRepository;
 import sopio.acha.domain.fcm.infrastructure.FcmScheduleRepository;
 import sopio.acha.domain.fcm.presentation.request.AlertRequest;
 import sopio.acha.domain.fcm.presentation.response.AlertResponse;
@@ -27,6 +29,7 @@ import sopio.acha.domain.member.presentation.exception.MemberNotFoundException;
 public class FcmService {
 	private final FcmScheduleRepository fcmScheduleRepository;
 	private final MemberRepository memberRepository;
+	private final DeviceRepository deviceRepository;
 
 	@Transactional
 	@Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
@@ -68,5 +71,9 @@ public class FcmService {
 			.setNotification(notification)
 			.build();
 		FirebaseMessaging.getInstance().send(message);
+	}
+
+	public void addFcmToken(Member currentMember, String token) {
+		deviceRepository.save(new Device(currentMember, token));
 	}
 }

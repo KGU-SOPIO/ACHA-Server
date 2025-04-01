@@ -118,7 +118,7 @@ public class Activity extends BaseTimeEntity {
 				.course(course)
 				.member(member)
 				.build();
-			case "course" -> Activity.builder()
+			case "lecture" -> Activity.builder()
 				.available(available)
 				.title(title)
 				.week(week)

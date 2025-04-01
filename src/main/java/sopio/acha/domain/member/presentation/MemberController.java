@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import sopio.acha.common.auth.annotation.CurrentMember;
 import sopio.acha.domain.member.application.MemberService;
-import sopio.acha.domain.member.domain.AccessToken;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.presentation.request.MemberLoginRequest;
 import sopio.acha.domain.member.presentation.request.MemberLogoutRequest;

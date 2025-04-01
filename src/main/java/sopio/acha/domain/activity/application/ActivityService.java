@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import sopio.acha.domain.activity.domain.Activity;
+import sopio.acha.domain.activity.domain.ActivityType;
 import sopio.acha.domain.activity.domain.SubmitType;
 import sopio.acha.domain.activity.infrastructure.ActivityRepository;
 import sopio.acha.domain.activity.presentation.exception.FailedParsingActivityDataException;
@@ -91,8 +94,15 @@ public class ActivityService {
 	@Transactional
 	public ActivitySummaryListResponse getMyActivityList(Member currentMember) {
 		try {
-			List<Activity> activities = activityRepository.findTop10ByMemberIdAndAttendanceAndSubmitStatusAndDeadlineAfterOrderByDeadlineAsc(
-				currentMember.getId(), false, SubmitType.NONE, LocalDateTime.now());
+			Pageable topTen = PageRequest.of(0, 10);
+			List<Activity> activities = activityRepository.findLectureAndAssignmentActivities(
+				currentMember.getId(),
+				LocalDateTime.now(),
+				ActivityType.ASSIGNMENT,
+				ActivityType.LECTURE,
+				SubmitType.NONE,
+				topTen
+			);
 			return ActivitySummaryListResponse.from(activities);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -104,11 +114,13 @@ public class ActivityService {
 	public ActivityWeekListResponse getCourseActivityList(Member currentMember, String code) {
 		Course targetCourse = courseService.getCourseByCode(code);
 		List<Activity> activities = activityRepository.findAllByMemberIdAndCourseIdOrderByWeekAsc(
-			currentMember.getId(), targetCourse.getId());
-		System.out.println(activities);
+			currentMember.getId(),
+			targetCourse.getId()
+		);
+
 		Map<Integer, List<Activity>> groupedActivities = activities.stream()
 			.collect(Collectors.groupingBy(Activity::getWeek));
-		System.out.println(groupedActivities);
+
 		return ActivityWeekListResponse.from(targetCourse, groupedActivities);
 	}
 

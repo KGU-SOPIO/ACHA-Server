@@ -46,7 +46,7 @@ public class ActivityExtractor {
                 continue;
             }
             MemberCourse memberCourse = memberCourseMap.get(identifier);
-            if (memberCourse== null) {
+            if (memberCourse == null) {
                 continue;
             }
 
