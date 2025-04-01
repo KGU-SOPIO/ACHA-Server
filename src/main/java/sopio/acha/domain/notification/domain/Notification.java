@@ -5,12 +5,16 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -44,6 +48,10 @@ public class Notification extends BaseTimeEntity {
 	@ManyToOne(fetch = LAZY)
 	@JoinColumn(name = "course_id")
 	private Course course;
+
+	@Builder.Default
+	@OneToMany(fetch = LAZY, orphanRemoval = true, mappedBy = "notification")
+	private List<Notification> notifications = new ArrayList<>();
 
 	public static Notification save(int index, String title, String date, String content, String link,
 		Course course) {
