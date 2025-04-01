@@ -43,5 +43,11 @@ public record ActivityResponse(
 	String timeLeft,
 
 	@Schema(description = "활동 설명", example = "활동 설명 예시", requiredMode = NOT_REQUIRED)
-	String description
+	String description,
+
+	@Schema(description = "강의 출석 상태", example = "true", requiredMode = NOT_REQUIRED)
+	boolean attendance,
+
+	@Schema(description = "과제 제출 상태", example = "done", requiredMode = NOT_REQUIRED)
+	String submitStatus
 ) {}

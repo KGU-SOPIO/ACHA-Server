@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import sopio.acha.domain.activity.domain.Activity;
+import sopio.acha.domain.activity.domain.SubmitType;
 import sopio.acha.domain.activity.infrastructure.ActivityRepository;
 import sopio.acha.domain.activity.presentation.exception.FailedParsingActivityDataException;
 import sopio.acha.domain.activity.presentation.exception.FailedScheduleActivityEventException;
@@ -90,8 +91,8 @@ public class ActivityService {
 	@Transactional
 	public ActivitySummaryListResponse getMyActivityList(Member currentMember) {
 		try {
-			List<Activity> activities = activityRepository.findTop10ByMemberIdAndDeadlineAfterOrderByDeadlineAsc(
-				currentMember.getId(), LocalDateTime.now());
+			List<Activity> activities = activityRepository.findTop10ByMemberIdAndAttendanceAndSubmitStatusAndDeadlineAfterOrderByDeadlineAsc(
+				currentMember.getId(), false, SubmitType.NONE, LocalDateTime.now());
 			return ActivitySummaryListResponse.from(activities);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -151,6 +152,8 @@ public class ActivityService {
 							activityResponse.courseTime(),
 							Optional.ofNullable(activityResponse.timeLeft()).orElse(""),
 							Optional.ofNullable(activityResponse.description()).orElse(""),
+							activityResponse.attendance(),
+							activityResponse.submitStatus(),
 							memberCourse.getCourse(),
 							memberCourse.getMember()
 						))

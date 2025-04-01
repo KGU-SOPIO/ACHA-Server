@@ -22,7 +22,13 @@ public record ActivityWeekDetailResponse(
 	String link,
 
 	@Schema(description = "활동 타입", example = "ASSIGNMENT", requiredMode = REQUIRED)
-	String type
+	String type,
+
+	@Schema(description = "강의 출석 상태", example = "true", requiredMode = NOT_REQUIRED)
+	boolean attendance,
+
+	@Schema(description = "과제 제출 상태", example = "done", requiredMode = NOT_REQUIRED)
+	String submitStatus
 ) {
 	public static ActivityWeekDetailResponse from(Activity activity) {
 		return ActivityWeekDetailResponse.builder()
@@ -31,6 +37,8 @@ public record ActivityWeekDetailResponse(
 			.code(activity.getCode())
 			.link(activity.getLink())
 			.type(activity.getType().toString().toLowerCase())
+			.attendance(activity.isAttendance())
+			.submitStatus(activity.getSubmitStatus().toString().toLowerCase())
 			.build();
 	}
 }

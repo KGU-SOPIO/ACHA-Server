@@ -28,7 +28,13 @@ public record ActivitySummaryResponse(
 	String deadline,
 
 	@Schema(description = "활동 링크", example = "https://lms.kyonggi.ac.kr/", requiredMode = NOT_REQUIRED)
-	String link
+	String link,
+
+	@Schema(description = "강의 출석 상태", example = "true", requiredMode = NOT_REQUIRED)
+	boolean attendance,
+
+	@Schema(description = "과제 제출 상태", example = "done", requiredMode = NOT_REQUIRED)
+	String submitStatus
 ) {
 	public static ActivitySummaryResponse from(Activity activity) {
 		return ActivitySummaryResponse.builder()
@@ -39,6 +45,8 @@ public record ActivitySummaryResponse(
 			.code(activity.getCode())
 			.deadline(activity.getDeadline().toString())
 			.link(activity.getLink().isBlank() ? null : activity.getLink())
+			.attendance(activity.isAttendance())
+			.submitStatus(activity.getSubmitStatus().toString().toLowerCase())
 			.build();
 	}
 }

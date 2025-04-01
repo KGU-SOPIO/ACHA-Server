@@ -72,6 +72,11 @@ public class Activity extends BaseTimeEntity {
 
 	private String timeLeft;
 
+	private boolean attendance;
+
+	@Enumerated(STRING)
+	private SubmitType submitStatus;
+
 	@Builder.Default
 	private boolean notifyScheduled = false;
 
@@ -91,7 +96,8 @@ public class Activity extends BaseTimeEntity {
 	}
 
 	public static Activity save(boolean available, int week, String title, String link, String type, String code, String deadline,
-								String startAt, String courseTime, String timeLeft, String description, Course course, Member member) {
+								String startAt, String courseTime, String timeLeft, String description, boolean attendance,
+								String submitStatus, Course course, Member member) {
 		LocalDateTime convertedStartAt = null;
 		if (startAt != null) convertedStartAt = DateHandler.parseDateTime(startAt);
 		LocalDateTime convertedDeadline = null;
@@ -107,6 +113,8 @@ public class Activity extends BaseTimeEntity {
 				.deadline(convertedDeadline)
 				.timeLeft(timeLeft)
 				.description(description)
+				.submitStatus(SubmitType.fromString(submitStatus))
+				.attendance(attendance)
 				.course(course)
 				.member(member)
 				.build();
