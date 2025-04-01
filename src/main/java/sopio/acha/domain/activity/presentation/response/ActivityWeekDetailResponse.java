@@ -3,8 +3,11 @@ package sopio.acha.domain.activity.presentation.response;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
+import java.util.Optional;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
+
 import sopio.acha.domain.activity.domain.Activity;
 
 @Builder
@@ -38,7 +41,11 @@ public record ActivityWeekDetailResponse(
 			.link(activity.getLink())
 			.type(activity.getType().toString().toLowerCase())
 			.attendance(activity.isAttendance())
-			.submitStatus(activity.getSubmitStatus().toString().toLowerCase())
+			.submitStatus(Optional.ofNullable(activity.getSubmitStatus())
+				.map(Enum::toString)
+				.map(String::toLowerCase)
+				.orElse(null)
+			)
 			.build();
 	}
 }

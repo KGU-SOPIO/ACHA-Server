@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import sopio.acha.domain.activity.domain.Activity;
 
+import java.util.Optional;
+
 @Builder
 public record ActivitySummaryResponse(
 	@Schema(description = "강의 제목", example = "컴퓨터 네트워크", requiredMode = REQUIRED)
@@ -44,9 +46,13 @@ public record ActivitySummaryResponse(
 			.type(activity.getType().toString().toLowerCase())
 			.code(activity.getCode())
 			.deadline(activity.getDeadline().toString())
-			.link(activity.getLink().isBlank() ? null : activity.getLink())
+			.link(activity.getLink())
 			.attendance(activity.isAttendance())
-			.submitStatus(activity.getSubmitStatus().toString().toLowerCase())
+			.submitStatus(Optional.ofNullable(activity.getSubmitStatus())
+				.map(Enum::toString)
+				.map(String::toLowerCase)
+				.orElse(null)
+			)
 			.build();
 	}
 }
