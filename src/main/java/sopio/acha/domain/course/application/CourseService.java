@@ -26,6 +26,7 @@ import sopio.acha.domain.course.presentation.exception.CourseNotFoundException;
 import sopio.acha.domain.course.presentation.response.CourseBasicInformationResponse;
 import sopio.acha.domain.course.presentation.response.CourseTimeTableResponse;
 import sopio.acha.domain.member.domain.Member;
+import sopio.acha.domain.member.infrastructure.MemberRepository;
 import sopio.acha.domain.memberCourse.application.MemberCourseService;
 
 @Service
@@ -36,6 +37,7 @@ public class CourseService {
 	private final NoticeExtractor noticeExtractor;
 	private final TimetableExtractor timetableExtractor;
 	private final ActivityExtractor activityExtractor;
+	private final MemberRepository memberRepository;
 	private final ObjectMapper objectMapper;
 
 	@Transactional(propagation = REQUIRES_NEW)
@@ -62,6 +64,8 @@ public class CourseService {
 
 			// 활동 데이터 처리
 			activityExtractor.extractAndSave(objectMapper, courseData, courseWithTimetable, currentMember);
+			currentMember.updateExtract(true);
+			memberRepository.save(currentMember);
 		} catch (JsonProcessingException e) {
 			throw new FailedParsingCourseDataException();
 		}
