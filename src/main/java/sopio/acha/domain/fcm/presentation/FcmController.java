@@ -13,7 +13,7 @@ import sopio.acha.domain.member.domain.Member;
 
 @RestController
 @Tag(name = "Fcm", description = "알림 기능")
-@RequestMapping("/api/v1/fcm")
+@RequestMapping("/api/v1/alert")
 @RequiredArgsConstructor
 public class FcmController {
 

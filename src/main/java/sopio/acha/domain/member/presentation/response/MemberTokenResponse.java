@@ -14,13 +14,13 @@ public record MemberTokenResponse(
 	String refreshToken,
 
 	@Schema(description = "추출성공 상태", requiredMode = REQUIRED)
-	Boolean extractState
+	Boolean extract
 ) {
-	public static MemberTokenResponse of(String accessToken, String refreshToken, Boolean extractState) {
+	public static MemberTokenResponse of(String accessToken, String refreshToken, Boolean extract) {
 		return MemberTokenResponse.builder()
 			.accessToken(accessToken)
 			.refreshToken(refreshToken)
-			.extractState(extractState)
+			.extract(extract)
 			.build();
 	}
 }
