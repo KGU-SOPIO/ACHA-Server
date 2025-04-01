@@ -56,7 +56,7 @@ jobs:
       - name: "도커 허브에 빌드된 이미지를 푸시한다."
         run: |
           if [[ "${{ github.event_name }}" != "workflow_dispatch" ]]; then
-            VERSION=${{ steps.extract_version_name.outputs.version }}
+            VERSION=${{ steps.tag_version.outputs.new_tag }}
             docker build -t ${{ secrets.DOCKER_USERNAME }}/acha-api:$VERSION .
             docker tag ${{ secrets.DOCKER_USERNAME }}/acha-api:$VERSION ${{ secrets.DOCKER_USERNAME }}/acha-api:latest
             docker push ${{ secrets.DOCKER_USERNAME }}/acha-api:$VERSION
