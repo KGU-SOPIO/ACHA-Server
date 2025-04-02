@@ -21,4 +21,8 @@ public class RefreshTokenService {
 		return refreshTokenRepository.findByRefreshToken(request.refreshToken())
 			.orElseThrow(RefreshTokenNotFoundException::new);
 	}
+
+	public RefreshToken getExistingToken(String studentId) {
+		return refreshTokenRepository.findByStudentId(studentId);
+	}
 }
