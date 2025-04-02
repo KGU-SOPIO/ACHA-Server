@@ -120,8 +120,12 @@ public class MemberService {
 		if (!deviceList.isEmpty()) {
             deviceRepository.deleteAll(deviceList);
 		}
-		currentMember.updateExtract(false);
 
+		currentMember.updateExtract(false);
+		currentMember.delete();
+
+		RefreshToken refreshToken = refreshTokenService.getExistingToken(currentMember.getId());
+		refreshTokenService.deleteRefreshToken(refreshToken);
 		memberRepository.save(currentMember);
 	}
 
