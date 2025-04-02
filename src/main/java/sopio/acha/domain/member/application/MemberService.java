@@ -3,6 +3,7 @@ package sopio.acha.domain.member.application;
 import static sopio.acha.common.handler.ExtractorHandler.requestAuthenticationAndUserInfo;
 
 import java.time.Duration;
+import java.util.List;
 
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
@@ -113,7 +114,11 @@ public class MemberService {
 
 	@Transactional
 	public void signOutAchaMember(Member currentMember, MemberSignOutRequest request) {
-		deviceRepository.deleteAllByMemberId(currentMember.getId()).ifPresent(deviceRepository::delete);
+//		deviceRepository.deleteAllByMemberId(currentMember.getId()).ifPresent(deviceRepository::delete);
+		List<Device> deviceList = deviceRepository.findAllByMemberId(currentMember.getId());
+		if (!deviceList.isEmpty()) {
+            deviceRepository.deleteAll(deviceList);
+		}
 		Member member = memberRepository.findById(currentMember.getId()).orElseThrow();
 		currentMember.validatePassword(request.password());
 		currentMember.delete();
