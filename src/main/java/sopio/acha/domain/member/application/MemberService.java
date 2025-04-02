@@ -150,11 +150,11 @@ public class MemberService {
 	}
 
 	private void validateIsAchaMember(final String studentId) {
-		if (!isExistMember(studentId))
+		if (isExistMember(studentId))
 			throw new MemberNotFoundException();
 	}
 
 	private boolean isExistMember(String studentId) {
-		return memberRepository.existsById(studentId);
+		return memberRepository.existsByIdAndDeletedAtIsNotNull(studentId);
 	}
 }
