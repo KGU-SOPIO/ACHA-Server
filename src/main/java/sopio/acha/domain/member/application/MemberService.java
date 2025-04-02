@@ -112,7 +112,7 @@ public class MemberService {
 		findByMemberIdAndDeviceToken(currentMember, request.deviceToken());
 		currentMember.validatePassword(request.password());
 		currentMember.delete();
-		memberRepository.save(currentMember);
+		memberRepository.delete(currentMember);
 	}
 
 	public void logoutMemberAndDeleteDeviceToken(Member currentMember, MemberLogoutRequest request) {
