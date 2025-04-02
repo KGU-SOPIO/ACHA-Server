@@ -113,7 +113,7 @@ public class MemberService {
 
 	@Transactional
 	public void signOutAchaMember(Member currentMember, MemberSignOutRequest request) {
-		findByMemberIdAndDeviceToken(currentMember, request.deviceToken());
+		currentMember.getDevices().remove(deviceRepository.findByMember_Id(currentMember.getId()));
 		currentMember.validatePassword(request.password());
 		currentMember.delete();
 		memberRepository.delete(currentMember);
