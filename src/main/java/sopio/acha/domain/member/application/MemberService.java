@@ -120,7 +120,7 @@ public class MemberService {
 		if (!deviceList.isEmpty()) {
             deviceRepository.deleteAll(deviceList);
 		}
-
+		currentMember.updateExtract(false);
 		currentMember.delete();
 		memberRepository.save(currentMember);
 	}
