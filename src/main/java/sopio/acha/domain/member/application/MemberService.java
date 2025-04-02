@@ -114,15 +114,15 @@ public class MemberService {
 
 	@Transactional
 	public void signOutAchaMember(Member currentMember, MemberSignOutRequest request) {
-//		deviceRepository.deleteAllByMemberId(currentMember.getId()).ifPresent(deviceRepository::delete);
+		currentMember.validatePassword(request.password());
+
 		List<Device> deviceList = deviceRepository.findAllByMemberId(currentMember.getId());
 		if (!deviceList.isEmpty()) {
             deviceRepository.deleteAll(deviceList);
 		}
-		Member member = memberRepository.findById(currentMember.getId()).orElseThrow();
-		currentMember.validatePassword(request.password());
+
 		currentMember.delete();
-		memberRepository.delete(member);
+		memberRepository.save(currentMember);
 	}
 
 	public void logoutMemberAndDeleteDeviceToken(Member currentMember, MemberLogoutRequest request) {

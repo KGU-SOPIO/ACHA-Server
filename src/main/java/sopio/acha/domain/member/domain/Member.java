@@ -67,7 +67,7 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	private Role role;
 
 	@Builder.Default
-	@OneToMany(mappedBy = "member", cascade = ALL, fetch = EAGER, orphanRemoval = true)
+	@OneToMany(mappedBy = "member", fetch = EAGER)
 	private List<Device> devices = new ArrayList<>();
 
 	public static Member save(String id, String password, String name, String college, String department,
@@ -120,5 +120,4 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	public String getPassword() {
 		return password;
 	}
-
 }
