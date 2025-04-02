@@ -114,7 +114,6 @@ public class Activity extends BaseTimeEntity {
 				.timeLeft(timeLeft)
 				.description(description)
 				.submitStatus(SubmitType.fromString(submitStatus))
-				.attendance(attendance)
 				.course(course)
 				.member(member)
 				.build();
@@ -128,6 +127,7 @@ public class Activity extends BaseTimeEntity {
 				.startAt(convertedStartAt)
 				.deadline(convertedDeadline)
 				.courseTime(courseTime)
+				.attendance(attendance)
 				.course(course)
 				.member(member)
 				.build();
