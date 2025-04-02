@@ -67,7 +67,7 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	private Role role;
 
 	@Builder.Default
-	@OneToMany(mappedBy = "member", cascade = ALL, fetch = EAGER)
+	@OneToMany(mappedBy = "member", cascade = ALL, fetch = EAGER, orphanRemoval = true)
 	private List<Device> devices = new ArrayList<>();
 
 	public static Member save(String id, String password, String name, String college, String department,
