@@ -121,7 +121,7 @@ public class MemberService {
             deviceRepository.deleteAll(deviceList);
 		}
 		currentMember.updateExtract(false);
-		currentMember.delete();
+
 		memberRepository.save(currentMember);
 	}
 

@@ -25,4 +25,8 @@ public class RefreshTokenService {
 	public RefreshToken getExistingToken(String studentId) {
 		return refreshTokenRepository.findByStudentId(studentId);
 	}
+
+	public void deleteRefreshToken(RefreshToken refreshToken) {
+		refreshTokenRepository.delete(refreshToken);
+	}
 }
