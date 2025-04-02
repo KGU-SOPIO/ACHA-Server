@@ -125,7 +125,10 @@ public class MemberService {
 
 	private void findByMemberIdAndDeviceToken(Member currentMember, String deviceToken) {
 		deviceRepository.findByMemberIdAndDeviceToken(currentMember.getId(), deviceToken)
-			.ifPresent(deviceRepository::delete);
+			.ifPresent(token -> {
+				deviceRepository.delete(token);
+				currentMember.getDevices().remove(token);
+			});
 	}
 
 	private void saveNewDeviceToken(String deviceToken, Member member) {
