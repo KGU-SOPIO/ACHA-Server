@@ -143,9 +143,11 @@ public class MemberService {
 	private MemberTokenResponse issueAndSaveMemberToken(Member member) {
 		if (member.getDeletedAt() != null) throw new MemberNotAuthenticatedException();
 		AccessToken accessToken = AccessToken.of(jwtCreator.generateToken(member, Duration.ofHours(2)));
-		RefreshToken refreshToken = RefreshToken.of(member.getId(),
-			jwtCreator.generateToken(member, Duration.ofDays(7)));
-		refreshTokenService.saveRefreshToken(refreshToken);
+		RefreshToken refreshToken = refreshTokenService.getExistingToken(member.getId());
+		if (refreshToken == null) {
+			refreshToken = RefreshToken.of(member.getId(), jwtCreator.generateToken(member, Duration.ofDays(7)));
+			refreshTokenService.saveRefreshToken(refreshToken);
+		}
 		return MemberTokenResponse.of(accessToken.getAccessToken(), refreshToken.getRefreshToken(), member.getExtract());
 	}
 
