@@ -25,7 +25,7 @@ public record CourseBasicInformationResponse(
 	@Schema(description = "담당 교수", requiredMode = REQUIRED)
 	String professor,
 
-	@Schema(description = "공지사항 페이지 코드", requiredMode = REQUIRED)
+	@Schema(description = "공지사항 페이지 코드", requiredMode = NOT_REQUIRED)
 	String noticeCode,
 
 	@Schema(description = "공지사항 목록", requiredMode = NOT_REQUIRED)

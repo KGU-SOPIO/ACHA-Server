@@ -45,7 +45,6 @@ public class Course extends BaseTimeEntity {
 	@Column(nullable = false)
 	private String code;
 
-	@Column(nullable = false)
 	private String noticeCode;
 
 	@Column(nullable = false)
