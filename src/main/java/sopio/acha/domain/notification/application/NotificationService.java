@@ -20,12 +20,24 @@ import sopio.acha.domain.notification.presentation.response.NotificationListResp
 public class NotificationService {
 	private final NotificationRepository notificationRepository;
 
+	@Transactional
 	public void extractNotifications(List<NotificationScrapingResponse> notifications, Course course) {
-		notificationRepository.saveAll(notifications.stream()
-			.filter(n -> !isExistsByIndexAndCourseId(Integer.parseInt(n.index()), course.getId()))
-			.map(n -> Notification.save(Integer.parseInt(n.index()), n.title(), n.date(),
-				n.content(), n.link(), course))
-			.collect(Collectors.toList()));
+		List<Notification> existingNotifications = notificationRepository.findAllByCourseId(course.getId());
+		if (!existingNotifications.isEmpty()) {
+			notificationRepository.deleteAll(existingNotifications);
+		}
+
+		List<Notification> newNotifications = notifications.stream()
+						.map(n -> Notification.save(
+								Integer.parseInt(n.index()),
+								n.title(),
+								n.date(),
+								n.content(),
+								n.link(),
+								course
+						))
+						.toList();
+		notificationRepository.saveAll(newNotifications);
 	}
 
 	@Transactional(readOnly = true)

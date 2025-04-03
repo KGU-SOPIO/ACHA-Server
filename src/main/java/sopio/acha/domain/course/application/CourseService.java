@@ -49,7 +49,7 @@ public class CourseService {
 			JsonNode courseData = objectMapper.readTree(
 					requestCourse(currentMember.getId(), decryptedPassword)).get("data");
 
-			// 강좌, 시간표 정보 변환
+			// 강좌, 시간표 데이터 변환
 			List<CourseTimeTableResponse> timetableList = convertToTimetableList(timetableData);
 			Map<String, CourseTimeTableResponse> timetableMap = convertToTimetableMap(timetableList);
 			Map<String, CourseBasicInformationResponse> courseMap = convertToCourseMap(courseData);

@@ -44,15 +44,8 @@ import sopio.acha.domain.memberCourse.domain.MemberCourse;
 @RequiredArgsConstructor
 public class ActivityService {
 	private final ActivityRepository activityRepository;
-	private final MemberCourseService memberCourseService;
 	private final CourseService courseService;
 	private final FcmService fcmService;
-
-	@Transactional
-	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
-	public void scheduledExtractActivity() {
-		scheduledActivityExtraction();
-	}
 
 	@Transactional
 	@Scheduled(fixedRate = 30, timeUnit = TimeUnit.MINUTES)
@@ -81,27 +74,17 @@ public class ActivityService {
 		}
 	}
 
-	public void scheduledActivityExtraction() {
-		ObjectMapper objectMapper = new ObjectMapper();
-		List<MemberCourse> allCourseList = memberCourseService.getAllMemberCourse()
-			.stream()
-			.filter(MemberCourse::checkLastUpdatedAt)
-			.peek(MemberCourse::setLastUpdatedAt)
-			.toList();
-		saveExtractedActivity(allCourseList, objectMapper);
-	}
-
 	@Transactional
 	public ActivitySummaryListResponse getMyActivityList(Member currentMember) {
 		try {
 			Pageable topTen = PageRequest.of(0, 10);
 			List<Activity> activities = activityRepository.findLectureAndAssignmentActivities(
-				currentMember.getId(),
-				LocalDateTime.now(),
-				ActivityType.ASSIGNMENT,
-				ActivityType.LECTURE,
-				SubmitType.NONE,
-				topTen
+					currentMember.getId(),
+					LocalDateTime.now(),
+					ActivityType.ASSIGNMENT,
+					ActivityType.LECTURE,
+					SubmitType.NONE,
+					topTen
 			);
 			return ActivitySummaryListResponse.from(activities);
 		} catch (Exception e) {
@@ -128,57 +111,5 @@ public class ActivityService {
 		if (triggerTime.isAfter(LocalDateTime.now())) {
 			fcmService.saveFcmEvent(activity.getMember(), activity.getCourse().getTitle(), description, triggerTime);
 		}
-	}
-
-	private void saveExtractedActivity(List<MemberCourse> currentCourses, ObjectMapper objectMapper) {
-		try {
-			for (MemberCourse memberCourse : currentCourses) {
-				JsonNode responseNode = objectMapper.readTree(
-					requestActivity(memberCourse.getMember().getId(), decrypt(memberCourse.getMember().getPassword()),
-						memberCourse.getCourse().getCode()));
-
-				JsonNode dataNodes = responseNode.get("data");
-				if (dataNodes == null || !dataNodes.isArray())
-					continue;
-				List<Activity> activities = new ArrayList<>();
-
-				for (JsonNode dataNode : dataNodes) {
-					int week = dataNode.get("week").asInt();
-					JsonNode activitiesNode = dataNode.get("activities");
-					if (activitiesNode == null || !activitiesNode.isArray())
-						continue;
-
-					activities.addAll(StreamSupport.stream(activitiesNode.spliterator(), false)
-						.map(node -> objectMapper.convertValue(node, ActivityResponse.class))
-						.filter(activityResponse -> !isExistsActivity(activityResponse.title(),
-							memberCourse.getMember().getId()))
-						.map(activityResponse -> Activity.save(
-							activityResponse.available(),
-							week,
-							activityResponse.title(),
-							Optional.ofNullable(activityResponse.link()).orElse(""),
-							activityResponse.type(),
-							Optional.ofNullable(activityResponse.code()).orElse(""),
-							Optional.ofNullable(activityResponse.deadline()).orElse(""),
-							activityResponse.startAt(),
-							activityResponse.courseTime(),
-							Optional.ofNullable(activityResponse.timeLeft()).orElse(""),
-							Optional.ofNullable(activityResponse.description()).orElse(""),
-							activityResponse.attendance(),
-							activityResponse.submitStatus(),
-							memberCourse.getCourse(),
-							memberCourse.getMember()
-						))
-						.toList());
-				}
-				activityRepository.saveAll(activities);
-			}
-		} catch (JsonProcessingException e) {
-			throw new FailedParsingActivityDataException();
-		}
-	}
-
-	private boolean isExistsActivity(String title, String memberId) {
-		return activityRepository.existsActivityByTitleAndMemberId(title, memberId);
 	}
 }
