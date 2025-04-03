@@ -51,7 +51,7 @@ public class MemberService {
 	public MemberTokenResponse validateIsAchaMemberAndLogin(MemberLoginRequest request) {
 		Member loginMember = validatePasswordAndGetMemberInfoFromExtractor(request.studentId(), request.password());
 		validateIsAchaMember(request.studentId());
-		if (loginMember.getExtract()) {
+		if (loginMember.getExtract() && request.deviceToken() != null) {
 			saveNewDeviceToken(request.deviceToken(), loginMember);
 		}
 		RefreshToken refreshToken = refreshTokenService.getExistingToken(request.studentId());
@@ -80,7 +80,9 @@ public class MemberService {
 			Member.save(request.studentId(), request.password(), request.name(), request.college(),
 				request.department(), request.major())
 		);
-		saveNewDeviceToken(request.deviceToken(), savedMember);
+		if (request.deviceToken() != null) {
+			saveNewDeviceToken(request.deviceToken(), savedMember);
+		}
 		return issueAndSaveMemberToken(savedMember);
 	}
 
@@ -130,7 +132,9 @@ public class MemberService {
 	}
 
 	public void logoutMemberAndDeleteDeviceToken(Member currentMember, MemberLogoutRequest request) {
-		findByMemberIdAndDeviceToken(currentMember, request.deviceToken());
+		if (request.deviceToken() != null) {
+			findByMemberIdAndDeviceToken(currentMember, request.deviceToken());
+		}
 	}
 
 	private void findByMemberIdAndDeviceToken(Member currentMember, String deviceToken) {

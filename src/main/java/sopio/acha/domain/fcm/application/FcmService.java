@@ -1,11 +1,11 @@
 package sopio.acha.domain.fcm.application;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
@@ -13,7 +13,6 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 
 import lombok.RequiredArgsConstructor;
-import sopio.acha.domain.fcm.application.exception.FcmSendFailedException;
 import sopio.acha.domain.fcm.domain.Device;
 import sopio.acha.domain.fcm.domain.FcmSchedule;
 import sopio.acha.domain.fcm.infrastructure.DeviceRepository;
@@ -31,21 +30,20 @@ public class FcmService {
 	private final MemberRepository memberRepository;
 	private final DeviceRepository deviceRepository;
 
-	@Transactional
 	@Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
 	public void sendActivityNotificationToFCM() {
-		fcmScheduleRepository.findAllBySendTimeBeforeAndMember_AlertIsTrue(LocalDateTime.now())
-			.forEach(msg -> {
-				try {
-					sendNotification(msg.getDeviceToken(), msg.getTitle(), msg.getBody());
-				} catch (FirebaseMessagingException e) {
-					if ("messaging/registration-token-not-registered".equals(e.getErrorCode().toString()) ||
-							"messaging/invalid-registration-token".equals(e.getErrorCode().toString())) {
-						deviceRepository.deleteByDeviceToken(msg.getDeviceToken());
-					}
-					throw new FcmSendFailedException();
+		List<FcmSchedule> fcmSchedule = fcmScheduleRepository.findAllBySendTimeBeforeAndMember_AlertIsTrue(LocalDateTime.now());
+		for (FcmSchedule schedule : fcmSchedule) {
+			try {
+				sendNotification(schedule.getDeviceToken(), schedule.getTitle(), schedule.getBody());
+			} catch (FirebaseMessagingException e) {
+				if ("messaging/registration-token-not-registered".equals(e.getErrorCode().toString()) ||
+						"messaging/invalid-registration-token".equals(e.getErrorCode().toString()) ||
+						"messaging/invalid-argument".equals(e.getErrorCode().toString())) {
+					deviceRepository.deleteByDeviceToken(schedule.getDeviceToken());
 				}
-			});
+			}
+		}
 	}
 
 	public void setAlertStatus(Member currentMember, AlertRequest alertRequest) {
