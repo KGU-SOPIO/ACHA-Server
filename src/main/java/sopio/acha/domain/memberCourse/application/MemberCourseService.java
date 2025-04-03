@@ -1,6 +1,8 @@
 package sopio.acha.domain.memberCourse.application;
 
 import static sopio.acha.common.handler.DateHandler.getTodayDate;
+import static sopio.acha.common.handler.EncryptionHandler.decrypt;
+import static sopio.acha.common.handler.ExtractorHandler.requestAuthentication;
 
 import java.util.Comparator;
 import java.util.List;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import sopio.acha.common.exception.ExtractorErrorException;
 import sopio.acha.common.handler.DateHandler;
 import sopio.acha.domain.course.domain.Course;
 import sopio.acha.domain.course.domain.CourseDay;
@@ -44,7 +47,7 @@ public class MemberCourseService {
 		List<MemberCourse> memberCourses = memberCourseRepository.findAllByMemberIdAndCourseYearAndCourseSemesterOrderByCourseDayOrderAsc(
 			currentMember.getId(), DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
 		memberCourses.sort(
-				Comparator.comparing((MemberCourse mc) -> mc.getCourse().getDayOrder())
+			Comparator.comparing((MemberCourse mc) -> mc.getCourse().getDayOrder())
 				.thenComparing(mc -> mc.getCourse().getStartAt())
 		);
 		return MemberCourseListResponse.from(memberCourses);
@@ -52,9 +55,27 @@ public class MemberCourseService {
 
 	@Transactional
 	public List<MemberCourse> getAllMemberCourse() {
-		return memberCourseRepository.findAllByCourseYearAndCourseSemesterOrderByCourseDayOrderAsc(
-			DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
+		List<MemberCourse> memberCourseList = memberCourseRepository
+			.findAllByCourseYearAndCourseSemesterOrderByCourseDayOrderAsc(
+				DateHandler.getCurrentSemesterYear(),
+				DateHandler.getCurrentSemester()
+			);
+
+		return memberCourseList.stream()
+			.filter(memberCourse -> {
+				try {
+					requestAuthentication(
+						memberCourse.getMember().getId(),
+						decrypt(memberCourse.getMember().getPassword())
+					);
+					return true;
+				} catch (ExtractorErrorException e) {
+					return false;
+				}
+			})
+			.toList();
 	}
+
 
 	public boolean isExistsMemberCourse(Member currentMember, Course course) {
 		return !memberCourseRepository.existsByMemberAndCourse(currentMember, course);
