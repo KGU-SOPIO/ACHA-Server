@@ -1,7 +1,6 @@
 package sopio.acha.domain.notification.application;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,9 +58,5 @@ public class NotificationService {
 			currentNotification.getIndex() + 1, currentNotification.getCourse().getId())
 			.orElse(null);
 		return NotificationDetailResponse.of(currentNotification, prevNotification, nextNotification);
-	}
-
-	private boolean isExistsByIndexAndCourseId(int index, Long courseId) {
-		return notificationRepository.existsByIndexAndCourseId(index, courseId);
 	}
 }

@@ -63,123 +63,120 @@ public class MemberCourseService {
 				.collect(Collectors.groupingBy(MemberCourse::getMember));
 
 		memberCourseMap.forEach((member, memberCourses) -> {
-			for (MemberCourse memberCourse : memberCourses) {
-				try {
-					JsonNode courseData = objectMapper.readTree(
-							requestCourse(member.getId(), decrypt(member.getPassword()))).get("data");
-					if (courseData == null || !courseData.isObject()) {
-						return;
-					}
-
-					// 강좌 데이터 변환
-					List<CourseBasicInformationResponse> courseResponseList = StreamSupport.stream(courseData.spliterator(), false)
-							.map(node -> objectMapper.convertValue(node, CourseBasicInformationResponse.class))
-							.toList();
-
-					// 강좌코드 추출
-					Set<String> memberCourseIdentifiers = memberCourses.stream()
-							.map(course -> course.getCourse().getIdentifier())
-							.collect(Collectors.toSet());
-
-					// 기존, 신규 강좌 분리
-					List<CourseBasicInformationResponse> existingCourseResponseList = courseResponseList.stream()
-							.filter(response -> memberCourseIdentifiers.contains(response.identifier()))
-							.toList();
-					List<CourseBasicInformationResponse> newCourseResponseList = courseResponseList.stream()
-							.filter(response -> !memberCourseIdentifiers.contains(response.identifier()))
-							.toList();
-
-					// 신규 강좌 시간표 매핑 후 저장 처리 필요
-					if (!newCourseResponseList.isEmpty()) {
-						List<Course> newCourses = newCourseResponseList.stream()
-								.map(courseResponse -> Course.save(
-										courseResponse.title(),
-										courseResponse.identifier(),
-										courseResponse.code(),
-										courseResponse.noticeCode(),
-										courseResponse.professor()))
-								.toList();
-
-						JsonNode timetableData = objectMapper.readTree(
-								requestTimetable(member.getId(), decrypt(member.getPassword()))).get("data");
-
-						List<CourseTimeTableResponse> timetableList = StreamSupport.stream(timetableData.spliterator(), false)
-								.map(node -> objectMapper.convertValue(node, CourseTimeTableResponse.class))
-								.toList();
-
-						Map<String, CourseTimeTableResponse> timetableMap = timetableList.stream()
-								.collect(Collectors.toMap(CourseTimeTableResponse::identifier, Function.identity()));
-						newCourses.forEach(course -> {
-							CourseTimeTableResponse timetable = timetableMap.get(course.getIdentifier());
-							if (timetable == null) {
-								course.setTimetable(
-										timetable.day(),
-										timetable.classTime(),
-										timetable.startAt(),
-										timetable.endAt(),
-										timetable.lectureRoom()
-								);
-							}
-						});
-
-						// 신규 강좌 등록
-						saveMyCourses(newCourses, member);
-						List<MemberCourse> newMemberCourses = newCourses.stream()
-								.map(course -> new MemberCourse(member, course))
-								.toList();
-						memberCourses.addAll(newMemberCourses);
-
-						// 식별자 집합 업데이트
-						newCourses.forEach(course -> memberCourseIdentifiers.add(course.getIdentifier()));
-					}
-
-					// 강좌 Map 생성
-					Map<String, CourseBasicInformationResponse> courseResponseMap = courseResponseList.stream()
-							.filter(response -> memberCourseIdentifiers.contains(response.identifier()))
-							.collect(Collectors.toMap(CourseBasicInformationResponse::identifier, Function.identity()));
-
-					// 공지사항 업데이트
-					noticeExtractor.extractAndSave(courseResponseMap);
-
-					for (CourseBasicInformationResponse courseResponse : courseResponseList) {
-						Optional<MemberCourse> optionalMemberCourse = memberCourses.stream()
-								.filter(course -> course.getCourse().getIdentifier().equals(courseResponse.identifier()))
-								.findFirst();
-						if (optionalMemberCourse.isEmpty()) {
-							continue;
-						}
-						Course course = optionalMemberCourse.get().getCourse();
-
-						List<ActivityScrapingWeekResponse> weekResponses = courseResponse.activities();
-						for (ActivityScrapingWeekResponse weekResponse : weekResponses) {
-							int week = weekResponse.week();
-							for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
-								if (!activityRepository.existsActivityByTitleAndMemberId(activityResponse.title(), member.getId())) {
-									Activity activity = Activity.save(
-											activityResponse.available(),
-											week,
-											activityResponse.title(),
-											activityResponse.link(),
-											activityResponse.type(),
-											activityResponse.code(),
-											activityResponse.deadline(),
-											activityResponse.startAt(),
-											activityResponse.courseTime(),
-											activityResponse.timeLeft(),
-											activityResponse.description(),
-											activityResponse.attendance(),
-											activityResponse.submitStatus(),
-											course,
-											member
-									);
-									activityRepository.save(activity);
-								}
-							}
-						}
-					}
-				} catch (JsonProcessingException e) {
-					throw new FailedParsingCourseDataException();
+			String decryptedPassword = decrypt(member.getPassword());
+			try {
+				JsonNode courseData = objectMapper.readTree(
+						requestCourse(member.getId(), decryptedPassword)).get("data");
+				if (courseData == null || !courseData.isArray()) {
+					return;
 				}
+
+				// 강좌 데이터 변환
+				List<CourseBasicInformationResponse> courseResponseList = StreamSupport
+						.stream(courseData.spliterator(), false)
+						.map(node -> objectMapper.convertValue(node, CourseBasicInformationResponse.class))
+						.toList();
+
+				// 강좌코드 추출
+				Set<String> memberCourseIdentifiers = memberCourses.stream()
+						.map(course -> course.getCourse().getIdentifier())
+						.collect(Collectors.toSet());
+
+				// 신규 강좌 필터링
+				List<CourseBasicInformationResponse> newCourseResponseList = courseResponseList.stream()
+						.filter(response -> !memberCourseIdentifiers.contains(response.identifier()))
+						.toList();
+
+				// 신규 강좌 시간표 매핑 후 저장 처리 필요
+				if (!newCourseResponseList.isEmpty()) {
+					List<Course> newCourses = newCourseResponseList.stream()
+							.map(courseResponse -> Course.save(
+									courseResponse.title(),
+									courseResponse.identifier(),
+									courseResponse.code(),
+									courseResponse.noticeCode(),
+									courseResponse.professor()))
+							.toList();
+
+					JsonNode timetableData = objectMapper.readTree(
+							requestTimetable(member.getId(), decryptedPassword)).get("data");
+
+					List<CourseTimeTableResponse> timetableList = StreamSupport.stream(timetableData.spliterator(), false)
+							.map(node -> objectMapper.convertValue(node, CourseTimeTableResponse.class))
+							.toList();
+
+					Map<String, CourseTimeTableResponse> timetableMap = timetableList.stream()
+							.collect(Collectors.toMap(CourseTimeTableResponse::identifier, Function.identity()));
+					newCourses.forEach(course -> {
+						CourseTimeTableResponse timetable = timetableMap.get(course.getIdentifier());
+						if (timetable != null) {
+							course.setTimetable(
+									timetable.day(),
+									timetable.classTime(),
+									timetable.startAt(),
+									timetable.endAt(),
+									timetable.lectureRoom()
+							);
+						}
+					});
+
+					// 신규 강좌 등록
+					saveMyCourses(newCourses, member);
+					List<MemberCourse> newMemberCourses = newCourses.stream()
+							.map(course -> new MemberCourse(member, course))
+							.toList();
+					memberCourses.addAll(newMemberCourses);
+
+					// 식별자 집합 업데이트
+					newCourses.forEach(course -> memberCourseIdentifiers.add(course.getIdentifier()));
+				}
+
+				// 강좌 Map 생성
+				Map<String, CourseBasicInformationResponse> courseResponseMap = courseResponseList.stream()
+						.filter(response -> memberCourseIdentifiers.contains(response.identifier()))
+						.collect(Collectors.toMap(CourseBasicInformationResponse::identifier, Function.identity()));
+
+				// 공지사항 업데이트
+				noticeExtractor.extractAndSave(courseResponseMap);
+
+				for (CourseBasicInformationResponse courseResponse : courseResponseList) {
+					Optional<MemberCourse> optionalMemberCourse = memberCourses.stream()
+							.filter(course -> course.getCourse().getIdentifier().equals(courseResponse.identifier()))
+							.findFirst();
+					if (optionalMemberCourse.isEmpty()) {
+						continue;
+					}
+					Course course = optionalMemberCourse.get().getCourse();
+
+					List<ActivityScrapingWeekResponse> weekResponses = courseResponse.activities();
+					for (ActivityScrapingWeekResponse weekResponse : weekResponses) {
+						int week = weekResponse.week();
+						for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
+							if (!activityRepository.existsActivityByTitleAndMemberId(activityResponse.title(), member.getId())) {
+								Activity activity = Activity.save(
+										activityResponse.available(),
+										week,
+										activityResponse.title(),
+										activityResponse.link(),
+										activityResponse.type(),
+										activityResponse.code(),
+										activityResponse.deadline(),
+										activityResponse.startAt(),
+										activityResponse.courseTime(),
+										activityResponse.timeLeft(),
+										activityResponse.description(),
+										activityResponse.attendance(),
+										activityResponse.submitStatus(),
+										course,
+										member
+								);
+								activityRepository.save(activity);
+							}
+						}
+					}
+				}
+			} catch (JsonProcessingException e) {
+				throw new FailedParsingCourseDataException();
 			}
 		});
 	}
