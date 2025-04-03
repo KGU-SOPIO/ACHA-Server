@@ -17,6 +17,9 @@ spring:
     show-sql: false
     open-in-view: false
 
+  jackson:
+    time-zone: Asia/Seoul
+
   data:
     redis:
       host: ${REDIS_HOST:redis}
