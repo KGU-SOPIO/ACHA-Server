@@ -2,6 +2,7 @@ package sopio.acha.domain.memberCourse.application;
 
 import static sopio.acha.common.handler.DateHandler.getTodayDate;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ public class MemberCourseService {
 		CourseDay today = CourseDay.valueOf(getTodayDate());
 		List<MemberCourse> memberCourses = memberCourseRepository.findAllByMemberIdAndCourseDayAndCourseYearAndCourseSemester(
 			currentMember.getId(), today, DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
+		memberCourses.sort(Comparator.comparing(mc -> mc.getCourse().getStartAt()));
 		return MemberCourseListResponse.from(memberCourses);
 	}
 
@@ -41,6 +43,10 @@ public class MemberCourseService {
 	public MemberCourseListResponse getThisSemesterMemberCourse(Member currentMember) {
 		List<MemberCourse> memberCourses = memberCourseRepository.findAllByMemberIdAndCourseYearAndCourseSemesterOrderByCourseDayOrderAsc(
 			currentMember.getId(), DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
+		memberCourses.sort(
+				Comparator.comparing((MemberCourse mc) -> mc.getCourse().getDayOrder())
+				.thenComparing(mc -> mc.getCourse().getStartAt())
+		);
 		return MemberCourseListResponse.from(memberCourses);
 	}
 
