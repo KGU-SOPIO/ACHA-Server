@@ -14,7 +14,7 @@ spring:
       jdbc:
         time_zone: Asia/Seoul
     defer-datasource-initialization: true
-    show-sql: true
+    show-sql: false
     open-in-view: false
 
   data:
