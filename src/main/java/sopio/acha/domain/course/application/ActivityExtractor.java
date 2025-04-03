@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.springframework.stereotype.Component;
 
@@ -27,58 +28,57 @@ public class ActivityExtractor {
     private final MemberCourseService memberCourseService;
     private final ActivityRepository activityRepository;
 
-    public void extractAndSave(ObjectMapper objectMapper, JsonNode courseData, List<Course> courseWithtimetable, Member member) {
-        List<Activity> activities = new ArrayList<>();
+    public void extractAndSave(ObjectMapper objectMapper, JsonNode courseData, List<Course> coursesWithTimetable, Member member) {
+        List<Activity> newActivities = new ArrayList<>();
         String memberId = member.getId();
 
-        List<MemberCourse> memberCourses = courseWithtimetable.stream()
+        Map<String, MemberCourse> memberCourseMap = coursesWithTimetable.stream()
                 .filter(course -> !memberCourseService.isExistsMemberCourse(member, course))
                 .map(course -> new MemberCourse(member, course))
-                .toList();
-
-        Map<String, MemberCourse> memberCourseMap = memberCourses.stream()
                 .collect(Collectors.toMap(memberCourse -> memberCourse.getCourse().getIdentifier(), Function.identity()));
 
-        for (JsonNode dataNode : courseData) {
-            String identifier = dataNode.get("identifier").asText();
-            JsonNode activitiesNode = dataNode.get("activities");
-            if (activitiesNode == null || !activitiesNode.isArray()) {
-                continue;
-            }
-            MemberCourse memberCourse = memberCourseMap.get(identifier);
-            if (memberCourse == null) {
-                continue;
-            }
-
-            for (JsonNode weekNode : activitiesNode) {
-                ActivityScrapingWeekResponse weekResponse = objectMapper.convertValue(weekNode, ActivityScrapingWeekResponse.class);
-                int week = weekResponse.week();
-                for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
-                    if (!activityRepository.existsActivityByTitleAndMemberId(activityResponse.title(), memberId)) {
-                        Activity activity = Activity.save(
-                            activityResponse.available(),
-                            week,
-                            activityResponse.title(),
-                            activityResponse.link(),
-                            activityResponse.type(),
-                            activityResponse.code(),
-                            activityResponse.deadline(),
-                            activityResponse.startAt(),
-                            activityResponse.courseTime(),
-                            activityResponse.timeLeft(),
-                            activityResponse.description(),
-                            activityResponse.attendance(),
-                            activityResponse.submitStatus(),
-                            memberCourse.getCourse(),
-                            memberCourse.getMember()
-                        );
-                        activities.add(activity);
+        StreamSupport.stream(courseData.spliterator(), false)
+                .forEach(node -> {
+                    String identifier = node.get("identifier").asText();
+                    JsonNode activitiesNode = node.get("activities");
+                    if (activitiesNode == null || !activitiesNode.isArray()) {
+                        return;
                     }
-                }
-            }
-            if (!activities.isEmpty()) {
-                activityRepository.saveAll(activities);
-            }
+                    MemberCourse memberCourse = memberCourseMap.get(identifier);
+                    if (memberCourse == null) {
+                        return;
+                    }
+
+                    for (JsonNode weekNode : activitiesNode) {
+                        ActivityScrapingWeekResponse weekResponse = objectMapper.convertValue(weekNode, ActivityScrapingWeekResponse.class);
+                        int week = weekResponse.week();
+                        for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
+                            if (!activityRepository.existsActivityByTitleAndMemberId(activityResponse.title(), memberId)) {
+                                Activity activity = Activity.save(
+                                        activityResponse.available(),
+                                        week,
+                                        activityResponse.title(),
+                                        activityResponse.link(),
+                                        activityResponse.type(),
+                                        activityResponse.code(),
+                                        activityResponse.deadline(),
+                                        activityResponse.startAt(),
+                                        activityResponse.courseTime(),
+                                        activityResponse.timeLeft(),
+                                        activityResponse.description(),
+                                        activityResponse.attendance(),
+                                        activityResponse.submitStatus(),
+                                        memberCourse.getCourse(),
+                                        memberCourse.getMember()
+                                );
+                                newActivities.add(activity);
+                            }
+                        }
+                    }
+                });
+
+        if (!newActivities.isEmpty()) {
+            activityRepository.saveAll(newActivities);
         }
     }
 }
