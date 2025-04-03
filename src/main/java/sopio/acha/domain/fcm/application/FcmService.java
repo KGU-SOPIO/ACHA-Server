@@ -39,6 +39,10 @@ public class FcmService {
 				try {
 					sendNotification(msg.getDeviceToken(), msg.getTitle(), msg.getBody());
 				} catch (FirebaseMessagingException e) {
+					if ("messaging/registration-token-not-registered".equals(e.getErrorCode().toString()) ||
+							"messaging/invalid-registration-token".equals(e.getErrorCode().toString())) {
+						deviceRepository.deleteByDeviceToken(msg.getDeviceToken());
+					}
 					throw new FcmSendFailedException();
 				}
 			});
