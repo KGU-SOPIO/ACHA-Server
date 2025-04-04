@@ -151,13 +151,16 @@ public class MemberCourseService {
 		System.out.println("신규 등록 강좌 수: " + newCourseResponseList.size());
 
 		List<Course> newCourseList = newCourseResponseList.stream()
-				.map(courseResponse -> Course.save(
-						courseResponse.title(),
-						courseResponse.identifier(),
-						courseResponse.code(),
-						courseResponse.noticeCode(),
-						courseResponse.professor()
-				)).toList();
+				.map(courseResponse -> {
+					Optional<Course> existingCourse = courseRepository.findByIdentifier(courseResponse.identifier());
+                    return existingCourse.orElseGet(() -> Course.save(
+                            courseResponse.title(),
+                            courseResponse.identifier(),
+                            courseResponse.code(),
+                            courseResponse.noticeCode(),
+                            courseResponse.professor()
+                    ));
+				}).toList();
 
 		try	{
 			JsonNode timetableData = objectMapper.readTree(requestTimetable(member.getId(), decryptedPassword)).get("data");
