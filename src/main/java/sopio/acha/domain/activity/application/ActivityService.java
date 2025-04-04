@@ -52,6 +52,7 @@ public class ActivityService {
 		LocalDateTime now = LocalDateTime.now();
 		List<Activity> activityList = activityRepository.findAllByDeadlineAfter(
 				now,
+				now.plusDays(4),
 				ActivityType.ASSIGNMENT,
 				ActivityType.LECTURE,
 				SubmitType.NONE

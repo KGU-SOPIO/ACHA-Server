@@ -35,10 +35,12 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
 
 	@Query("SELECT a FROM Activity a " +
 			"WHERE a.deadline > :now " +
+			"AND a.deadline < :end " +
 			"AND ((a.type = :assignmentType AND a.submitStatus = :noneSubmitStatus) " +
 			"OR (a.type = :lectureType AND a.attendance = false))")
 	List<Activity> findAllByDeadlineAfter(
 		@Param("now") LocalDateTime now,
+		@Param("end") LocalDateTime end,
 		@Param("assignmentType") ActivityType assignmentType,
 		@Param("lectureType") ActivityType lectureType,
 		@Param("noneSubmitStatus") SubmitType noneSubmitStatus);
