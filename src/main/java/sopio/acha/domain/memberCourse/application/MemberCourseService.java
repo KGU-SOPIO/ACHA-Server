@@ -27,6 +27,7 @@ import sopio.acha.domain.activity.presentation.response.ActivityScrapingWeekResp
 import sopio.acha.domain.course.application.NoticeExtractor;
 import sopio.acha.domain.course.domain.Course;
 import sopio.acha.domain.course.domain.CourseDay;
+import sopio.acha.domain.course.infrastructure.CourseRepository;
 import sopio.acha.domain.course.presentation.response.CourseBasicInformationResponse;
 import sopio.acha.domain.course.presentation.response.CourseTimeTableResponse;
 import sopio.acha.domain.member.domain.Member;
@@ -40,6 +41,7 @@ public class MemberCourseService {
 	private final MemberCourseRepository memberCourseRepository;
 	private final NoticeExtractor noticeExtractor;
 	private final ActivityRepository activityRepository;
+	private final CourseRepository courseRepository;
 
 	@Transactional
 	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
@@ -131,7 +133,6 @@ public class MemberCourseService {
 		List<CourseBasicInformationResponse> newCourseResponseList = courseResponseList.stream()
 				.filter(response -> !memberCourseIdentifiers.contains(response.identifier()))
 				.toList();
-
 		if (newCourseResponseList.isEmpty()) return;
 
 		List<Course> newCourseList = newCourseResponseList.stream()
@@ -155,6 +156,7 @@ public class MemberCourseService {
 		} catch (JsonProcessingException _) {}
 
 		// 사용자 강좌 저장
+		courseRepository.saveAll(newCourseList);
 		saveMyCourses(newCourseList, member);
 		List<MemberCourse> newMemberCourseList = newCourseList.stream()
 				.map(course -> new MemberCourse(member, course))
