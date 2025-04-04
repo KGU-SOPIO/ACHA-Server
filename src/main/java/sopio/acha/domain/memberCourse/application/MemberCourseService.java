@@ -220,7 +220,7 @@ public class MemberCourseService {
 		CourseDay today = CourseDay.valueOf(getTodayDate());
 		List<MemberCourse> memberCourses = memberCourseRepository.findAllByMemberIdAndCourseDayAndCourseYearAndCourseSemester(
 			currentMember.getId(), today, DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
-		memberCourses.sort(Comparator.comparing(mc -> mc.getCourse().getStartAt()));
+		memberCourses.sort(Comparator.comparing(memberCourse -> memberCourse.getCourse().getStartAt()));
 		return MemberCourseListResponse.from(memberCourses);
 	}
 
@@ -229,8 +229,8 @@ public class MemberCourseService {
 		List<MemberCourse> memberCourses = memberCourseRepository.findAllByMemberIdAndCourseYearAndCourseSemesterOrderByCourseDayOrderAsc(
 			currentMember.getId(), DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
 		memberCourses.sort(
-			Comparator.comparing((MemberCourse mc) -> mc.getCourse().getDayOrder())
-				.thenComparing(mc -> mc.getCourse().getStartAt())
+			Comparator.comparing((MemberCourse memberCourse) -> memberCourse.getCourse().getDayOrder())
+				.thenComparing(memberCourse -> memberCourse.getCourse().getStartAt())
 		);
 		return MemberCourseListResponse.from(memberCourses);
 	}
