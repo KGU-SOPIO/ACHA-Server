@@ -47,5 +47,4 @@ public class FcmController {
         fcmService.addFcmToken(currentMember, request.deviceToken());
         return ResponseEntity.ok().build();
     }
-
 }
