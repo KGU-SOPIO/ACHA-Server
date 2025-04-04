@@ -75,22 +75,17 @@ public class ActivityService {
 
 	@Transactional
 	public ActivitySummaryListResponse getMyActivityList(Member currentMember) {
-		try {
-			Pageable topTen = PageRequest.of(0, 10);
-			List<Activity> activities = activityRepository.findLectureAndAssignmentActivities(
-				currentMember.getId(),
-				LocalDateTime.now(),
-				ActivityType.ASSIGNMENT,
-				ActivityType.LECTURE,
-				SubmitType.NONE,
-				topTen
-			);
-			return ActivitySummaryListResponse.from(activities);
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			throw e;
-		}
-	}
+        Pageable topTen = PageRequest.of(0, 10);
+        List<Activity> activities = activityRepository.findLectureAndAssignmentActivities(
+            currentMember.getId(),
+            LocalDateTime.now(),
+            ActivityType.ASSIGNMENT,
+            ActivityType.LECTURE,
+            SubmitType.NONE,
+            topTen
+        );
+        return ActivitySummaryListResponse.from(activities);
+    }
 
 	@Transactional
 	public ActivityWeekListResponse getCourseActivityList(Member currentMember, String code) {

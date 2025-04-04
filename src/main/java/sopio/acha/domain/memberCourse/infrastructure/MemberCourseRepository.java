@@ -17,6 +17,8 @@ public interface MemberCourseRepository extends JpaRepository<MemberCourse, Long
 	List<MemberCourse> findAllByMemberIdAndCourseDayAndCourseYearAndCourseSemester(String memberId,
 																					  CourseDay courseDay, String year, String semester);
 
+	List<MemberCourse> findAllByMemberIdAndCourseYearAndCourseSemester(String memberId, String year, String semester);
+
 	List<MemberCourse> findAllByMemberIdAndCourseYearAndCourseSemesterOrderByCourseDayOrderAsc(String memberId, String year, String semester);
 
 	List<MemberCourse> findAllByCourseYearAndCourseSemesterOrderByCourseDayOrderAsc(String year, String semester);

@@ -72,10 +72,12 @@ public class MemberCourseService {
 		Map<Member, List<MemberCourse>> memberCourseMap = currentCourseList.stream()
 				.collect(Collectors.groupingBy(MemberCourse::getMember));
 
+		System.out.println("업데이트 대상 사용자 수: " + memberCourseMap.size());
+
 		// 사용자 순회하며 업데이트
 		for (Member member : memberCourseMap.keySet()) {
-			List<MemberCourse> memberCourseList = memberCourseMap.get(member);
 			String decryptedPassword = decrypt(member.getPassword());
+			List<MemberCourse> memberCourseList = memberCourseMap.get(member);
 
 			// 추출 가능 상태 확인
 			try {
@@ -84,19 +86,24 @@ public class MemberCourseService {
 				continue;
 			}
 
+			// 강좌 데이터 요청
 			List<CourseBasicInformationResponse> courseResponseList = fetchCourseResponses(member, decryptedPassword, objectMapper);
 			if (courseResponseList == null || courseResponseList.isEmpty()) {
 				continue;
 			}
 
 			// 강좌 코드 추출
-			Set<String> memberCourseIdentifiers = extractMemberCourseIdentifiers(memberCourseList);
+			Set<String> memberCourseIdentifiers = extractMemberCourseIdentifiers(member);
 
+			// 등록되어 있지 않은 새로운 강좌 저장
 			saveNewCoursesForMember(member, memberCourseList, courseResponseList, memberCourseIdentifiers, decryptedPassword, objectMapper);
 
+			// 강좌 데이터 변환
 			Map<String, CourseBasicInformationResponse> courseResponseMap = courseResponseList.stream()
 					.filter(response -> memberCourseIdentifiers.contains(response.identifier()))
 					.collect(Collectors.toMap(CourseBasicInformationResponse::identifier, Function.identity()));
+
+			// 공지사항 저장
 			try {
 				noticeExtractor.extractAndSave(courseResponseMap);
 			} catch (Exception _) {}
@@ -119,8 +126,14 @@ public class MemberCourseService {
 	}
 
 	// 사용자 수강 강좌 식별자 집합 생성
-	private Set<String> extractMemberCourseIdentifiers(List<MemberCourse> memberCourseList) {
-		return memberCourseList.stream()
+	private Set<String> extractMemberCourseIdentifiers(Member member) {
+		List<MemberCourse> allMemberCourseList = memberCourseRepository.findAllByMemberIdAndCourseYearAndCourseSemester(
+				member.getId(),
+				DateHandler.getCurrentSemesterYear(),
+				DateHandler.getCurrentSemester()
+		);
+
+		return allMemberCourseList.stream()
 				.map(memberCourse -> memberCourse.getCourse().getIdentifier())
 				.collect(Collectors.toSet());
 	}
@@ -134,6 +147,8 @@ public class MemberCourseService {
 				.filter(response -> !memberCourseIdentifiers.contains(response.identifier()))
 				.toList();
 		if (newCourseResponseList.isEmpty()) return;
+
+		System.out.println("신규 등록 강좌 수: " + newCourseResponseList.size());
 
 		List<Course> newCourseList = newCourseResponseList.stream()
 				.map(courseResponse -> Course.save(
