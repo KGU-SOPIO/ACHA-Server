@@ -51,14 +51,18 @@ public class MemberCourseService {
 		ObjectMapper objectMapper = new ObjectMapper();
 
 		// 업데이트 주기가 지난 사용자 강좌 조회
-		List<MemberCourse> allCourseList = getAllMemberCourse()
+		List<MemberCourse> allMemberCourseList = memberCourseRepository
+				.findAllByCourseYearAndCourseSemesterOrderByCourseDayOrderAsc(
+						DateHandler.getCurrentSemesterYear(),
+						DateHandler.getCurrentSemester()
+				)
 				.stream()
 				.filter(MemberCourse::checkLastUpdatedAt)
 				.peek(MemberCourse::setLastUpdatedAt)
 				.toList();
 
 		// 강좌 업데이트
-		updateExtractedCourse(allCourseList, objectMapper);
+		updateExtractedCourse(allMemberCourseList, objectMapper);
 	}
 
 	private void updateExtractedCourse(List<MemberCourse> currentCourseList, ObjectMapper objectMapper) {
@@ -70,6 +74,13 @@ public class MemberCourseService {
 		for (Member member : memberCourseMap.keySet()) {
 			List<MemberCourse> memberCourseList = memberCourseMap.get(member);
 			String decryptedPassword = decrypt(member.getPassword());
+
+			// 추출 가능 상태 확인
+			try {
+				requestAuthentication(member.getId(), decryptedPassword);
+			} catch (ExtractorErrorException e) {
+				continue;
+			}
 
 			List<CourseBasicInformationResponse> courseResponseList = fetchCourseResponses(member, decryptedPassword, objectMapper);
 			if (courseResponseList == null || courseResponseList.isEmpty()) {
@@ -222,28 +233,6 @@ public class MemberCourseService {
 				.thenComparing(mc -> mc.getCourse().getStartAt())
 		);
 		return MemberCourseListResponse.from(memberCourses);
-	}
-
-	public List<MemberCourse> getAllMemberCourse() {
-		List<MemberCourse> memberCourseList = memberCourseRepository
-			.findAllByCourseYearAndCourseSemesterOrderByCourseDayOrderAsc(
-				DateHandler.getCurrentSemesterYear(),
-				DateHandler.getCurrentSemester()
-			);
-
-		return memberCourseList.stream()
-			.filter(memberCourse -> {
-				try {
-					requestAuthentication(
-						memberCourse.getMember().getId(),
-						decrypt(memberCourse.getMember().getPassword())
-					);
-					return true;
-				} catch (ExtractorErrorException e) {
-					return false;
-				}
-			})
-			.toList();
 	}
 
 	public boolean isExistsMemberCourse(Member currentMember, Course course) {
