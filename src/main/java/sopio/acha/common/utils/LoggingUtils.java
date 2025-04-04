@@ -25,6 +25,15 @@ public class LoggingUtils {
 	}
 
 	public static String getObjectFields(Object obj) {
+		if (obj == null) {
+			return "null";
+		}
+
+		if (obj instanceof String || obj instanceof Number || obj instanceof Boolean ||
+				obj.getClass().getName().startsWith("java.")) {
+			return obj.toString();
+		}
+
 		StringBuilder result = new StringBuilder();
 		Class<?> objClass = obj.getClass();
 		result.append(objClass.getSimpleName()).append(" {");
@@ -35,7 +44,7 @@ public class LoggingUtils {
 			try {
 				result.append(fields[i].getName()).append(" = ")
 					.append(fields[i].get(obj));
-			} catch (IllegalAccessException e) {
+			} catch (IllegalAccessException | RuntimeException e) {
 				result.append(fields[i].getName()).append("=ACCESS_DENIED");
 			}
 			if (i < fields.length - 1) {

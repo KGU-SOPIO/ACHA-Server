@@ -77,11 +77,12 @@ public class Activity extends BaseTimeEntity {
 	@Enumerated(STRING)
 	private SubmitType submitStatus;
 
-	@Builder.Default
-	private boolean notifyScheduled = false;
-
 	@Column(length = 999)
 	private String description;
+
+	private boolean notifiedThreeDays;
+	private boolean notifiedOneDay;
+	private boolean notifiedOneHour;
 
 	@ManyToOne(fetch = LAZY)
 	@JoinColumn(name = "course_id")
@@ -91,8 +92,16 @@ public class Activity extends BaseTimeEntity {
 	@JoinColumn(name = "member_id")
 	private Member member;
 
-	public void updateNotifyScheduledTrue() {
-		this.notifyScheduled = true;
+	public void updateNotifiedThreeDays(boolean notifiedThreeDays) {
+		this.notifiedThreeDays = notifiedThreeDays;
+	}
+
+	public void updateNotifiedOneDay(boolean notifiedOneDay) {
+		this.notifiedOneDay = notifiedOneDay;
+	}
+
+	public void updateNotifiedOneHour(boolean notifiedOneHour) {
+		this.notifiedOneHour = notifiedOneHour;
 	}
 
 	public static Activity save(boolean available, int week, String title, String link, String type, String code, String deadline,

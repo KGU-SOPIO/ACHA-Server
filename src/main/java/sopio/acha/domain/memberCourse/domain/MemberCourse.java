@@ -37,9 +37,9 @@ public class MemberCourse extends BaseTimeEntity {
 		this.course = course;
 	}
 
-	private static final long BASE_HOUR = 1;
+	private static final long BASE_MINUTES = 30;
 
 	public boolean checkLastUpdatedAt() {
-		return updatedAt.plusHours(BASE_HOUR).isBefore(now());
+		return updatedAt.plusMinutes(BASE_MINUTES).isBefore(now());
 	}
 }
