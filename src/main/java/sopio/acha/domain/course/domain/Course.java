@@ -91,7 +91,7 @@ public class Course extends BaseTimeEntity {
 			.build();
 	}
 
-	public void setTimeTable(String day, int classTime, int startAt, int endAt, String lectureRoom) {
+	public void setTimetable(String day, int classTime, int startAt, int endAt, String lectureRoom) {
 		this.day = CourseDay.valueOf(day);
 		this.classTime = classTime;
 		this.startAt = startAt;

@@ -84,7 +84,7 @@ public class SecurityConfig {
 	};
 
 	CorsConfigurationSource corsConfigurationSource() {
-		return request -> {
+		return _ -> {
 			CorsConfiguration config = new CorsConfiguration();
 			config.setAllowedHeaders(Collections.singletonList("*"));
 			config.setAllowedMethods(Collections.singletonList("*"));

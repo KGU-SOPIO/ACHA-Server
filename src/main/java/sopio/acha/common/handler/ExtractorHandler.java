@@ -62,7 +62,7 @@ public class ExtractorHandler {
 		return getJsonData(requestBody, uri).toString();
 	}
 
-	public static String requestTimeTable(String studentId, String password) {
+	public static String requestTimetable(String studentId, String password) {
 		try {
 			URI uri = buildUriByPath("/v1/timetable/");
 			String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password

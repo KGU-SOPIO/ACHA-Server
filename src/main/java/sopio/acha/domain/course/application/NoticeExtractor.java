@@ -21,9 +21,9 @@ public class NoticeExtractor {
         courseMap.values().stream()
 			.filter(course -> course.notices() != null && !course.notices().isEmpty())
 			.forEach(course -> {
-				Course existCourse = courseRepository.findByIdentifier(course.identifier())
+				Course existingCourse = courseRepository.findByIdentifier(course.identifier())
 					.orElseThrow(CourseNotFoundException::new);
-				notificationService.extractNotifications(course.notices(), existCourse);
+				notificationService.extractNotifications(course.notices(), existingCourse);
 			});
     }
 }

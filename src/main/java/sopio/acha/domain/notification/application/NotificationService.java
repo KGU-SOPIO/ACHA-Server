@@ -1,7 +1,6 @@
 package sopio.acha.domain.notification.application;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,12 +19,32 @@ import sopio.acha.domain.notification.presentation.response.NotificationListResp
 public class NotificationService {
 	private final NotificationRepository notificationRepository;
 
+	@Transactional
 	public void extractNotifications(List<NotificationScrapingResponse> notifications, Course course) {
-		notificationRepository.saveAll(notifications.stream()
-			.filter(n -> !isExistsByIndexAndCourseId(Integer.parseInt(n.index()), course.getId()))
-			.map(n -> Notification.save(Integer.parseInt(n.index()), n.title(), n.date(),
-				n.content(), n.link(), course))
-			.collect(Collectors.toList()));
+		List<Notification> notificationList = notifications.stream()
+				.map(notificationResponse -> {
+					String title = notificationResponse.title();
+					return notificationRepository.findByTitleAndCourseId(title, course.getId())
+							.map(existingNotification -> {
+								existingNotification.update(
+										Integer.parseInt(notificationResponse.index()),
+										notificationResponse.title(),
+										notificationResponse.date(),
+										notificationResponse.content(),
+										notificationResponse.link()
+								);
+								return existingNotification;
+							})
+							.orElseGet(() -> Notification.save(
+                                    Integer.parseInt(notificationResponse.index()),
+                                    title,
+                                    notificationResponse.date(),
+                                    notificationResponse.content(),
+                                    notificationResponse.link(),
+                                    course
+                            ));
+				}).toList();
+		notificationRepository.saveAll(notificationList);
 	}
 
 	@Transactional(readOnly = true)
@@ -47,9 +66,5 @@ public class NotificationService {
 			currentNotification.getIndex() + 1, currentNotification.getCourse().getId())
 			.orElse(null);
 		return NotificationDetailResponse.of(currentNotification, prevNotification, nextNotification);
-	}
-
-	private boolean isExistsByIndexAndCourseId(int index, Long courseId) {
-		return notificationRepository.existsByIndexAndCourseId(index, courseId);
 	}
 }

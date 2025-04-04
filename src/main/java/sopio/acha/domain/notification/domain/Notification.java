@@ -64,4 +64,12 @@ public class Notification extends BaseTimeEntity {
 			.course(course)
 			.build();
 	}
+
+	public void update(int index, String title, String date, String content, String link) {
+		this.index = index;
+		this.title = title;
+		this.date = date;
+		this.content = content;
+		this.link = link;
+	}
 }
