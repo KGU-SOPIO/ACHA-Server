@@ -50,135 +50,167 @@ public class MemberCourseService {
 
 	public void scheduledCourseExtraction() {
 		ObjectMapper objectMapper = new ObjectMapper();
+
+		// 업데이트 주기가 지난 사용자 강좌 조회
 		List<MemberCourse> allCourseList = getAllMemberCourse()
 				.stream()
 				.filter(MemberCourse::checkLastUpdatedAt)
 				.peek(MemberCourse::setLastUpdatedAt)
 				.toList();
+
+		// 강좌 업데이트
 		updateExtractedCourse(allCourseList, objectMapper);
 	}
 
 	private void updateExtractedCourse(List<MemberCourse> currentCourseList, ObjectMapper objectMapper) {
+		// 사용자 별 강좌 그룹화
 		Map<Member, List<MemberCourse>> memberCourseMap = currentCourseList.stream()
 				.collect(Collectors.groupingBy(MemberCourse::getMember));
 
-		memberCourseMap.forEach((member, memberCourses) -> {
+		// 사용자 순회하며 업데이트
+		for (Member member : memberCourseMap.keySet()) {
+			List<MemberCourse> memberCourseList = memberCourseMap.get(member);
 			String decryptedPassword = decrypt(member.getPassword());
-			try {
-				JsonNode courseData = objectMapper.readTree(
-						requestCourse(member.getId(), decryptedPassword)).get("data");
-				if (courseData == null || !courseData.isArray()) {
-					return;
-				}
 
-				// 강좌 데이터 변환
-				List<CourseBasicInformationResponse> courseResponseList = StreamSupport
-						.stream(courseData.spliterator(), false)
-						.map(node -> objectMapper.convertValue(node, CourseBasicInformationResponse.class))
-						.toList();
-
-				// 강좌코드 추출
-				Set<String> memberCourseIdentifiers = memberCourses.stream()
-						.map(course -> course.getCourse().getIdentifier())
-						.collect(Collectors.toSet());
-
-				// 신규 강좌 필터링
-				List<CourseBasicInformationResponse> newCourseResponseList = courseResponseList.stream()
-						.filter(response -> !memberCourseIdentifiers.contains(response.identifier()))
-						.toList();
-
-				// 신규 강좌 시간표 매핑 후 저장 처리 필요
-				if (!newCourseResponseList.isEmpty()) {
-					List<Course> newCourses = newCourseResponseList.stream()
-							.map(courseResponse -> Course.save(
-									courseResponse.title(),
-									courseResponse.identifier(),
-									courseResponse.code(),
-									courseResponse.noticeCode(),
-									courseResponse.professor()))
-							.toList();
-
-					JsonNode timetableData = objectMapper.readTree(
-							requestTimetable(member.getId(), decryptedPassword)).get("data");
-
-					List<CourseTimeTableResponse> timetableList = StreamSupport.stream(timetableData.spliterator(), false)
-							.map(node -> objectMapper.convertValue(node, CourseTimeTableResponse.class))
-							.toList();
-
-					Map<String, CourseTimeTableResponse> timetableMap = timetableList.stream()
-							.collect(Collectors.toMap(CourseTimeTableResponse::identifier, Function.identity()));
-					newCourses.forEach(course -> {
-						CourseTimeTableResponse timetable = timetableMap.get(course.getIdentifier());
-						if (timetable != null) {
-							course.setTimetable(
-									timetable.day(),
-									timetable.classTime(),
-									timetable.startAt(),
-									timetable.endAt(),
-									timetable.lectureRoom()
-							);
-						}
-					});
-
-					// 신규 강좌 등록
-					saveMyCourses(newCourses, member);
-					List<MemberCourse> newMemberCourses = newCourses.stream()
-							.map(course -> new MemberCourse(member, course))
-							.toList();
-					memberCourses.addAll(newMemberCourses);
-
-					// 식별자 집합 업데이트
-					newCourses.forEach(course -> memberCourseIdentifiers.add(course.getIdentifier()));
-				}
-
-				// 강좌 Map 생성
-				Map<String, CourseBasicInformationResponse> courseResponseMap = courseResponseList.stream()
-						.filter(response -> memberCourseIdentifiers.contains(response.identifier()))
-						.collect(Collectors.toMap(CourseBasicInformationResponse::identifier, Function.identity()));
-
-				// 공지사항 업데이트
-				noticeExtractor.extractAndSave(courseResponseMap);
-
-				for (CourseBasicInformationResponse courseResponse : courseResponseList) {
-					Optional<MemberCourse> optionalMemberCourse = memberCourses.stream()
-							.filter(course -> course.getCourse().getIdentifier().equals(courseResponse.identifier()))
-							.findFirst();
-					if (optionalMemberCourse.isEmpty()) {
-						continue;
-					}
-					Course course = optionalMemberCourse.get().getCourse();
-
-					List<ActivityScrapingWeekResponse> weekResponses = courseResponse.activities();
-					for (ActivityScrapingWeekResponse weekResponse : weekResponses) {
-						int week = weekResponse.week();
-						for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
-							if (!activityRepository.existsActivityByTitleAndMemberId(activityResponse.title(), member.getId())) {
-								Activity activity = Activity.save(
-										activityResponse.available(),
-										week,
-										activityResponse.title(),
-										activityResponse.link(),
-										activityResponse.type(),
-										activityResponse.code(),
-										activityResponse.deadline(),
-										activityResponse.startAt(),
-										activityResponse.courseTime(),
-										activityResponse.timeLeft(),
-										activityResponse.description(),
-										activityResponse.attendance(),
-										activityResponse.submitStatus(),
-										course,
-										member
-								);
-								activityRepository.save(activity);
-							}
-						}
-					}
-				}
-			} catch (JsonProcessingException e) {
-				throw new FailedParsingCourseDataException();
+			List<CourseBasicInformationResponse> courseResponseList = fetchCourseResponses(member, decryptedPassword, objectMapper);
+			if (courseResponseList == null || courseResponseList.isEmpty()) {
+				continue;
 			}
-		});
+
+			// 강좌 코드 추출
+			Set<String> memberCourseIdentifiers = extractMemberCourseIdentifiers(memberCourseList);
+
+			saveNewCoursesForMember(member, memberCourseList, courseResponseList, memberCourseIdentifiers, decryptedPassword, objectMapper);
+
+			Map<String, CourseBasicInformationResponse> courseResponseMap = courseResponseList.stream()
+					.filter(response -> memberCourseIdentifiers.contains(response.identifier()))
+					.collect(Collectors.toMap(CourseBasicInformationResponse::identifier, Function.identity()));
+			try {
+				noticeExtractor.extractAndSave(courseResponseMap);
+			} catch (Exception _) {}
+
+			updateActivitiesForMember(member, memberCourseList, courseResponseList);
+		}
+	}
+
+	// 사용자 강좌 스크래핑 데이터 요청
+	private List<CourseBasicInformationResponse> fetchCourseResponses(Member member, String decryptedPassword, ObjectMapper objectMapper) {
+		try {
+			JsonNode courseData = objectMapper.readTree(requestCourse(member.getId(), decryptedPassword)).get("data");
+			if (courseData == null || !courseData.isArray()) {
+				return null;
+			}
+			return StreamSupport.stream(courseData.spliterator(), false)
+					.map(node -> objectMapper.convertValue(node, CourseBasicInformationResponse.class))
+					.toList();
+		} catch (JsonProcessingException e) {
+			return null;
+		}
+	}
+
+	// 사용자 수강 강좌 식별자 집합 생성
+	private Set<String> extractMemberCourseIdentifiers(List<MemberCourse> memberCourseList) {
+		return memberCourseList.stream()
+				.map(memberCourse -> memberCourse.getCourse().getIdentifier())
+				.collect(Collectors.toSet());
+	}
+
+	// 신규 강좌 등록 및 시간표 매핑
+	private void saveNewCoursesForMember(Member member, List<MemberCourse> memberCourseList,
+										 List<CourseBasicInformationResponse> courseResponseList,
+										 Set<String> memberCourseIdentifiers, String decryptedPassword,
+										 ObjectMapper objectMapper) {
+		List<CourseBasicInformationResponse> newCourseResponseList = courseResponseList.stream()
+				.filter(response -> !memberCourseIdentifiers.contains(response.identifier()))
+				.toList();
+
+		if (newCourseResponseList.isEmpty()) return;
+
+		List<Course> newCourseList = newCourseResponseList.stream()
+				.map(courseResponse -> Course.save(
+						courseResponse.title(),
+						courseResponse.identifier(),
+						courseResponse.code(),
+						courseResponse.noticeCode(),
+						courseResponse.professor()
+				)).toList();
+
+		try	{
+			JsonNode timetableData = objectMapper.readTree(requestTimetable(member.getId(), decryptedPassword)).get("data");
+			if (timetableData != null && timetableData.isArray()) {
+				List<CourseTimeTableResponse> timetableList = StreamSupport.stream(timetableData.spliterator(), false)
+						.map(node -> objectMapper.convertValue(node, CourseTimeTableResponse.class))
+						.toList();
+
+				Map<String, CourseTimeTableResponse> timetableMap = timetableList.stream()
+						.collect(Collectors.toMap(CourseTimeTableResponse::identifier, Function.identity()));
+
+				newCourseList.forEach(course -> {
+					CourseTimeTableResponse timetable = timetableMap.get(course.getIdentifier());
+					if (timetable != null) {
+						course.setTimetable(
+								timetable.day(),
+								timetable.classTime(),
+								timetable.startAt(),
+								timetable.endAt(),
+								timetable.lectureRoom()
+						);
+					}
+				});
+			}
+		} catch (JsonProcessingException _) {}
+
+		// 사용자 강좌 저장
+		saveMyCourses(newCourseList, member);
+		List<MemberCourse> newMemberCourseList = newCourseList.stream()
+				.map(course -> new MemberCourse(member, course))
+				.toList();
+		memberCourseList.addAll(newMemberCourseList);
+
+		// 신규 강좌 식별자 업데이트
+		newCourseList.forEach(course -> memberCourseIdentifiers.add(course.getIdentifier()));
+	}
+
+	private void updateActivitiesForMember(Member member, List<MemberCourse> memberCourseList	,
+										   List<CourseBasicInformationResponse> courseResponseList) {
+		for (CourseBasicInformationResponse courseResponse : courseResponseList) {
+			Optional<MemberCourse> optionalMemberCourse = memberCourseList.stream()
+					.filter(course -> course.getCourse().getIdentifier().equals(courseResponse.identifier()))
+					.findFirst();
+			if (optionalMemberCourse.isEmpty()) continue;
+
+			Course course = optionalMemberCourse.get().getCourse();
+			List<ActivityScrapingWeekResponse> weekResponses = courseResponse.activities();
+			if (weekResponses == null || weekResponses.isEmpty()) continue;
+
+			for (ActivityScrapingWeekResponse weekResponse : weekResponses) {
+				int week = weekResponse.week();
+				for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
+					try {
+						if (!activityRepository.existsActivityByTitleAndMemberId(activityResponse.title(), member.getId())) {
+							Activity activity = Activity.save(
+									activityResponse.available(),
+									week,
+									activityResponse.title(),
+									activityResponse.link(),
+									activityResponse.type(),
+									activityResponse.code(),
+									activityResponse.deadline(),
+									activityResponse.startAt(),
+									activityResponse.courseTime(),
+									activityResponse.timeLeft(),
+									activityResponse.description(),
+									activityResponse.attendance(),
+									activityResponse.submitStatus(),
+									course,
+									member
+							);
+							activityRepository.save(activity);
+						}
+					} catch (Exception _) {}
+				}
+			}
+		}
 	}
 
 	public void saveMyCourses(List<Course> courseHasTimeTable, Member currentMember) {
