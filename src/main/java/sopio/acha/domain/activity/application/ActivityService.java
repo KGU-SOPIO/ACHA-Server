@@ -59,12 +59,18 @@ public class ActivityService {
 
 		for (Activity activity : activityList) {
 			LocalDateTime deadline = activity.getDeadline();
-			if (!activity.isNotifiedThreeDays() && now.isAfter(deadline.minusDays(3))) {
+			if (deadline == null) continue;
+
+			if (!activity.isNotifiedThreeDays() &&
+			now.isAfter(deadline.minusDays(3)) &&
+			now.isBefore(deadline.minusDays(2))) {
 				String message = activity.getTitle() + " 마감 기한이 3일 남았어요";
 				fcmService.sendNotificationToMember(activity.getMember(), activity.getCourse().getTitle(), message);
 				activity.updateNotifiedThreeDays(true);
 			}
-			if (!activity.isNotifiedOneDay() && now.isAfter(deadline.minusDays(1))) {
+			if (!activity.isNotifiedOneDay() &&
+			now.isAfter(deadline.minusDays(1)) &&
+			now.isBefore(deadline.minusHours(6))) {
 				String message = activity.getTitle() + " 마감 기한이 1일 남았어요";
 				fcmService.sendNotificationToMember(activity.getMember(), activity.getCourse().getTitle(), message);
 				activity.updateNotifiedOneDay(true);

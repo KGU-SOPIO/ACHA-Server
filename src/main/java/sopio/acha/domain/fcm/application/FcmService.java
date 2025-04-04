@@ -34,6 +34,10 @@ public class FcmService {
 	}
 
 	public void sendNotificationToMember(Member member, String title, String body) {
+		if (member.getAlert() == null || !member.getAlert()) {
+			return;
+		}
+
 		member.getDevices().forEach(device -> {
 			try	{
 				sendNotification(device.getDeviceToken(), title, body);
