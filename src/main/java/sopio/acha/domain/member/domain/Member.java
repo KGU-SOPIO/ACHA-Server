@@ -1,6 +1,5 @@
 package sopio.acha.domain.member.domain;
 
-import static jakarta.persistence.CascadeType.ALL;
 import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.FetchType.EAGER;
 import static lombok.AccessLevel.PROTECTED;

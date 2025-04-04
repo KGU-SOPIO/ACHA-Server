@@ -8,7 +8,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import sopio.acha.common.exception.ExtractorErrorException;
 import sopio.acha.common.handler.DateHandler;
+import sopio.acha.common.utils.CourseDataConverter;
 import sopio.acha.domain.activity.domain.Activity;
 import sopio.acha.domain.activity.infrastructure.ActivityRepository;
 import sopio.acha.domain.activity.presentation.response.ActivityScrapingResponse;
@@ -27,7 +27,6 @@ import sopio.acha.domain.activity.presentation.response.ActivityScrapingWeekResp
 import sopio.acha.domain.course.application.NoticeExtractor;
 import sopio.acha.domain.course.domain.Course;
 import sopio.acha.domain.course.domain.CourseDay;
-import sopio.acha.domain.course.presentation.exception.FailedParsingCourseDataException;
 import sopio.acha.domain.course.presentation.response.CourseBasicInformationResponse;
 import sopio.acha.domain.course.presentation.response.CourseTimeTableResponse;
 import sopio.acha.domain.member.domain.Member;
@@ -100,9 +99,7 @@ public class MemberCourseService {
 			if (courseData == null || !courseData.isArray()) {
 				return null;
 			}
-			return StreamSupport.stream(courseData.spliterator(), false)
-					.map(node -> objectMapper.convertValue(node, CourseBasicInformationResponse.class))
-					.toList();
+			return CourseDataConverter.convertToCourseResponseList(courseData, objectMapper);
 		} catch (JsonProcessingException e) {
 			return null;
 		}
@@ -138,25 +135,11 @@ public class MemberCourseService {
 		try	{
 			JsonNode timetableData = objectMapper.readTree(requestTimetable(member.getId(), decryptedPassword)).get("data");
 			if (timetableData != null && timetableData.isArray()) {
-				List<CourseTimeTableResponse> timetableList = StreamSupport.stream(timetableData.spliterator(), false)
-						.map(node -> objectMapper.convertValue(node, CourseTimeTableResponse.class))
-						.toList();
+				List<CourseTimeTableResponse> timetableList = CourseDataConverter.convertToTimetableResponseList(timetableData, objectMapper);
+				Map<String, CourseTimeTableResponse> timetableMap = CourseDataConverter.mapTimetableByIdentifier(timetableList);
 
-				Map<String, CourseTimeTableResponse> timetableMap = timetableList.stream()
-						.collect(Collectors.toMap(CourseTimeTableResponse::identifier, Function.identity()));
-
-				newCourseList.forEach(course -> {
-					CourseTimeTableResponse timetable = timetableMap.get(course.getIdentifier());
-					if (timetable != null) {
-						course.setTimetable(
-								timetable.day(),
-								timetable.classTime(),
-								timetable.startAt(),
-								timetable.endAt(),
-								timetable.lectureRoom()
-						);
-					}
-				});
+				// 신규 강좌 시간표 매핑
+				CourseDataConverter.mapTimetableToCourses(timetableMap, newCourseList);
 			}
 		} catch (JsonProcessingException _) {}
 
@@ -262,7 +245,6 @@ public class MemberCourseService {
 			})
 			.toList();
 	}
-
 
 	public boolean isExistsMemberCourse(Member currentMember, Course course) {
 		return !memberCourseRepository.existsByMemberAndCourse(currentMember, course);

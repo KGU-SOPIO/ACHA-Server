@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import sopio.acha.common.utils.CourseDataConverter;
 import sopio.acha.domain.course.domain.Course;
 import sopio.acha.domain.course.infrastructure.CourseRepository;
 import sopio.acha.domain.course.presentation.exception.FailedParsingCourseDataException;
@@ -44,15 +44,19 @@ public class CourseService {
 	public void extractCourseAndSave(Member currentMember) {
 		try {
 			String decryptedPassword = decrypt(currentMember.getPassword());
+
+			// 시간표 데이터 요청 및 변환
 			JsonNode timetableData = objectMapper.readTree(
 					requestTimetable(currentMember.getId(), decryptedPassword)).get("data");
+			List<CourseTimeTableResponse> timetableList = CourseDataConverter.convertToTimetableResponseList(timetableData, objectMapper);
+			Map<String, CourseTimeTableResponse> timetableMap = CourseDataConverter.mapTimetableByIdentifier(timetableList);
+
+			// 강좌 데이터 요청 및 변환
 			JsonNode courseData = objectMapper.readTree(
 					requestCourse(currentMember.getId(), decryptedPassword)).get("data");
-
-			// 강좌, 시간표 데이터 변환
-			List<CourseTimeTableResponse> timetableList = convertToTimetableList(timetableData);
-			Map<String, CourseTimeTableResponse> timetableMap = convertToTimetableMap(timetableList);
-			Map<String, CourseBasicInformationResponse> courseMap = convertToCourseMap(courseData);
+			List<CourseBasicInformationResponse> courseList = CourseDataConverter.convertToCourseResponseList(courseData, objectMapper);
+			Map<String, CourseBasicInformationResponse> courseMap = courseList.stream()
+					.collect(Collectors.toMap(CourseBasicInformationResponse::identifier, Function.identity()));
 
 			// 강좌 데이터 저장
 			saveNewCourses(courseMap);
@@ -75,25 +79,6 @@ public class CourseService {
 		} catch (JsonProcessingException e) {
 			throw new FailedParsingCourseDataException();
 		}
-	}
-
-	private List<CourseTimeTableResponse> convertToTimetableList(JsonNode timetableData) {
-		return StreamSupport.stream(timetableData.spliterator(), false)
-				.map(node -> objectMapper.convertValue(node, CourseTimeTableResponse.class))
-				.toList();
-	}
-
-	private Map<String, CourseTimeTableResponse> convertToTimetableMap(List<CourseTimeTableResponse> timetableList) {
-		return timetableList.stream()
-				.collect(Collectors.toMap(CourseTimeTableResponse::identifier, Function.identity()));
-	}
-
-	private Map<String, CourseBasicInformationResponse> convertToCourseMap(JsonNode courseData) {
-		List<CourseBasicInformationResponse> courseList = StreamSupport.stream(courseData.spliterator(), false)
-				.map(node -> objectMapper.convertValue(node, CourseBasicInformationResponse.class))
-				.toList();
-		return courseList.stream()
-				.collect(Collectors.toMap(CourseBasicInformationResponse::identifier, Function.identity()));
 	}
 
 	private void saveNewCourses(Map<String, CourseBasicInformationResponse> courseMap) {
