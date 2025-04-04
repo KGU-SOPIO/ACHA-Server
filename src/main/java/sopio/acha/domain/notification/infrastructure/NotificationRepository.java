@@ -12,7 +12,7 @@ import sopio.acha.domain.notification.domain.Notification;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 	Optional<Notification> findByIndexAndCourseId(int index, Long lectureId);
 
-	List<Notification> findAllByCourseCodeOrderByIndexDesc(String code);
+	Optional<Notification> findByTitleAndCourseId(String title, Long lectureId);
 
-	List<Notification> findAllByCourseId(Long courseId);
+	List<Notification> findAllByCourseCodeOrderByIndexDesc(String code);
 }

@@ -21,22 +21,30 @@ public class NotificationService {
 
 	@Transactional
 	public void extractNotifications(List<NotificationScrapingResponse> notifications, Course course) {
-		List<Notification> existingNotifications = notificationRepository.findAllByCourseId(course.getId());
-		if (!existingNotifications.isEmpty()) {
-			notificationRepository.deleteAll(existingNotifications);
-		}
-
-		List<Notification> newNotifications = notifications.stream()
-						.map(n -> Notification.save(
-								Integer.parseInt(n.index()),
-								n.title(),
-								n.date(),
-								n.content(),
-								n.link(),
-								course
-						))
-						.toList();
-		notificationRepository.saveAll(newNotifications);
+		List<Notification> notificationList = notifications.stream()
+				.map(notificationResponse -> {
+					String title = notificationResponse.title();
+					return notificationRepository.findByTitleAndCourseId(title, course.getId())
+							.map(existingNotification -> {
+								existingNotification.update(
+										Integer.parseInt(notificationResponse.index()),
+										notificationResponse.title(),
+										notificationResponse.date(),
+										notificationResponse.content(),
+										notificationResponse.link()
+								);
+								return existingNotification;
+							})
+							.orElseGet(() -> Notification.save(
+                                    Integer.parseInt(notificationResponse.index()),
+                                    title,
+                                    notificationResponse.date(),
+                                    notificationResponse.content(),
+                                    notificationResponse.link(),
+                                    course
+                            ));
+				}).toList();
+		notificationRepository.saveAll(notificationList);
 	}
 
 	@Transactional(readOnly = true)
