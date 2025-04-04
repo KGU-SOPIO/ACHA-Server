@@ -1,11 +1,7 @@
 package sopio.acha.domain.fcm.application;
 
+import com.google.firebase.messaging.*;
 import org.springframework.stereotype.Service;
-
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
 
 import lombok.RequiredArgsConstructor;
 import sopio.acha.domain.fcm.domain.Device;
@@ -42,9 +38,9 @@ public class FcmService {
 			try	{
 				sendNotification(device.getDeviceToken(), title, body);
 			} catch (FirebaseMessagingException e) {
-				if ("messaging/registration-token-not-registered".equals(e.getErrorCode().toString()) ||
-						"messaging/invalid-registration-token".equals(e.getErrorCode().toString()) ||
-						"messaging/invalid-argument".equals(e.getErrorCode().toString())) {
+				if (MessagingErrorCode.UNREGISTERED.equals(e.getMessagingErrorCode()) ||
+						MessagingErrorCode.INVALID_ARGUMENT.equals(e.getMessagingErrorCode())
+				) {
 					deviceRepository.deleteByDeviceToken(device.getDeviceToken());
 				}
 			}
