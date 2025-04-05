@@ -199,7 +199,7 @@ public class MemberCourseService {
 				int week = weekResponse.week();
 				for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
 					try {
-						Optional<Activity> existingActivityOpt = activityRepository.findByTitleAndCodeAndMemberId(activityResponse.title(), activityResponse.code(), member.getId());
+						Optional<Activity> existingActivityOpt = activityRepository.findByTitleAndCodeAndWeekAndMemberId(activityResponse.title(), activityResponse.code(), week, member.getId());
 						if (existingActivityOpt.isPresent()) {
 							Activity existingActivity = existingActivityOpt.get();
 							existingActivity.update(activityResponse.available(), activityResponse.link(), activityResponse.attendance(), activityResponse.submitStatus());
