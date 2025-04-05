@@ -18,7 +18,7 @@ import sopio.acha.domain.activity.domain.SubmitType;
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
 	boolean existsActivityByTitleAndMemberId(String title, String memberId);
 
-	Optional<Activity> findByTitleAndMemberId(String title, String memberId);
+	Optional<Activity> findByTitleAndCodeAndMemberId(String title, String code, String memberId);
 
 	@Query("SELECT a FROM Activity a " +
 			"WHERE a.member.id = :memberId " +
