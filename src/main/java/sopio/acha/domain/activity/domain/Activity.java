@@ -171,4 +171,11 @@ public class Activity extends BaseTimeEntity {
 				.build();
 		};
 	}
+
+	public void update(boolean available, String link, boolean attendance, String submitStatus) {
+		this.available = available;
+		this.link = link;
+		this.attendance = attendance;
+		this.submitStatus = SubmitType.fromString(submitStatus);
+	}
 }

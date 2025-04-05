@@ -2,6 +2,7 @@ package sopio.acha.domain.activity.infrastructure;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,8 @@ import sopio.acha.domain.activity.domain.SubmitType;
 @Repository
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
 	boolean existsActivityByTitleAndMemberId(String title, String memberId);
+
+	Optional<Activity> findByTitleAndMemberId(String title, String memberId);
 
 	@Query("SELECT a FROM Activity a " +
 			"WHERE a.member.id = :memberId " +
