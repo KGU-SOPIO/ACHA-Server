@@ -13,12 +13,13 @@ import org.springframework.stereotype.Repository;
 import sopio.acha.domain.activity.domain.Activity;
 import sopio.acha.domain.activity.domain.ActivityType;
 import sopio.acha.domain.activity.domain.SubmitType;
+import sopio.acha.domain.course.domain.Course;
 
 @Repository
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
 	boolean existsActivityByTitleAndMemberId(String title, String memberId);
 
-	Optional<Activity> findByTitleAndCodeAndWeekAndMemberId(String title, String code, int week, String memberId);
+	Optional<Activity> findByTitleAndWeekAndMemberIdAndCourse(String title, int week, String memberId, Course course);
 
 	@Query("SELECT a FROM Activity a " +
 			"WHERE a.member.id = :memberId " +
