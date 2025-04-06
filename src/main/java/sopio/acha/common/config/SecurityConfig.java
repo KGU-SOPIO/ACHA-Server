@@ -88,7 +88,7 @@ public class SecurityConfig {
 			CorsConfiguration config = new CorsConfiguration();
 			config.setAllowedHeaders(Collections.singletonList("*"));
 			config.setAllowedMethods(Collections.singletonList("*"));
-			config.setAllowedOriginPatterns(List.of("https://api.sopio.kr", "http://localhost:3000", "https://prod.sopio.kr"));
+			config.setAllowedOriginPatterns(List.of("https://api.sopio.kr", "http://localhost:3000", "https://prod.sopio.kr", "https://acha.sopio.kr"));
 			config.setAllowCredentials(true);
 			return config;
 		};
