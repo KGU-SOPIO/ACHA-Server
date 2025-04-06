@@ -144,7 +144,7 @@ public class MemberCourseService {
 										 Set<String> memberCourseIdentifiers, String decryptedPassword,
 										 ObjectMapper objectMapper) {
 		List<CourseBasicInformationResponse> newCourseResponseList = courseResponseList.stream()
-				.filter(response -> memberCourseIdentifiers.contains(response.identifier()))
+				.filter(response -> !memberCourseIdentifiers.contains(response.identifier()))
 				.toList();
 		if (newCourseResponseList.isEmpty()) return;
 
