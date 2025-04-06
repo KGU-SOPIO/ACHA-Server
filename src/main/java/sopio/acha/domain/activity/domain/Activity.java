@@ -77,7 +77,7 @@ public class Activity extends BaseTimeEntity {
 	@Enumerated(STRING)
 	private SubmitType submitStatus;
 
-	@Column(length = 999)
+	@Column(columnDefinition = "TEXT")
 	private String description;
 
 	private boolean notifiedThreeDays;
