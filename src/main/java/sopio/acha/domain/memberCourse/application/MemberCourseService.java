@@ -264,11 +264,14 @@ public class MemberCourseService {
 
 	@Transactional(readOnly = true)
 	public MemberCourseListResponse getThisSemesterMemberCourse(Member currentMember) {
-		List<MemberCourse> memberCourses = memberCourseRepository.findAllByMemberIdAndCourseYearAndCourseSemesterOrderByCourseDayOrderAsc(
+		List<MemberCourse> memberCourses = memberCourseRepository.findAllByMemberIdAndCourseYearAndCourseSemester(
 			currentMember.getId(), DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
 		memberCourses.sort(
-			Comparator.comparing((MemberCourse memberCourse) -> memberCourse.getCourse().getDayOrder())
-				.thenComparing(memberCourse -> memberCourse.getCourse().getStartAt())
+			Comparator.comparing((MemberCourse memberCourse) -> memberCourse.getCourse().getDayOrder(),
+					Comparator.nullsLast(Comparator.naturalOrder())
+					).thenComparing(memberCourse -> memberCourse.getCourse().getStartAt(),
+							Comparator.nullsLast(Comparator.naturalOrder())
+					)
 		);
 		return MemberCourseListResponse.from(memberCourses);
 	}
