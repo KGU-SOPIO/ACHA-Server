@@ -21,6 +21,7 @@ import sopio.acha.common.exception.ExtractorErrorException;
 import sopio.acha.common.handler.DateHandler;
 import sopio.acha.common.utils.CourseDataConverter;
 import sopio.acha.domain.activity.domain.Activity;
+import sopio.acha.domain.activity.domain.ActivityType;
 import sopio.acha.domain.activity.infrastructure.ActivityRepository;
 import sopio.acha.domain.activity.presentation.response.ActivityScrapingResponse;
 import sopio.acha.domain.activity.presentation.response.ActivityScrapingWeekResponse;
@@ -199,7 +200,12 @@ public class MemberCourseService {
 				int week = weekResponse.week();
 				for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
 					try {
-						Optional<Activity> existingActivityOpt = activityRepository.findByTitleAndWeekAndMemberIdAndCourse(activityResponse.title(), week, member.getId(), course);
+						Optional<Activity> existingActivityOpt = activityRepository.findByTitleAndWeekAndMemberIdAndCourseAndType(
+								activityResponse.title(),
+								week,
+								member.getId(),
+								course,
+								ActivityType.valueOf(activityResponse.type().toUpperCase()));
 						if (existingActivityOpt.isPresent()) {
 							Activity existingActivity = existingActivityOpt.get();
 							existingActivity.update(
