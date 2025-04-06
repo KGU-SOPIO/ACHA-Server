@@ -120,7 +120,7 @@ public class MemberCourseService {
 				return null;
 			}
 			return CourseDataConverter.convertToCourseResponseList(courseData, objectMapper);
-		} catch (JsonProcessingException e) {
+		} catch (Exception e) {
 			return null;
 		}
 	}
