@@ -202,7 +202,16 @@ public class MemberCourseService {
 						Optional<Activity> existingActivityOpt = activityRepository.findByTitleAndCodeAndWeekAndMemberId(activityResponse.title(), activityResponse.code(), week, member.getId());
 						if (existingActivityOpt.isPresent()) {
 							Activity existingActivity = existingActivityOpt.get();
-							existingActivity.update(activityResponse.available(), activityResponse.link(), activityResponse.attendance(), activityResponse.submitStatus());
+							existingActivity.update(
+									activityResponse.available(),
+									activityResponse.link(),
+									activityResponse.attendance(),
+									activityResponse.submitStatus(),
+									activityResponse.startAt(),
+									activityResponse.deadline(),
+									activityResponse.timeLeft(),
+									activityResponse.description()
+							);
 							activityRepository.save(existingActivity);
 						} else {
 							Activity activity = Activity.save(

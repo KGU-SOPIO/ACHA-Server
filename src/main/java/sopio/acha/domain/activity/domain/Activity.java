@@ -172,10 +172,17 @@ public class Activity extends BaseTimeEntity {
 		};
 	}
 
-	public void update(boolean available, String link, boolean attendance, String submitStatus) {
+	public void update(boolean available, String link, boolean attendance, String submitStatus, String startAt,
+					   String deadline, String timeLeft, String description) {
 		this.available = available;
-		this.link = link;
-		this.attendance = attendance;
-		this.submitStatus = SubmitType.fromString(submitStatus);
+		if (available) {
+			this.link = link;
+			this.attendance = attendance;
+			this.submitStatus = SubmitType.fromString(submitStatus);
+			this.startAt = DateHandler.parseDateTime(startAt);
+			this.deadline = DateHandler.parseDateTime(deadline);
+			this.timeLeft = timeLeft;
+			this.description = description;
+		}
 	}
 }
