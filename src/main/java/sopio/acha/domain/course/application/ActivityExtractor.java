@@ -35,7 +35,10 @@ public class ActivityExtractor {
         Map<String, MemberCourse> memberCourseMap = coursesWithTimetable.stream()
                 .filter(course -> !memberCourseService.isExistsMemberCourse(member, course))
                 .map(course -> new MemberCourse(member, course))
-                .collect(Collectors.toMap(memberCourse -> memberCourse.getCourse().getIdentifier(), Function.identity()));
+                .collect(Collectors.toMap(
+                        memberCourse -> memberCourse.getCourse().getIdentifier(),
+                        Function.identity(),
+                        (existing, duplicate) -> existing));
 
         StreamSupport.stream(courseData.spliterator(), false)
                 .forEach(node -> {
