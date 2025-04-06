@@ -85,7 +85,7 @@ public class Course extends BaseTimeEntity {
 			.identifier(identifier)
 			.code(code)
 			.noticeCode(noticeCode)
-			.professor(professor)
+			.professor((professor == null || professor.trim().isEmpty()) ? "이러닝" : professor)
 			.year(DateHandler.getCurrentSemesterYear())
 			.semester(DateHandler.getCurrentSemester())
 			.build();
