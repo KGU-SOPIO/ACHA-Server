@@ -29,7 +29,11 @@ public final class CourseDataConverter {
 
     public static Map<String, CourseTimeTableResponse> mapTimetableByIdentifier(List<CourseTimeTableResponse> timetableList) {
         return timetableList.stream()
-                .collect(Collectors.toMap(CourseTimeTableResponse::identifier, Function.identity()));
+                .collect(Collectors.toMap(
+                        CourseTimeTableResponse::identifier,
+                        Function.identity(),
+                        (existing, replacement) -> existing
+                ));
     }
 
     public static void mapTimetableToCourses(Map<String, CourseTimeTableResponse> timetableMap, List<Course> courses) {
