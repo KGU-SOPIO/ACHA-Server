@@ -15,7 +15,7 @@ public record MemberLoginRequest(
 	@Schema(description = "비밀번호", requiredMode = REQUIRED)
 	String password,
 
-	@Schema(description = "디바이스 토큰", requiredMode = NOT_REQUIRED)
+	@Schema(description = "기기 고유 토큰", requiredMode = NOT_REQUIRED)
 	String deviceToken
 ) {
 }

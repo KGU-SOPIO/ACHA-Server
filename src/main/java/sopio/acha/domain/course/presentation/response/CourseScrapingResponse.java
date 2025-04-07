@@ -12,17 +12,17 @@ import sopio.acha.domain.activity.presentation.response.ActivityScrapingWeekResp
 import sopio.acha.domain.notification.application.response.NotificationScrapingResponse;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record CourseBasicInformationResponse(
-	@Schema(description = "강좌 이름", requiredMode = REQUIRED)
+public record CourseScrapingResponse(
+	@Schema(description = "강좌명", requiredMode = REQUIRED)
 	String title,
 
-	@Schema(description = "강좌 식별 번호", requiredMode = REQUIRED)
+	@Schema(description = "강좌 코드", requiredMode = REQUIRED)
 	String identifier,
 
-	@Schema(description = "강좌 코드", requiredMode = REQUIRED)
+	@Schema(description = "강좌 LMS 코드", requiredMode = REQUIRED)
 	String code,
 
-	@Schema(description = "담당 교수", requiredMode = REQUIRED)
+	@Schema(description = "교수", requiredMode = REQUIRED)
 	String professor,
 
 	@Schema(description = "공지사항 페이지 코드", requiredMode = NOT_REQUIRED)

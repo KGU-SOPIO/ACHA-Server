@@ -8,46 +8,39 @@ import java.util.stream.StreamSupport;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import sopio.acha.domain.course.domain.Course;
-import sopio.acha.domain.course.presentation.response.CourseBasicInformationResponse;
-import sopio.acha.domain.course.presentation.response.CourseTimeTableResponse;
+import sopio.acha.domain.course.presentation.response.CourseScrapingResponse;
+import sopio.acha.domain.timetable.presentation.response.TimetableScrapingResponse;
 
 public final class CourseDataConverter {
-    private CourseDataConverter() {}
+        private CourseDataConverter() {
+        }
 
-    public static List<CourseBasicInformationResponse> convertToCourseResponseList(JsonNode courseData, ObjectMapper objectMapper) {
-        return StreamSupport.stream(courseData.spliterator(), false)
-                .map(node -> objectMapper.convertValue(node, CourseBasicInformationResponse.class))
-                .toList();
-    }
+        public static List<TimetableScrapingResponse> convertToTimetableList(ObjectMapper objectMapper,
+                        JsonNode timetableJsonData) {
+                return StreamSupport.stream(timetableJsonData.spliterator(), false)
+                                .map(node -> objectMapper.convertValue(node, TimetableScrapingResponse.class))
+                                .toList();
+        }
 
-    public static List<CourseTimeTableResponse> convertToTimetableResponseList(JsonNode timetableData, ObjectMapper objectMapper) {
-        return StreamSupport.stream(timetableData.spliterator(), false)
-                .map(node -> objectMapper.convertValue(node, CourseTimeTableResponse.class))
-                .toList();
-    }
+        public static Map<String, List<TimetableScrapingResponse>> mapTimetableByIdentifier(
+                        List<TimetableScrapingResponse> timetableList) {
+                return timetableList.stream()
+                                .collect(Collectors.groupingBy(
+                                                TimetableScrapingResponse::identifier));
+        }
 
-    public static Map<String, CourseTimeTableResponse> mapTimetableByIdentifier(List<CourseTimeTableResponse> timetableList) {
-        return timetableList.stream()
-                .collect(Collectors.toMap(
-                        CourseTimeTableResponse::identifier,
-                        Function.identity(),
-                        (existing, replacement) -> existing
-                ));
-    }
+        public static List<CourseScrapingResponse> convertToCourseList(ObjectMapper objectMapper,
+                        JsonNode courseJsonData) {
+                return StreamSupport.stream(courseJsonData.spliterator(), false)
+                                .map(node -> objectMapper.convertValue(node, CourseScrapingResponse.class))
+                                .toList();
+        }
 
-    public static void mapTimetableToCourses(Map<String, CourseTimeTableResponse> timetableMap, List<Course> courses) {
-        courses.forEach(course -> {
-            CourseTimeTableResponse timetable = timetableMap.get(course.getIdentifier());
-            if (timetable != null) {
-                course.setTimetable(
-                        timetable.day(),
-                        timetable.classTime(),
-                        timetable.startAt(),
-                        timetable.endAt(),
-                        timetable.lectureRoom()
-                );
-            }
-        });
-    }
+        public static Map<String, CourseScrapingResponse> mapCourseByIdentifier(
+                        List<CourseScrapingResponse> courseList) {
+                return courseList.stream()
+                                .collect(Collectors.toMap(
+                                                CourseScrapingResponse::identifier,
+                                                Function.identity()));
+        }
 }

@@ -7,7 +7,8 @@ public enum SubmitType {
     NONE;
 
     public static SubmitType fromString(String value) {
-        if (value == null || value.isBlank()) return SubmitType.NONE;
+        if (value == null || value.isBlank())
+            return SubmitType.NONE;
         return SubmitType.valueOf(value.toUpperCase());
     }
 }

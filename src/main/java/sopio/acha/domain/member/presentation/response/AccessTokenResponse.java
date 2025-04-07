@@ -7,7 +7,7 @@ import lombok.Builder;
 
 @Builder
 public record AccessTokenResponse(
-	@Schema(description = "액세스토큰", requiredMode = REQUIRED)
+	@Schema(description = "액세스 토큰", requiredMode = REQUIRED)
 	String accessToken
 ){
 	public static AccessTokenResponse of(String accessToken) {

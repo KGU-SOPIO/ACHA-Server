@@ -30,57 +30,55 @@ public class SecurityConfig {
 	private final JwtCreator jwtCreator;
 
 	@Bean
-	public BCryptPasswordEncoder bCryptPasswordEncoder() {
+	BCryptPasswordEncoder bCryptPasswordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 
 	@Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception{
+	AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
 		return configuration.getAuthenticationManager();
 	}
 
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		return http
-			.cors(corsConfigurer -> corsConfigurer.configurationSource(corsConfigurationSource()))
-			.csrf(AbstractHttpConfigurer::disable)
-			.httpBasic(AbstractHttpConfigurer::disable)
-			.formLogin(AbstractHttpConfigurer::disable)
-			.logout(AbstractHttpConfigurer::disable)
-			.sessionManagement(session -> session
-				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-			)
-			.addFilterBefore(new JwtFilter(jwtCreator), UsernamePasswordAuthenticationFilter.class)
-			.authorizeHttpRequests(auth -> auth
-				.requestMatchers(SWAGGER_PATTERNS).permitAll()
-				.requestMatchers(STATIC_RESOURCES_PATTERNS).permitAll()
-				.requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
-				.anyRequest().permitAll()
-			)
-			.build();
+				.cors(corsConfigurer -> corsConfigurer.configurationSource(corsConfigurationSource()))
+				.csrf(AbstractHttpConfigurer::disable)
+				.httpBasic(AbstractHttpConfigurer::disable)
+				.formLogin(AbstractHttpConfigurer::disable)
+				.logout(AbstractHttpConfigurer::disable)
+				.sessionManagement(session -> session
+						.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.addFilterBefore(new JwtFilter(jwtCreator), UsernamePasswordAuthenticationFilter.class)
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers(SWAGGER_PATTERNS).permitAll()
+						.requestMatchers(STATIC_RESOURCES_PATTERNS).permitAll()
+						.requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
+						.anyRequest().permitAll())
+				.build();
 	}
 
 	private static final String[] SWAGGER_PATTERNS = {
-		"/swagger-ui/**",
-		"/actuator/**",
-		"/v3/api-docs/**",
+			"/swagger-ui/**",
+			"/actuator/**",
+			"/v3/api-docs/**",
 	};
 
 	private static final String[] STATIC_RESOURCES_PATTERNS = {
-		"/img/**",
-		"/css/**",
-		"/js/**"
+			"/img/**",
+			"/css/**",
+			"/js/**"
 	};
 
 	private static final String[] PERMIT_ALL_PATTERNS = {
-		"/api/v1/",
-		"/member/**",
-		"/reissue",
-		"/api/v1/lecture",
-		"/error",
-		"/favicon.ico",
-		"/index.html",
-		"/",
+			"/api/v1/",
+			"/member/**",
+			"/reissue",
+			"/api/v1/lecture",
+			"/error",
+			"/favicon.ico",
+			"/index.html",
+			"/",
 	};
 
 	CorsConfigurationSource corsConfigurationSource() {
@@ -88,7 +86,8 @@ public class SecurityConfig {
 			CorsConfiguration config = new CorsConfiguration();
 			config.setAllowedHeaders(Collections.singletonList("*"));
 			config.setAllowedMethods(Collections.singletonList("*"));
-			config.setAllowedOriginPatterns(List.of("https://api.sopio.kr", "http://localhost:3000", "https://prod.sopio.kr", "https://acha.sopio.kr"));
+			config.setAllowedOriginPatterns(List.of("https://api.sopio.kr", "http://localhost:3000",
+					"https://prod.sopio.kr", "https://acha.sopio.kr"));
 			config.setAllowCredentials(true);
 			return config;
 		};

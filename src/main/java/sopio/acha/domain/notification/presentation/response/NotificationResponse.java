@@ -8,7 +8,7 @@ import sopio.acha.domain.notification.domain.Notification;
 
 @Builder
 public record NotificationResponse(
-	@Schema(description = "공지 ID", example = "1", requiredMode = REQUIRED)
+	@Schema(description = "공지사항 ID", example = "1", requiredMode = REQUIRED)
 	Long id,
 
 	@Schema(description = "공지 제목", example = "중간고사 일정 안내", requiredMode = REQUIRED)
@@ -20,7 +20,7 @@ public record NotificationResponse(
 	@Schema(description = "공지 날짜", example = "2021-06-30", requiredMode = REQUIRED)
 	String date,
 
-	@Schema(description = "공지 식별 번호", example = "1", requiredMode = REQUIRED)
+	@Schema(description = "공지 번호", example = "1", requiredMode = REQUIRED)
 	String index
 ) {
 	public static NotificationResponse from(Notification notification) {

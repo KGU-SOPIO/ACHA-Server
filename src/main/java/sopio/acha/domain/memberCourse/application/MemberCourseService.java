@@ -4,12 +4,11 @@ import static sopio.acha.common.handler.DateHandler.getTodayDate;
 import static sopio.acha.common.handler.EncryptionHandler.decrypt;
 import static sopio.acha.common.handler.ExtractorHandler.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,17 +19,17 @@ import lombok.RequiredArgsConstructor;
 import sopio.acha.common.exception.ExtractorErrorException;
 import sopio.acha.common.handler.DateHandler;
 import sopio.acha.common.utils.CourseDataConverter;
-import sopio.acha.domain.activity.domain.Activity;
-import sopio.acha.domain.activity.domain.ActivityType;
+import sopio.acha.domain.activity.application.ActivityService;
 import sopio.acha.domain.activity.infrastructure.ActivityRepository;
 import sopio.acha.domain.activity.presentation.response.ActivityScrapingResponse;
 import sopio.acha.domain.activity.presentation.response.ActivityScrapingWeekResponse;
-import sopio.acha.domain.course.application.NoticeExtractor;
+import sopio.acha.domain.course.application.CourseService;
 import sopio.acha.domain.course.domain.Course;
 import sopio.acha.domain.course.domain.CourseDay;
 import sopio.acha.domain.course.infrastructure.CourseRepository;
-import sopio.acha.domain.course.presentation.response.CourseBasicInformationResponse;
-import sopio.acha.domain.course.presentation.response.CourseTimeTableResponse;
+import sopio.acha.domain.course.presentation.response.CourseScrapingResponse;
+import sopio.acha.domain.timetable.domain.Timetable;
+import sopio.acha.domain.timetable.presentation.response.TimetableScrapingResponse;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.memberCourse.domain.MemberCourse;
 import sopio.acha.domain.memberCourse.infrastructure.MemberCourseRepository;
@@ -40,9 +39,10 @@ import sopio.acha.domain.memberCourse.presentation.response.MemberCourseListResp
 @RequiredArgsConstructor
 public class MemberCourseService {
 	private final MemberCourseRepository memberCourseRepository;
-	private final NoticeExtractor noticeExtractor;
 	private final ActivityRepository activityRepository;
 	private final CourseRepository courseRepository;
+	private final CourseService courseService;
+	private final ActivityService activityService;
 
 	@Transactional
 	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
@@ -55,13 +55,11 @@ public class MemberCourseService {
 
 		// 업데이트 주기가 지난 사용자 강좌 조회
 		List<MemberCourse> allMemberCourseList = memberCourseRepository
-				.findAllByCourseYearAndCourseSemesterOrderByCourseDayOrderAsc(
-						DateHandler.getCurrentSemesterYear(),
-						DateHandler.getCurrentSemester()
-				)
+				.findAllByCourseYearAndCourseSemester(DateHandler.getCurrentSemesterYear(),
+						DateHandler.getCurrentSemester())
 				.stream()
 				.filter(MemberCourse::checkLastUpdatedAt)
-				.peek(MemberCourse::setLastUpdatedAt)
+				.peek(memberCourse -> memberCourse.setLastUpdatedAt(LocalDateTime.now()))
 				.toList();
 
 		// 강좌 업데이트
@@ -69,214 +67,177 @@ public class MemberCourseService {
 	}
 
 	private void updateExtractedCourse(List<MemberCourse> currentCourseList, ObjectMapper objectMapper) {
-		// 사용자 별 강좌 그룹화
+		// 사용자별 강좌 그룹화
 		Map<Member, List<MemberCourse>> memberCourseMap = currentCourseList.stream()
 				.collect(Collectors.groupingBy(MemberCourse::getMember));
 
-		System.out.println("업데이트 대상 사용자 수: " + memberCourseMap.size());
+		System.out.println("업데이트 대상 사용자 수 : " + memberCourseMap.size());
 
-		// 사용자 순회하며 업데이트
 		for (Member member : memberCourseMap.keySet()) {
 			String decryptedPassword = decrypt(member.getPassword());
 			List<MemberCourse> memberCourseList = memberCourseMap.get(member);
 
-			// 추출 가능 상태 확인
+			// 추출 가능 상태 검증 및 실패 시 모든 강좌 업데이트 대기 적용
 			try {
 				requestAuthentication(member.getId(), decryptedPassword);
 			} catch (ExtractorErrorException e) {
+				memberCourseList
+						.forEach(memberCourse -> memberCourse.setLastUpdatedAt(LocalDateTime.now().plusHours(3)));
 				continue;
 			}
 
-			// 강좌 데이터 요청
-			List<CourseBasicInformationResponse> courseResponseList = fetchCourseResponses(member, decryptedPassword, objectMapper);
-			if (courseResponseList == null || courseResponseList.isEmpty()) {
+			// 강좌 목록 요청 및 변환
+			List<CourseScrapingResponse> lmsCourseList = fetchCourseListResponse(member, decryptedPassword,
+					objectMapper);
+			if (lmsCourseList == null || lmsCourseList.isEmpty()) {
 				continue;
 			}
+			Map<String, CourseScrapingResponse> lmsCourseMap = CourseDataConverter.mapCourseByIdentifier(lmsCourseList);
 
-			// 강좌 코드 추출
-			Set<String> memberCourseIdentifiers = extractMemberCourseIdentifiers(member);
+			// 신규 강좌 저장 및 결과 반환
+			boolean isNewCourseSaved = courseService.saveNewCourses(lmsCourseMap);
 
-			// 등록되어 있지 않은 새로운 강좌 저장
-			saveNewCoursesForMember(member, memberCourseList, courseResponseList, memberCourseIdentifiers, decryptedPassword, objectMapper);
+			// 시간표 데이터 요청 및 강좌 매핑
+			if (isNewCourseSaved) {
+				// 시간표 데이터 요청 및 변환
+				List<TimetableScrapingResponse> timetableList = fetchTimetableListResponse(member, decryptedPassword,
+						objectMapper);
+				if (timetableList == null || timetableList.isEmpty())
+					continue;
+				Map<String, List<TimetableScrapingResponse>> timetableMap = CourseDataConverter
+						.mapTimetableByIdentifier(timetableList);
 
-			// 강좌 데이터 변환
-			Map<String, CourseBasicInformationResponse> courseResponseMap = courseResponseList.stream()
-					.filter(response -> memberCourseIdentifiers.contains(response.identifier()))
-					.collect(Collectors.toMap(CourseBasicInformationResponse::identifier, Function.identity()));
+				// 시간표 데이터 저장
+				courseService.updateCourseWithTimetable(timetableMap);
 
-			// 공지사항 저장
-			try {
-				noticeExtractor.extractAndSave(courseResponseMap);
-			} catch (Exception _) {}
-
-			updateActivitiesForMember(member, memberCourseList, courseResponseList);
-		}
-	}
-
-	// 사용자 강좌 스크래핑 데이터 요청
-	private List<CourseBasicInformationResponse> fetchCourseResponses(Member member, String decryptedPassword, ObjectMapper objectMapper) {
-		try {
-			JsonNode courseData = objectMapper.readTree(requestCourse(member.getId(), decryptedPassword)).get("data");
-			if (courseData == null || !courseData.isArray()) {
-				return null;
+				// Member - Course 매핑
+				courseService.saveCoursesWithMember(lmsCourseList, member);
 			}
-			return CourseDataConverter.convertToCourseResponseList(courseData, objectMapper);
-		} catch (Exception e) {
-			return null;
-		}
-	}
 
-	// 사용자 수강 강좌 식별자 집합 생성
-	private Set<String> extractMemberCourseIdentifiers(Member member) {
-		List<MemberCourse> allMemberCourseList = memberCourseRepository.findAllByMemberIdAndCourseYearAndCourseSemester(
-				member.getId(),
-				DateHandler.getCurrentSemesterYear(),
-				DateHandler.getCurrentSemester()
-		);
-
-		return allMemberCourseList.stream()
-				.map(memberCourse -> memberCourse.getCourse().getIdentifier())
-				.collect(Collectors.toSet());
-	}
-
-	// 신규 강좌 등록 및 시간표 매핑
-	private void saveNewCoursesForMember(Member member, List<MemberCourse> memberCourseList,
-										 List<CourseBasicInformationResponse> courseResponseList,
-										 Set<String> memberCourseIdentifiers, String decryptedPassword,
-										 ObjectMapper objectMapper) {
-		List<CourseBasicInformationResponse> newCourseResponseList = courseResponseList.stream()
-				.filter(response -> !memberCourseIdentifiers.contains(response.identifier()))
-				.toList();
-		if (newCourseResponseList.isEmpty()) return;
-
-		List<Course> newCourseList = newCourseResponseList.stream()
-				.map(courseResponse -> {
-					Optional<Course> existingCourse = courseRepository.findByIdentifier(courseResponse.identifier());
-                    return existingCourse.orElseGet(() -> Course.save(
-                            courseResponse.title(),
-                            courseResponse.identifier(),
-                            courseResponse.code(),
-                            courseResponse.noticeCode(),
-                            courseResponse.professor()
-                    ));
-				}).toList();
-
-		try	{
-			JsonNode timetableData = objectMapper.readTree(requestTimetable(member.getId(), decryptedPassword)).get("data");
-			if (timetableData != null && timetableData.isArray()) {
-				List<CourseTimeTableResponse> timetableList = CourseDataConverter.convertToTimetableResponseList(timetableData, objectMapper);
-				Map<String, CourseTimeTableResponse> timetableMap = CourseDataConverter.mapTimetableByIdentifier(timetableList);
-
-				// 신규 강좌 시간표 매핑
-				CourseDataConverter.mapTimetableToCourses(timetableMap, newCourseList);
+			// LMS에 존재하지 않는 강의 삭제
+			Set<String> lmsIdentifiers = lmsCourseList.stream()
+					.map(CourseScrapingResponse::identifier)
+					.collect(Collectors.toSet());
+            Set<String> identifiersToRemove = memberCourseList.stream()
+                    .map(memberCourse -> memberCourse.getCourse().getIdentifier()).collect(Collectors.toSet());
+			identifiersToRemove.removeAll(lmsIdentifiers);
+			Iterator<MemberCourse> iterator = memberCourseList.iterator();
+			while (iterator.hasNext()) {
+				MemberCourse memberCourse = iterator.next();
+				if (identifiersToRemove.contains(memberCourse.getCourse().getIdentifier())) {
+					// 활동 삭제
+					activityRepository.deleteAllByMemberAndCourse(member, memberCourse.getCourse());
+					// MemberCourse 삭제
+					memberCourseRepository.delete(memberCourse);
+					iterator.remove();
+				}
 			}
-		} catch (JsonProcessingException _) {}
 
-		// 사용자 강좌 저장
-		courseRepository.saveAll(newCourseList);
-		saveMyCourses(newCourseList, member);
-		List<MemberCourse> newMemberCourseList = newCourseList.stream()
-				.map(course -> new MemberCourse(member, course))
-				.toList();
-		memberCourseList.addAll(newMemberCourseList);
+			for (CourseScrapingResponse summaryResponse : lmsCourseList) {
+				CourseScrapingResponse detailedResponse = fetchCourseDetailResponse(member, decryptedPassword,
+						summaryResponse.code(), objectMapper);
+				if (detailedResponse == null)
+					continue;
 
-		// 신규 강좌 식별자 업데이트
-		newCourseList.forEach(course -> memberCourseIdentifiers.add(course.getIdentifier()));
-	}
+				Map<String, CourseScrapingResponse> detailedCourseMap = CourseDataConverter
+						.mapCourseByIdentifier(Collections.singletonList(detailedResponse));
 
-	private void updateActivitiesForMember(Member member, List<MemberCourse> memberCourseList	,
-										   List<CourseBasicInformationResponse> courseResponseList) {
-		for (CourseBasicInformationResponse courseResponse : courseResponseList) {
-			Optional<MemberCourse> optionalMemberCourse = memberCourseList.stream()
-					.filter(course -> course.getCourse().getIdentifier().equals(courseResponse.identifier()))
-					.findFirst();
-			if (optionalMemberCourse.isEmpty()) continue;
+				courseService.extractAndSaveNotification(detailedCourseMap);
 
-			Course course = optionalMemberCourse.get().getCourse();
-			List<ActivityScrapingWeekResponse> weekResponses = courseResponse.activities();
-			if (weekResponses == null || weekResponses.isEmpty()) continue;
-
-			for (ActivityScrapingWeekResponse weekResponse : weekResponses) {
-				int week = weekResponse.week();
-				for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
-					try {
-						Optional<Activity> existingActivityOpt = activityRepository.findByTitleAndWeekAndMemberAndCourseAndType(
-								activityResponse.title(),
-								week,
-								member,
-								course,
-								ActivityType.valueOf(activityResponse.type().toUpperCase()));
-						if (existingActivityOpt.isPresent()) {
-							Activity existingActivity = existingActivityOpt.get();
-							existingActivity.update(
-									activityResponse.available(),
-									activityResponse.link(),
-									activityResponse.attendance(),
-									activityResponse.submitStatus(),
-									activityResponse.startAt(),
-									activityResponse.deadline(),
-									activityResponse.timeLeft(),
-									activityResponse.description()
-							);
-							activityRepository.save(existingActivity);
-						} else {
-							Activity activity = Activity.save(
-									activityResponse.available(),
-									week,
-									activityResponse.title(),
-									activityResponse.link(),
-									activityResponse.type(),
-									activityResponse.code(),
-									activityResponse.deadline(),
-									activityResponse.startAt(),
-									activityResponse.courseTime(),
-									activityResponse.timeLeft(),
-									activityResponse.description(),
-									activityResponse.attendance(),
-									activityResponse.submitStatus(),
-									course,
-									member
-							);
-							activityRepository.save(activity);
+				List<ActivityScrapingWeekResponse> weekResponses = detailedResponse.activities();
+				if (weekResponses != null && !weekResponses.isEmpty()) {
+					for (ActivityScrapingWeekResponse weekResponse : weekResponses) {
+						int week = weekResponse.week();
+						for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
+							Optional<Course> optionalCourse = courseRepository
+									.findByIdentifier(detailedResponse.identifier());
+							if (optionalCourse.isPresent()) {
+								Course course = optionalCourse.get();
+								activityService.saveOrUpdateActivity(course, member, week, activityResponse);
+							}
 						}
-					} catch (Exception _) {}
+					}
 				}
 			}
 		}
 	}
 
-	public void saveMyCourses(List<Course> courseHasTimeTable, Member currentMember) {
-		List<MemberCourse> memberCourses = courseHasTimeTable.stream()
-			.filter(course -> isExistsMemberCourse(currentMember, course))
-			.map(course -> new MemberCourse(currentMember, course))
-			.toList();
-		memberCourseRepository.saveAll(memberCourses);
+	/// 사용자의 강좌 목록 데이터를 요청합니다.
+	/// 공지사항, 활동 데이터는 포함되지 않습니다.
+	private List<CourseScrapingResponse> fetchCourseListResponse(Member member, String decryptedPassword,
+			ObjectMapper objectMapper) {
+		try {
+			JsonNode courseListJsonData = objectMapper.readTree(requestCourseList(member.getId(), decryptedPassword))
+					.get("data");
+			return CourseDataConverter
+					.convertToCourseList(objectMapper, courseListJsonData);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	/// 사용자의 특정 강좌 데이터를 요청합니다.
+	private CourseScrapingResponse fetchCourseDetailResponse(Member member, String decryptedPassword, String courseCode,
+			ObjectMapper objectMapper) {
+		try {
+			JsonNode courseDetailJsonData = objectMapper
+					.readTree(requestCourseDetail(member.getId(), decryptedPassword, courseCode)).get("data");
+			return objectMapper.convertValue(courseDetailJsonData, CourseScrapingResponse.class);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	/// 시간표 데이터를 요청합니다.
+	private List<TimetableScrapingResponse> fetchTimetableListResponse(Member member, String decryptedPassword,
+			ObjectMapper objectMapper) {
+		try {
+			JsonNode timetableJsonData = objectMapper
+					.readTree(requestTimetable(member.getId(), decryptedPassword)).get("data");
+			return CourseDataConverter.convertToTimetableList(objectMapper, timetableJsonData);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	@Transactional(readOnly = true)
-	public MemberCourseListResponse getTodayMemberCourse(Member currentMember) {
+	public MemberCourseListResponse getTodayMemberCourse(Member member) {
+		List<MemberCourse> memberCourses = memberCourseRepository
+				.findAllByMemberIdAndCourseYearAndCourseSemester(member.getId(), DateHandler.getCurrentSemesterYear(),
+						DateHandler.getCurrentSemester());
+
+		// 오늘 날짜 강좌 조회
 		CourseDay today = CourseDay.valueOf(getTodayDate());
-		List<MemberCourse> memberCourses = memberCourseRepository.findAllByMemberIdAndCourseDayAndCourseYearAndCourseSemester(
-			currentMember.getId(), today, DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
-		memberCourses.sort(Comparator.comparing(memberCourse -> memberCourse.getCourse().getStartAt()));
-		return MemberCourseListResponse.from(memberCourses);
-	}
+		List<MemberCourse> todayMemberCourses = new ArrayList<>(memberCourses.stream()
+				.filter(memberCourse -> memberCourse.getCourse().getTimetables().stream()
+						.anyMatch(timetable -> timetable.getDay().equals(today)))
+				.toList());
+
+		// 강좌 시간순 정렬
+		todayMemberCourses.sort(Comparator.comparing(mc -> mc.getCourse().getTimetables().stream()
+				.filter(timetable -> timetable.getDay().equals(today))
+				.map(Timetable::getStartAt)
+				.findFirst()
+				.orElse(Integer.MAX_VALUE)));
+		return MemberCourseListResponse.from(todayMemberCourses);
+    }
 
 	@Transactional(readOnly = true)
-	public MemberCourseListResponse getThisSemesterMemberCourse(Member currentMember) {
+	public MemberCourseListResponse getThisSemesterMemberCourse(Member member) {
 		List<MemberCourse> memberCourses = memberCourseRepository.findAllByMemberIdAndCourseYearAndCourseSemester(
-			currentMember.getId(), DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
-		memberCourses.sort(
-			Comparator.comparing((MemberCourse memberCourse) -> memberCourse.getCourse().getDayOrder(),
-					Comparator.nullsLast(Comparator.naturalOrder())
-					).thenComparing(memberCourse -> memberCourse.getCourse().getStartAt(),
-							Comparator.nullsLast(Comparator.naturalOrder())
-					)
-		);
-		return MemberCourseListResponse.from(memberCourses);
-	}
+				member.getId(), DateHandler.getCurrentSemesterYear(), DateHandler.getCurrentSemester());
 
-	public boolean isExistsMemberCourse(Member currentMember, Course course) {
-		return !memberCourseRepository.existsByMemberAndCourse(currentMember, course);
+		memberCourses.sort(
+				Comparator.comparing((MemberCourse mc) -> mc.getCourse().getTimetables().stream()
+						.filter(timetable -> timetable.getDay() != null)
+						.map(Timetable::getDayOrder)
+						.min(Integer::compare)
+						.orElse(Integer.MAX_VALUE))
+						.thenComparing(mc -> mc.getCourse().getTimetables().stream()
+								.filter(timetable -> timetable.getDay() != null)
+								.map(Timetable::getStartAt)
+								.min(Integer::compare)
+								.orElse(Integer.MAX_VALUE)));
+		return MemberCourseListResponse.from(memberCourses);
 	}
 }

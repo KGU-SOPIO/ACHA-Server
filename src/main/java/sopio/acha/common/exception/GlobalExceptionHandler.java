@@ -1,6 +1,5 @@
 package sopio.acha.common.exception;
 
-
 import static sopio.acha.common.exception.GlobalExceptionCode.INVALID_INPUT;
 import static sopio.acha.common.exception.GlobalExceptionCode.SERVER_ERROR;
 
@@ -34,7 +33,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	@ExceptionHandler(KutisPasswordErrorException.class)
-	protected ResponseEntity<ExceptionResponse> handleKutisPasswordErrorException(KutisPasswordErrorException exception) {
+	protected ResponseEntity<ExceptionResponse> handleKutisPasswordErrorException(
+			KutisPasswordErrorException exception) {
 		ExceptionResponse response = ExceptionResponse.from(exception.getCode());
 		return ResponseEntity.status(response.status()).body(response);
 	}
@@ -46,13 +46,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@Override
 	protected ResponseEntity<Object> handleHandlerMethodValidationException(HandlerMethodValidationException exception,
-		HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
 		String message = exception.getAllValidationResults().stream()
-			.map(ParameterValidationResult::getResolvableErrors)
-			.flatMap(List::stream)
-			.map(MessageSourceResolvable::getDefaultMessage)
-			.collect(Collectors.joining(", "));
+				.map(ParameterValidationResult::getResolvableErrors)
+				.flatMap(List::stream)
+				.map(MessageSourceResolvable::getDefaultMessage)
+				.collect(Collectors.joining(", "));
 		ExceptionResponse response = ExceptionResponse.of(INVALID_INPUT.getStatus(), INVALID_INPUT.getCode(), message);
 
 		return ResponseEntity.status(response.status()).body(response);
@@ -60,11 +60,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@Override
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException exception,
-		HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
 		String message = exception.getFieldErrors().stream()
-			.map(error -> error.getField() + ": " + error.getDefaultMessage())
-			.collect(Collectors.joining(", "));
+				.map(error -> error.getField() + ": " + error.getDefaultMessage())
+				.collect(Collectors.joining(", "));
 		ExceptionResponse response = ExceptionResponse.of(INVALID_INPUT.getStatus(), INVALID_INPUT.getCode(), message);
 
 		return ResponseEntity.status(response.status()).body(response);

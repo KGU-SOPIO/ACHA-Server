@@ -10,9 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ActivityScrapingWeekResponse(
-    @Schema(description = "주차", example = "1", requiredMode = REQUIRED)
-	int week,
+        @Schema(description = "주차", example = "1", requiredMode = REQUIRED) int week,
 
-    @Schema(description = "활동 목록", requiredMode = REQUIRED)
-    List<ActivityScrapingResponse> activities
-) {}
+        @Schema(description = "활동 목록", requiredMode = REQUIRED) List<ActivityScrapingResponse> activities) {
+}

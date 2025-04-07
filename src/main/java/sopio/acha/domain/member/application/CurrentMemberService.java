@@ -16,7 +16,7 @@ public class CurrentMemberService {
 	public Member me() {
 		try {
 			Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-			String userId = ((UserDetails)principal).getUsername();
+			String userId = ((UserDetails) principal).getUsername();
 			return memberService.getMemberById(userId);
 		} catch (Exception e) {
 			throw new MemberNotAuthenticatedException();

@@ -12,10 +12,10 @@ import sopio.acha.domain.activity.domain.Activity;
 
 @Builder
 public record ActivityWeekDetailResponse(
-	@Schema(description = "접근 여부", example = "true", requiredMode = REQUIRED)
+	@Schema(description = "접근 가능 여부", example = "true", requiredMode = REQUIRED)
 	boolean available,
 
-	@Schema(description = "활동 이름", example = "활동명 예시", requiredMode = REQUIRED)
+	@Schema(description = "활동명", example = "활동명 예시", requiredMode = REQUIRED)
 	String title,
 
 	@Schema(description = "활동 코드", example = "50251", requiredMode = NOT_REQUIRED)

@@ -7,13 +7,13 @@ import lombok.Builder;
 
 @Builder
 public record MemberTokenResponse(
-	@Schema(description = "액세스토큰", requiredMode = REQUIRED)
+	@Schema(description = "액세스 토큰", requiredMode = REQUIRED)
 	String accessToken,
 
-	@Schema(description = "리프레시토큰", requiredMode = REQUIRED)
+	@Schema(description = "리프레시 토큰", requiredMode = REQUIRED)
 	String refreshToken,
 
-	@Schema(description = "추출성공 상태", requiredMode = REQUIRED)
+	@Schema(description = "추출 완료 상태", requiredMode = REQUIRED)
 	Boolean extract
 ) {
 	public static MemberTokenResponse of(String accessToken, String refreshToken, Boolean extract) {

@@ -19,16 +19,16 @@ import sopio.acha.common.utils.LoggingUtils;
 public class ServerErrorLoggingAspect {
 
 	@Pointcut("execution(public * sopio.acha..*(..)) && "
-		+ "!execution(* sopio.acha.domain..presentation..*(..)) && "
-		+ "!@annotation(org.springframework.boot.context.properties.ConfigurationProperties)"
-	)
+			+ "!execution(* sopio.acha.domain..presentation..*(..)) && "
+			+ "!@annotation(org.springframework.boot.context.properties.ConfigurationProperties)")
 	private void logPointcut() {
 	}
 
 	@AfterThrowing(value = "logPointcut()", throwing = "exception")
 	public void logAfterThrowing(JoinPoint joinPoint, Exception exception) {
-		if (exception instanceof CustomException) return;
-		MethodSignature signature = (MethodSignature)joinPoint.getSignature();
+		if (exception instanceof CustomException)
+			return;
+		MethodSignature signature = (MethodSignature) joinPoint.getSignature();
 		String className = signature.getDeclaringType().getSimpleName();
 
 		List<String> arguments = LoggingUtils.getArguments(joinPoint);
@@ -40,10 +40,8 @@ public class ServerErrorLoggingAspect {
 		StackTraceElement[] stackTrace = exception.getStackTrace();
 
 		log.error("[SERVER ERROR] CAUSE : {}",
-		    cause != null ? cause.toString() : "No cause available"
-		);
+				cause != null ? cause.toString() : "No cause available");
 		log.error("[SERVER ERROR] FINAL POINT : {}",
-		    (stackTrace != null && stackTrace.length > 0) ? stackTrace[0] : "No stack trace available"
-		);
+				(stackTrace != null && stackTrace.length > 0) ? stackTrace[0] : "No stack trace available");
 	}
 }

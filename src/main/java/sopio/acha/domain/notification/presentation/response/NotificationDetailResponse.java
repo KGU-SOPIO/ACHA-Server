@@ -8,10 +8,10 @@ import sopio.acha.domain.notification.domain.Notification;
 
 @Builder
 public record NotificationDetailResponse(
-	@Schema(description = "공지 ID", example = "1", requiredMode = REQUIRED)
+	@Schema(description = "공지사항 ID", example = "1", requiredMode = REQUIRED)
 	Long id,
 
-	@Schema(description = "강좌 이름", example = "운영체제", requiredMode = REQUIRED)
+	@Schema(description = "강좌명", example = "운영체제", requiredMode = REQUIRED)
 	String courseName,
 
 	@Schema(description = "교수", example = "이병대", requiredMode = REQUIRED)

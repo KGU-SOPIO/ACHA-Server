@@ -70,28 +70,22 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	private List<Device> devices = new ArrayList<>();
 
 	public static Member save(String id, String password, String name, String college, String department,
-		String major) {
+			String major) {
 		return Member.builder()
-			.id(id)
-			.password(encrypt(password))
-			.name(name)
-			.college(college)
-			.department(department)
-			.major(major)
-			.alert(true)
-			.extract(false)
-			.role(ROLE_USER)
-			.build();
+				.id(id)
+				.password(encrypt(password))
+				.name(name)
+				.college(college)
+				.department(department)
+				.major(major)
+				.alert(true)
+				.extract(false)
+				.role(ROLE_USER)
+				.build();
 	}
 
 	public void updatePassword(String password) {
 		this.password = encrypt(password);
-  }
-
-    public void updateExtract(Boolean extract) { this.extract = extract; }
-  
-	public void updateAlert(Boolean alert) {
-		this.alert = alert;
 	}
 
 	public void updateBasicInformation(String name, String college, String department, String major) {
@@ -102,7 +96,16 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	}
 
 	public void validatePassword(String password) {
-		if (!Objects.equals(decrypt(this.password), password)) throw new InvalidPasswordException();
+		if (!Objects.equals(decrypt(this.password), password))
+			throw new InvalidPasswordException();
+	}
+
+	public void updateAlert(boolean alert) {
+		this.alert = alert;
+	}
+
+	public void updateExtract(boolean extract) {
+		this.extract = extract;
 	}
 
 	@Override

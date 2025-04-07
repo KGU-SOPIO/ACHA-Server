@@ -12,7 +12,7 @@ public record MemberSummaryResponse(
 	@Schema(description = "대학", requiredMode = REQUIRED)
 	String college,
 
-	@Schema(description = "학과", requiredMode = REQUIRED)
+	@Schema(description = "학부", requiredMode = NOT_REQUIRED)
 	String department,
 
 	@Schema(description = "전공", requiredMode = NOT_REQUIRED)

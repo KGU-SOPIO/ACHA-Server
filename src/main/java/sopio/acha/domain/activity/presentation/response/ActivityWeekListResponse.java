@@ -12,10 +12,10 @@ import sopio.acha.domain.course.domain.Course;
 
 @Builder
 public record ActivityWeekListResponse(
-	@Schema(description = "강의 제목", example = "컴퓨터 네트워크", requiredMode = REQUIRED)
+	@Schema(description = "강좌명", example = "컴퓨터 네트워크", requiredMode = REQUIRED)
 	String courseName,
 
-	@Schema(description = "교수 이름", example = "홍길동", requiredMode = REQUIRED)
+	@Schema(description = "교수", example = "홍길동", requiredMode = REQUIRED)
 	String professor,
 
 	@Schema(description = "활동 목록", requiredMode = REQUIRED)

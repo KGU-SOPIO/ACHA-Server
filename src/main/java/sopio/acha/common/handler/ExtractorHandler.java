@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import sopio.acha.common.exception.ExtractorErrorException;
 import sopio.acha.common.exception.KutisPasswordErrorException;
 
-
 @Component
 @RequiredArgsConstructor
 public class ExtractorHandler {
@@ -39,8 +38,8 @@ public class ExtractorHandler {
 
 	public static void requestAuthentication(String studentId, String password) {
 		URI uri = buildUriByPath("/v1/auth/");
-		String requestBody =
-			"{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password + "\", \"extract\": false }";
+		String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password
+				+ "\", \"extract\": false }";
 		JSONObject jsonObject = getJsonData(requestBody, uri);
 		if (!jsonObject.get("verification").toString().equals("true")) {
 			throw new ExtractorErrorException();
@@ -49,16 +48,30 @@ public class ExtractorHandler {
 
 	public static String requestAuthenticationAndUserInfo(String studentId, String password) {
 		URI uri = buildUriByPath("/v1/auth/");
-		String requestBody =
-			"{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password + "\", \"extract\": true }";
+		String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password
+				+ "\", \"extract\": true }";
+		return getJsonData(requestBody, uri).toString();
+	}
+
+	public static String requestCourseList(String studentId, String password) {
+		URI uri = buildUriByPath("/v1/course/");
+		String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password
+				+ "\", \"year\": " + getCurrentSemesterYear() + ", \"semester\": " + getCurrentSemester()
+				+ ", \"extract\": false }";
 		return getJsonData(requestBody, uri).toString();
 	}
 
 	public static String requestCourse(String studentId, String password) {
 		URI uri = buildUriByPath("/v1/course/");
 		String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password
-			+ "\", \"year\": " + getCurrentSemesterYear() + ", \"semester\": " + getCurrentSemester()
-			+ ", \"extract\": true }";
+				+ "\", \"year\": " + getCurrentSemesterYear() + ", \"semester\": " + getCurrentSemester()
+				+ ", \"extract\": true }";
+		return getJsonData(requestBody, uri).toString();
+	}
+
+	public static String requestCourseDetail(String studentId, String password, String code) {
+		URI uri = buildUriByPath("/v1/course/" + code + "/");
+		String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password + "\" }";
 		return getJsonData(requestBody, uri).toString();
 	}
 
@@ -77,19 +90,13 @@ public class ExtractorHandler {
 		}
 	}
 
-	public static String requestActivity(String studentId, String password, String code) {
-		URI uri = buildUriByPath("/v1/course/" + code + "/activity/");
-		String requestBody = "{ \"studentId\": \"" + studentId + "\", \"password\": \"" + password + "\" }";
-		return getJsonData(requestBody, uri).toString();
-	}
-
 	private static URI buildUriByPath(String path) {
 		return UriComponentsBuilder
-			.fromUriString(requestUrl)
-			.path(path)
-			.encode()
-			.build()
-			.toUri();
+				.fromUriString(requestUrl)
+				.path(path)
+				.encode()
+				.build()
+				.toUri();
 	}
 
 	private static JSONObject getJsonData(String requestBody, URI uri) {

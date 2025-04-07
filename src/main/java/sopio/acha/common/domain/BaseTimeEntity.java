@@ -27,11 +27,11 @@ public abstract class BaseTimeEntity {
 	@Column
 	protected LocalDateTime deletedAt;
 
-	public void setLastUpdatedAt() {
-		updatedAt = LocalDateTime.now();
+	public void setLastUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
 	}
 
-	public void delete(){
+	public void delete() {
 		deletedAt = LocalDateTime.now();
 	}
 }

@@ -11,9 +11,6 @@ import sopio.acha.domain.course.domain.Course;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
-
-	boolean existsByIdentifier(String identifier);
-
 	Optional<Course> findByIdentifier(String identifier);
 
 	Optional<Course> findByCode(String code);

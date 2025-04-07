@@ -19,7 +19,7 @@ public class RefreshTokenService {
 
 	public RefreshToken getRefreshTokenObject(RefreshTokenRequest request) {
 		return refreshTokenRepository.findByRefreshToken(request.refreshToken())
-			.orElseThrow(RefreshTokenNotFoundException::new);
+				.orElseThrow(RefreshTokenNotFoundException::new);
 	}
 
 	public RefreshToken getExistingToken(String studentId) {

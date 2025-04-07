@@ -26,16 +26,16 @@ public class RedisConfig {
     String redisPassword;
 
     @Bean
-    public RedisConnectionFactory redisConnectionFactory() {
+    RedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
         configuration.setHostName(redisHost);
         configuration.setPort(redisPort);
         configuration.setPassword(redisPassword);
 
         LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
-            .commandTimeout(Duration.ofSeconds(5))
-            .shutdownTimeout(Duration.ofSeconds(2))
-            .build();
+                .commandTimeout(Duration.ofSeconds(5))
+                .shutdownTimeout(Duration.ofSeconds(2))
+                .build();
 
         LettuceConnectionFactory factory = new LettuceConnectionFactory(configuration, clientConfig);
         factory.afterPropertiesSet();
@@ -43,7 +43,7 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory connectionFactory) {
+    RedisTemplate<String, String> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, String> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
