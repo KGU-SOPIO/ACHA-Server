@@ -200,10 +200,10 @@ public class MemberCourseService {
 				int week = weekResponse.week();
 				for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
 					try {
-						Optional<Activity> existingActivityOpt = activityRepository.findByTitleAndWeekAndMemberIdAndCourseAndType(
+						Optional<Activity> existingActivityOpt = activityRepository.findByTitleAndWeekAndMemberAndCourseAndType(
 								activityResponse.title(),
 								week,
-								member.getId(),
+								member,
 								course,
 								ActivityType.valueOf(activityResponse.type().toUpperCase()));
 						if (existingActivityOpt.isPresent()) {

@@ -20,7 +20,7 @@ import sopio.acha.domain.member.domain.Member;
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
 	boolean existsActivityByTitleAndWeekAndMemberAndCourseAndType(String title, int week, Member member, Course course, ActivityType type);
 
-	Optional<Activity> findByTitleAndWeekAndMemberIdAndCourseAndType(String title, int week, String memberId, Course course, ActivityType type);
+	Optional<Activity> findByTitleAndWeekAndMemberAndCourseAndType(String title, int week, Member memberId, Course course, ActivityType type);
 
 	@Query("SELECT a FROM Activity a " +
 			"WHERE a.member.id = :memberId " +

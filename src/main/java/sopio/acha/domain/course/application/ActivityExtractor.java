@@ -57,13 +57,13 @@ public class ActivityExtractor {
                         ActivityScrapingWeekResponse weekResponse = objectMapper.convertValue(weekNode, ActivityScrapingWeekResponse.class);
                         int week = weekResponse.week();
                         for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
-                            if (!activityRepository.existsActivityByTitleAndWeekAndMemberAndCourseAndType(
+                            boolean exists = activityRepository.existsActivityByTitleAndWeekAndMemberAndCourseAndType(
                                     activityResponse.title(),
                                     week,
                                     memberCourse.getMember(),
                                     memberCourse.getCourse(),
-                                    ActivityType.valueOf(activityResponse.type().toUpperCase()))
-                            ) {
+                                    ActivityType.valueOf(activityResponse.type().toUpperCase()));
+                            if (!exists) {
                                 Activity activity = Activity.save(
                                         activityResponse.available(),
                                         week,
