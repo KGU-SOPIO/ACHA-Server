@@ -14,10 +14,11 @@ import sopio.acha.domain.activity.domain.Activity;
 import sopio.acha.domain.activity.domain.ActivityType;
 import sopio.acha.domain.activity.domain.SubmitType;
 import sopio.acha.domain.course.domain.Course;
+import sopio.acha.domain.member.domain.Member;
 
 @Repository
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
-	boolean existsActivityByTitleAndMemberId(String title, String memberId);
+	boolean existsActivityByTitleAndWeekAndMemberAndCourseAndType(String title, int week, Member member, Course course, ActivityType type);
 
 	Optional<Activity> findByTitleAndWeekAndMemberIdAndCourseAndType(String title, int week, String memberId, Course course, ActivityType type);
 

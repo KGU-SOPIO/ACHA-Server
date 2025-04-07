@@ -114,6 +114,8 @@ public class CourseService {
 						timetable.endAt(),
 						timetable.lectureRoom()
 				);
+			} else {
+				course.setLectureRoom("이러닝");
 			}
 		});
 	}

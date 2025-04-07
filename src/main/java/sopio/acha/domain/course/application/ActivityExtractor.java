@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import sopio.acha.domain.activity.domain.Activity;
+import sopio.acha.domain.activity.domain.ActivityType;
 import sopio.acha.domain.activity.infrastructure.ActivityRepository;
 import sopio.acha.domain.activity.presentation.response.ActivityScrapingResponse;
 import sopio.acha.domain.activity.presentation.response.ActivityScrapingWeekResponse;
@@ -56,7 +57,13 @@ public class ActivityExtractor {
                         ActivityScrapingWeekResponse weekResponse = objectMapper.convertValue(weekNode, ActivityScrapingWeekResponse.class);
                         int week = weekResponse.week();
                         for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
-                            if (!activityRepository.existsActivityByTitleAndMemberId(activityResponse.title(), memberId)) {
+                            if (!activityRepository.existsActivityByTitleAndWeekAndMemberAndCourseAndType(
+                                    activityResponse.title(),
+                                    week,
+                                    memberCourse.getMember(),
+                                    memberCourse.getCourse(),
+                                    ActivityType.valueOf(activityResponse.type().toUpperCase()))
+                            ) {
                                 Activity activity = Activity.save(
                                         activityResponse.available(),
                                         week,

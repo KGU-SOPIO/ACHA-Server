@@ -10,6 +10,7 @@ import static lombok.AccessLevel.PROTECTED;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.*;
 import org.hibernate.annotations.Formula;
 
 import jakarta.persistence.Column;
@@ -18,10 +19,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import sopio.acha.common.domain.BaseTimeEntity;
 import sopio.acha.common.handler.DateHandler;
 import sopio.acha.domain.notification.domain.Notification;
@@ -50,7 +47,8 @@ public class Course extends BaseTimeEntity {
 	@Column(nullable = false)
 	private String professor;
 
-	private String lectureRoom;
+	@Setter
+    private String lectureRoom;
 
 	@Enumerated(STRING)
 	private CourseDay day;
