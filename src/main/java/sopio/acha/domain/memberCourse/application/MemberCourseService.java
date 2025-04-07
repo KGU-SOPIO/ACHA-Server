@@ -102,6 +102,8 @@ public class MemberCourseService {
 				// 시간표 데이터 요청 및 변환
 				List<TimetableScrapingResponse> timetableList = fetchTimetableListResponse(member, decryptedPassword,
 						objectMapper);
+				if (timetableList == null || timetableList.isEmpty())
+					continue;
 				Map<String, List<TimetableScrapingResponse>> timetableMap = CourseDataConverter
 						.mapTimetableByIdentifier(timetableList);
 
@@ -109,17 +111,15 @@ public class MemberCourseService {
 				courseService.updateCourseWithTimetable(timetableMap);
 
 				// Member - Course 매핑
-				saveCoursesWithMember(lmsCourseList, member);
+				courseService.saveCoursesWithMember(lmsCourseList, member);
 			}
 
 			// LMS에 존재하지 않는 강의 삭제
 			Set<String> lmsIdentifiers = lmsCourseList.stream()
 					.map(CourseScrapingResponse::identifier)
 					.collect(Collectors.toSet());
-			Set<String> memberCourseIdentifiers = memberCourseList.stream()
-					.map(memberCourse -> memberCourse.getCourse().getIdentifier())
-					.collect(Collectors.toSet());
-			Set<String> identifiersToRemove = new HashSet<>(memberCourseIdentifiers);
+            Set<String> identifiersToRemove = memberCourseList.stream()
+                    .map(memberCourse -> memberCourse.getCourse().getIdentifier()).collect(Collectors.toSet());
 			identifiersToRemove.removeAll(lmsIdentifiers);
 			Iterator<MemberCourse> iterator = memberCourseList.iterator();
 			while (iterator.hasNext()) {
@@ -200,20 +200,6 @@ public class MemberCourseService {
 		}
 	}
 
-	/// Course와 Member를 매핑합니다.
-	/// 이미 매핑된 경우나 Course가 존재하지 않는 경우에는 저장하지 않습니다.
-	public void saveCoursesWithMember(List<CourseScrapingResponse> courseList, Member member) {
-		Set<String> identifiers = courseList.stream()
-				.map(CourseScrapingResponse::identifier)
-				.collect(Collectors.toSet());
-		List<Course> courses = courseRepository.findAllByIdentifierIn(identifiers);
-		List<MemberCourse> memberCourses = courses.stream()
-				.filter(course -> !memberCourseRepository.existsByMemberIdAndCourseId(member.getId(), course.getId()))
-				.map(course -> new MemberCourse(member, course))
-				.toList();
-		memberCourseRepository.saveAll(memberCourses);
-	}
-
 	@Transactional(readOnly = true)
 	public MemberCourseListResponse getTodayMemberCourse(Member member) {
 		List<MemberCourse> memberCourses = memberCourseRepository
@@ -222,19 +208,19 @@ public class MemberCourseService {
 
 		// 오늘 날짜 강좌 조회
 		CourseDay today = CourseDay.valueOf(getTodayDate());
-		List<MemberCourse> todayMemberCourses = memberCourses.stream()
+		List<MemberCourse> todayMemberCourses = new ArrayList<>(memberCourses.stream()
 				.filter(memberCourse -> memberCourse.getCourse().getTimetables().stream()
 						.anyMatch(timetable -> timetable.getDay().equals(today)))
-				.toList();
+				.toList());
 
 		// 강좌 시간순 정렬
 		todayMemberCourses.sort(Comparator.comparing(mc -> mc.getCourse().getTimetables().stream()
 				.filter(timetable -> timetable.getDay().equals(today))
-				.map(timetable -> timetable.getStartAt())
+				.map(Timetable::getStartAt)
 				.findFirst()
 				.orElse(Integer.MAX_VALUE)));
 		return MemberCourseListResponse.from(todayMemberCourses);
-	}
+    }
 
 	@Transactional(readOnly = true)
 	public MemberCourseListResponse getThisSemesterMemberCourse(Member member) {

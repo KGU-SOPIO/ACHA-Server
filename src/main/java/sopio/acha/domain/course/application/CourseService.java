@@ -29,7 +29,8 @@ import sopio.acha.domain.course.presentation.exception.CourseNotFoundException;
 import sopio.acha.domain.course.presentation.response.CourseScrapingResponse;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.infrastructure.MemberRepository;
-import sopio.acha.domain.memberCourse.application.MemberCourseService;
+import sopio.acha.domain.memberCourse.domain.MemberCourse;
+import sopio.acha.domain.memberCourse.infrastructure.MemberCourseRepository;
 import sopio.acha.domain.notification.application.NotificationService;
 import sopio.acha.domain.timetable.domain.Timetable;
 import sopio.acha.domain.timetable.presentation.response.TimetableScrapingResponse;
@@ -40,9 +41,9 @@ public class CourseService {
 	private final ActivityService activityService;
 	private final NotificationService notificationService;
 	private final CourseRepository courseRepository;
-	private final MemberCourseService memberCourseService;
 	private final MemberRepository memberRepository;
 	private final ObjectMapper objectMapper;
+	private final MemberCourseRepository memberCourseRepository;
 
 	@Transactional(propagation = REQUIRES_NEW)
 	public void extractCourseAndSave(Member member) {
@@ -71,7 +72,7 @@ public class CourseService {
 			updateCourseWithTimetable(timetableMap);
 
 			// 멤버 - 강좌 매핑
-			memberCourseService.saveCoursesWithMember(courseList, member);
+			saveCoursesWithMember(courseList, member);
 
 			// 공지사항 데이터 저장
 			extractAndSaveNotification(courseMap);
@@ -108,6 +109,20 @@ public class CourseService {
 			return true;
 		}
 		return false;
+	}
+
+	/// Course와 Member를 매핑합니다.
+	/// 이미 매핑된 경우나 Course가 존재하지 않는 경우에는 저장하지 않습니다.
+	public void saveCoursesWithMember(List<CourseScrapingResponse> courseList, Member member) {
+		Set<String> identifiers = courseList.stream()
+				.map(CourseScrapingResponse::identifier)
+				.collect(Collectors.toSet());
+		List<Course> courses = courseRepository.findAllByIdentifierIn(identifiers);
+		List<MemberCourse> memberCourses = courses.stream()
+				.filter(course -> !memberCourseRepository.existsByMemberIdAndCourseId(member.getId(), course.getId()))
+				.map(course -> new MemberCourse(member, course))
+				.toList();
+		memberCourseRepository.saveAll(memberCourses);
 	}
 
 	/// DB에 저장된 강좌를 찾아 시간표 데이터를 업데이트 합니다.
