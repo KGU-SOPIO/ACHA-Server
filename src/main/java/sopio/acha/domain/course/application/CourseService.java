@@ -7,8 +7,8 @@ import static sopio.acha.common.handler.ExtractorHandler.requestTimetable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -20,127 +20,159 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import sopio.acha.common.utils.CourseDataConverter;
+import sopio.acha.domain.activity.application.ActivityService;
 import sopio.acha.domain.course.domain.Course;
+import sopio.acha.domain.course.domain.CourseDay;
 import sopio.acha.domain.course.infrastructure.CourseRepository;
 import sopio.acha.domain.course.presentation.exception.FailedParsingCourseDataException;
 import sopio.acha.domain.course.presentation.exception.CourseNotFoundException;
-import sopio.acha.domain.course.presentation.response.CourseBasicInformationResponse;
-import sopio.acha.domain.course.presentation.response.CourseTimeTableResponse;
+import sopio.acha.domain.course.presentation.response.CourseScrapingResponse;
 import sopio.acha.domain.member.domain.Member;
 import sopio.acha.domain.member.infrastructure.MemberRepository;
 import sopio.acha.domain.memberCourse.application.MemberCourseService;
+import sopio.acha.domain.notification.application.NotificationService;
+import sopio.acha.domain.timetable.domain.Timetable;
+import sopio.acha.domain.timetable.presentation.response.TimetableScrapingResponse;
 
 @Service
 @RequiredArgsConstructor
 public class CourseService {
+	private final ActivityService activityService;
+	private final NotificationService notificationService;
 	private final CourseRepository courseRepository;
 	private final MemberCourseService memberCourseService;
-	private final NoticeExtractor noticeExtractor;
-	private final ActivityExtractor activityExtractor;
 	private final MemberRepository memberRepository;
 	private final ObjectMapper objectMapper;
 
 	@Transactional(propagation = REQUIRES_NEW)
-	public void extractCourseAndSave(Member currentMember) {
+	public void extractCourseAndSave(Member member) {
 		try {
-			String decryptedPassword = decrypt(currentMember.getPassword());
+			String decryptedPassword = decrypt(member.getPassword());
 
 			// 시간표 데이터 요청 및 변환
-			JsonNode timetableData = objectMapper.readTree(
-					requestTimetable(currentMember.getId(), decryptedPassword)).get("data");
-			List<CourseTimeTableResponse> timetableList = CourseDataConverter.convertToTimetableResponseList(timetableData, objectMapper);
-			Map<String, CourseTimeTableResponse> timetableMap = CourseDataConverter.mapTimetableByIdentifier(timetableList);
+			JsonNode timetableJsonData = objectMapper.readTree(
+					requestTimetable(member.getId(), decryptedPassword)).get("data");
+			List<TimetableScrapingResponse> timetableList = CourseDataConverter
+					.convertToTimetableList(objectMapper, timetableJsonData);
+			Map<String, List<TimetableScrapingResponse>> timetableMap = CourseDataConverter
+					.mapTimetableByIdentifier(timetableList);
 
 			// 강좌 데이터 요청 및 변환
-			JsonNode courseData = objectMapper.readTree(
-					requestCourse(currentMember.getId(), decryptedPassword)).get("data");
-			List<CourseBasicInformationResponse> courseList = CourseDataConverter.convertToCourseResponseList(courseData, objectMapper);
-			Map<String, CourseBasicInformationResponse> courseMap = courseList.stream()
-					.collect(Collectors.toMap(CourseBasicInformationResponse::identifier, Function.identity()));
+			JsonNode courseJsonData = objectMapper.readTree(
+					requestCourse(member.getId(), decryptedPassword)).get("data");
+			List<CourseScrapingResponse> courseList = CourseDataConverter.convertToCourseList(objectMapper,
+					courseJsonData);
+			Map<String, CourseScrapingResponse> courseMap = CourseDataConverter.mapCourseByIdentifier(courseList);
 
-			// 강좌 데이터 저장
+			// 신규 강좌 데이터 저장
 			saveNewCourses(courseMap);
-
-			// 공지사항 데이터 처리
-			noticeExtractor.extractAndSave(courseMap);
 
 			// 시간표 데이터 처리
 			updateCourseWithTimetable(timetableMap);
 
-			// 멤버 - 강좌 연결 저장
-			List<Course> courseWithTimetable = getCoursesFromTimetable(timetableList);
-			memberCourseService.saveMyCourses(courseWithTimetable, currentMember);
+			// 멤버 - 강좌 매핑
+			memberCourseService.saveCoursesWithMember(courseList, member);
 
-			// 활동 데이터 처리
-			activityExtractor.extractAndSave(objectMapper, courseData, courseWithTimetable, currentMember);
-			currentMember.updateExtract(true);
+			// 공지사항 데이터 저장
+			extractAndSaveNotification(courseMap);
 
-			memberRepository.save(currentMember);
+			// 활동 데이터 저장
+			extractAndSaveActivity(courseMap, member);
+
+			member.setExtract(true);
+			memberRepository.save(member);
 		} catch (JsonProcessingException e) {
 			throw new FailedParsingCourseDataException();
 		}
 	}
 
-	private void saveNewCourses(Map<String, CourseBasicInformationResponse> courseMap) {
-		Set<String> existingIdentifiers = courseRepository.findAllByIdentifierIn(courseMap.keySet())
+	/// DB에 저장된 강좌를 찾아 존재하지 않는다면 새로 추가합니다.
+	public boolean saveNewCourses(Map<String, CourseScrapingResponse> courseMap) {
+		Set<String> existingCourseIdentifiers = courseRepository.findAllByIdentifierIn(courseMap.keySet())
 				.stream()
 				.map(Course::getIdentifier)
 				.collect(Collectors.toSet());
 
 		List<Course> newCourseList = courseMap.values().stream()
-				.filter(courseResponse -> !existingIdentifiers.contains(courseResponse.identifier()))
-				.map(courseResponse -> Course.save(
-						courseResponse.title(),
-						courseResponse.identifier(),
-						courseResponse.code(),
-						courseResponse.noticeCode(),
-						courseResponse.professor()))
+				.filter(courseObject -> !existingCourseIdentifiers.contains(courseObject.identifier()))
+				.map(courseObject -> Course.save(
+						courseObject.title(),
+						courseObject.identifier(),
+						courseObject.code(),
+						courseObject.noticeCode(),
+						courseObject.professor()))
 				.collect(Collectors.toList());
 
 		if (!newCourseList.isEmpty()) {
 			courseRepository.saveAll(newCourseList);
+			return true;
 		}
+		return false;
 	}
 
-	private void updateCourseWithTimetable(Map<String, CourseTimeTableResponse> timetableMap) {
+	/// DB에 저장된 강좌를 찾아 시간표 데이터를 업데이트 합니다.
+	/// day, startAt로 조회했을 때, 시간표 데이터가 이미 존재한다면 시간표를 업데이트합니다.
+	/// 일치하는 시간표 정보가 없다면 새로 추가합니다.
+	public void updateCourseWithTimetable(Map<String, List<TimetableScrapingResponse>> timetableMap) {
 		List<Course> courses = courseRepository.findAllByIdentifierIn(timetableMap.keySet());
 		courses.forEach(course -> {
-			CourseTimeTableResponse timetable = timetableMap.get(course.getIdentifier());
-			if (timetable != null) {
-				course.setTimetable(
-						timetable.day(),
-						timetable.classTime(),
-						timetable.startAt(),
-						timetable.endAt(),
-						timetable.lectureRoom()
-				);
-			} else {
-				course.setLectureRoom("이러닝");
+			List<TimetableScrapingResponse> responses = timetableMap.get(course.getIdentifier());
+			if (responses != null && !responses.isEmpty()) {
+				responses.forEach(response -> {
+					Optional<Timetable> existingTimetableOpt = course.getTimetables().stream()
+							.filter(timetable -> timetable.getDay().equals(CourseDay.valueOf(response.day()))
+									&& timetable.getStartAt() == response.startAt())
+							.findFirst();
+					if (existingTimetableOpt.isPresent()) {
+						Timetable existingTimetable = existingTimetableOpt.get();
+						existingTimetable.setClassTime(response.classTime());
+						existingTimetable.setEndAt(response.endAt());
+						existingTimetable.setLectureRoom(response.lectureRoom());
+					} else {
+						course.addTimetable(
+								response.day(),
+								response.classTime(),
+								response.startAt(),
+								response.endAt(),
+								response.lectureRoom());
+					}
+				});
 			}
 		});
 	}
 
-	private List<Course> getCoursesFromTimetable(List<CourseTimeTableResponse> timetableList) {
-        Set<String> identifiers = timetableList.stream()
-				.map(CourseTimeTableResponse::identifier)
-				.collect(Collectors.toSet());
-		Map<String, Course> courseMap = courseRepository.findAllByIdentifierIn(identifiers)
-				.stream()
-				.collect(Collectors.toMap(Course::getIdentifier, Function.identity()));
-
-		return timetableList.stream()
-				.map(timetable -> {
-					Course course = courseMap.get(timetable.identifier());
-					if (course == null) {
-						throw new CourseNotFoundException();
-					}
-					return course;
-				})
-				.collect(Collectors.toList());
+	/// 공지사항 데이터를 추출해 DB에 저장합니다.
+	/// course, title, link로 조회했을 때, 공지사항 데이터가 이미 존재한다면 공지사항을 업데이트합니다.
+	/// 일치하는 공지사항 정보가 없다면 새로 추가합니다.
+	public void extractAndSaveNotification(Map<String, CourseScrapingResponse> courseMap) {
+		courseMap.values().stream()
+				.filter(courseObject -> courseObject.notices() != null && !courseObject.notices().isEmpty())
+				.forEach(courseObject -> {
+					Course course = courseRepository.findByIdentifier(courseObject.identifier())
+							.orElseThrow(CourseNotFoundException::new);
+					notificationService.saveOrUpdateNotification(courseObject.notices(), course);
+				});
 	}
 
-	public Course getCourseByCode(String code) {
-		return courseRepository.findByCode(code)
-			.orElseThrow(CourseNotFoundException::new);
+	/// 활동 데이터를 추출해 DB에 저장합니다.
+	/// title, week, type, member, course로 조회했을 때, 활동 데이터가 이미 존재한다면 활동을 업데이트합니다.
+	/// 일치하는 활동 정보가 없다면 새로 추가합니다.
+	public void extractAndSaveActivity(Map<String, CourseScrapingResponse> courseMap, Member member) {
+		courseMap.values().forEach(courseObject -> {
+			if (courseObject.activities() == null || courseObject.activities().isEmpty())
+				return;
+
+			Optional<Course> optionalCourse = courseRepository.findByIdentifier(courseObject.identifier());
+			if (optionalCourse.isEmpty())
+				return;
+
+			Course course = optionalCourse.get();
+			courseObject.activities().forEach(weekResponse -> {
+				int week = weekResponse.week();
+				weekResponse.activities().forEach(activityObject -> {
+					activityService.saveOrUpdateActivity(course, member, week, activityObject);
+				});
+			});
+		});
 	}
 }

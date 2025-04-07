@@ -26,18 +26,17 @@ public class SwaggerConfig {
 	private final Environment environment;
 
 	private static final Map<String, String> PROFILE_SERVER_URL_MAP = Map.of(
-		"local", "http://localhost:8080",
-		"dev", "https://api.sopio.kr",
-		"prod", "https://prod.sopio.kr"
-	);
+			"local", "http://localhost:8080",
+			"dev", "https://api.sopio.kr",
+			"prod", "https://prod.sopio.kr");
 
 	@Bean
-	public OpenAPI openAPI() {
+	OpenAPI openAPI() {
 		return new OpenAPI()
-			.info(apiInfo())
-			.addSecurityItem(securityRequirement())
-			.servers(initializeServers())
-			.components(components());
+				.info(apiInfo())
+				.addSecurityItem(securityRequirement())
+				.servers(initializeServers())
+				.components(components());
 	}
 
 	private SecurityRequirement securityRequirement() {
@@ -46,15 +45,15 @@ public class SwaggerConfig {
 
 	private Info apiInfo() {
 		return new Info()
-			.title("ACHA API")
-			.description(getDescription());
+				.title("ACHA API")
+				.description(getDescription());
 	}
 
 	private List<Server> initializeServers() {
 		return PROFILE_SERVER_URL_MAP.entrySet().stream()
-			.filter(entry -> environment.matchesProfiles(entry.getKey()))
-			.map(entry -> openApiServer(entry.getValue(), "ACHA API " + entry.getKey().toUpperCase()))
-			.collect(Collectors.toList());
+				.filter(entry -> environment.matchesProfiles(entry.getKey()))
+				.map(entry -> openApiServer(entry.getValue(), "ACHA API " + entry.getKey().toUpperCase()))
+				.collect(Collectors.toList());
 	}
 
 	private Server openApiServer(String url, String description) {
@@ -67,10 +66,10 @@ public class SwaggerConfig {
 
 	private SecurityScheme securityScheme() {
 		return new SecurityScheme()
-			.name(JWT)
-			.type(SecurityScheme.Type.HTTP)
-			.scheme("bearer")
-			.bearerFormat(JWT);
+				.name(JWT)
+				.type(SecurityScheme.Type.HTTP)
+				.scheme("bearer")
+				.bearerFormat(JWT);
 	}
 
 	private String getDescription() {

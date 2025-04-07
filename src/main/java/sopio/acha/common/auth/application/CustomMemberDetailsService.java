@@ -18,5 +18,4 @@ public class CustomMemberDetailsService implements UserDetailsService {
     public Member loadUserByUsername(String username) throws UsernameNotFoundException {
         return memberService.getMemberById(username);
     }
-
 }

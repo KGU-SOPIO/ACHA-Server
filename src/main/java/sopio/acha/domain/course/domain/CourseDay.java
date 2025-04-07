@@ -10,7 +10,7 @@ public enum CourseDay {
 	화요일(2),
 	수요일(3),
 	목요일(4),
-	금요일(5),
-	;
+	금요일(5);
+
 	private final int order;
 }

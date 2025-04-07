@@ -28,6 +28,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import sopio.acha.common.domain.BaseTimeEntity;
 import sopio.acha.domain.fcm.domain.Device;
 import sopio.acha.domain.member.presentation.exception.InvalidPasswordException;
@@ -55,9 +56,11 @@ public class Member extends BaseTimeEntity implements UserDetails {
 
 	private String major;
 
+	@Setter
 	@ColumnDefault("true")
 	private Boolean alert;
 
+	@Setter
 	@ColumnDefault("false")
 	private Boolean extract;
 
@@ -70,28 +73,22 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	private List<Device> devices = new ArrayList<>();
 
 	public static Member save(String id, String password, String name, String college, String department,
-		String major) {
+			String major) {
 		return Member.builder()
-			.id(id)
-			.password(encrypt(password))
-			.name(name)
-			.college(college)
-			.department(department)
-			.major(major)
-			.alert(true)
-			.extract(false)
-			.role(ROLE_USER)
-			.build();
+				.id(id)
+				.password(encrypt(password))
+				.name(name)
+				.college(college)
+				.department(department)
+				.major(major)
+				.alert(true)
+				.extract(false)
+				.role(ROLE_USER)
+				.build();
 	}
 
 	public void updatePassword(String password) {
 		this.password = encrypt(password);
-  }
-
-    public void updateExtract(Boolean extract) { this.extract = extract; }
-  
-	public void updateAlert(Boolean alert) {
-		this.alert = alert;
 	}
 
 	public void updateBasicInformation(String name, String college, String department, String major) {
@@ -102,7 +99,8 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	}
 
 	public void validatePassword(String password) {
-		if (!Objects.equals(decrypt(this.password), password)) throw new InvalidPasswordException();
+		if (!Objects.equals(decrypt(this.password), password))
+			throw new InvalidPasswordException();
 	}
 
 	@Override

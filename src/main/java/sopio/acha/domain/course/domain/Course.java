@@ -1,7 +1,6 @@
 package sopio.acha.domain.course.domain;
 
 import static jakarta.persistence.CascadeType.ALL;
-import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
 import static lombok.AccessLevel.PRIVATE;
@@ -11,17 +10,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.*;
-import org.hibernate.annotations.Formula;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import sopio.acha.common.domain.BaseTimeEntity;
 import sopio.acha.common.handler.DateHandler;
 import sopio.acha.domain.notification.domain.Notification;
+import sopio.acha.domain.timetable.domain.Timetable;
 
 @Getter
 @Entity
@@ -42,16 +40,10 @@ public class Course extends BaseTimeEntity {
 	@Column(nullable = false)
 	private String code;
 
-	private String noticeCode;
+	private String noticeBoardCode;
 
 	@Column(nullable = false)
 	private String professor;
-
-	@Setter
-    private String lectureRoom;
-
-	@Enumerated(STRING)
-	private CourseDay day;
 
 	@Column(nullable = false)
 	private String year;
@@ -59,41 +51,36 @@ public class Course extends BaseTimeEntity {
 	@Column(nullable = false)
 	private String semester;
 
-	@Formula("CASE WHEN day = '월요일' THEN 1 " +
-		"WHEN day = '화요일' THEN 2 " +
-		"WHEN day = '수요일' THEN 3 " +
-		"WHEN day = '목요일' THEN 4 " +
-		"WHEN day = '금요일' THEN 5 " +
-		"ELSE 0 END")
-	private int dayOrder;
-
-	private int classTime;
-
-	private int startAt;
-
-	private int endAt;
-
 	@Builder.Default
 	@OneToMany(mappedBy = "course", cascade = ALL, fetch = LAZY)
 	private List<Notification> notifications = new ArrayList<>();
 
+	@Getter
+	@Builder.Default
+	@OneToMany(mappedBy = "course", cascade = ALL, fetch = LAZY)
+	private List<Timetable> timetables = new ArrayList<>();
+
 	public static Course save(String title, String identifier, String code, String noticeCode, String professor) {
 		return Course.builder()
-			.title(title)
-			.identifier(identifier)
-			.code(code)
-			.noticeCode(noticeCode)
-			.professor((professor == null || professor.trim().isEmpty()) ? "이러닝" : professor)
-			.year(DateHandler.getCurrentSemesterYear())
-			.semester(DateHandler.getCurrentSemester())
-			.build();
+				.title(title)
+				.identifier(identifier)
+				.code(code)
+				.noticeBoardCode(noticeCode)
+				.professor((professor == null || professor.trim().isEmpty()) ? "이러닝" : professor)
+				.year(DateHandler.getCurrentSemesterYear())
+				.semester(DateHandler.getCurrentSemester())
+				.build();
 	}
 
-	public void setTimetable(String day, int classTime, int startAt, int endAt, String lectureRoom) {
-		this.day = CourseDay.valueOf(day);
-		this.classTime = classTime;
-		this.startAt = startAt;
-		this.endAt = endAt;
-		this.lectureRoom = lectureRoom;
+	public void addTimetable(String day, int classTime, int startAt, int endAt, String lectureRoom) {
+		Timetable timetable = Timetable.builder()
+				.day(CourseDay.valueOf(day))
+				.classTime(classTime)
+				.startAt(startAt)
+				.endAt(endAt)
+				.lectureRoom(lectureRoom)
+				.build();
+		timetable.setCourse(this);
+		this.timetables.add(timetable);
 	}
 }

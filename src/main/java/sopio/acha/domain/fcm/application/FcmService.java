@@ -19,13 +19,13 @@ public class FcmService {
 	private final DeviceRepository deviceRepository;
 
 	public void setAlertStatus(Member currentMember, AlertRequest alertRequest) {
-		currentMember.updateAlert(alertRequest.status());
+		currentMember.setAlert(alertRequest.status());
 		memberRepository.save(currentMember);
 	}
 
 	public AlertResponse getAlertStatus(Member currentMember) {
 		Member member = memberRepository.findMemberById(currentMember.getId())
-			.orElseThrow(MemberNotFoundException::new);
+				.orElseThrow(MemberNotFoundException::new);
 		return AlertResponse.of(member.getAlert());
 	}
 
@@ -35,12 +35,11 @@ public class FcmService {
 		}
 
 		member.getDevices().forEach(device -> {
-			try	{
+			try {
 				sendNotification(device.getDeviceToken(), title, body);
 			} catch (FirebaseMessagingException e) {
 				if (MessagingErrorCode.UNREGISTERED.equals(e.getMessagingErrorCode()) ||
-						MessagingErrorCode.INVALID_ARGUMENT.equals(e.getMessagingErrorCode())
-				) {
+						MessagingErrorCode.INVALID_ARGUMENT.equals(e.getMessagingErrorCode())) {
 					deviceRepository.deleteByDeviceToken(device.getDeviceToken());
 				}
 			}
@@ -49,13 +48,13 @@ public class FcmService {
 
 	public void sendNotification(String token, String title, String body) throws FirebaseMessagingException {
 		Notification notification = Notification.builder()
-			.setTitle(title)
-			.setBody(body)
-			.build();
+				.setTitle(title)
+				.setBody(body)
+				.build();
 		Message message = Message.builder()
-			.setToken(token)
-			.setNotification(notification)
-			.build();
+				.setToken(token)
+				.setNotification(notification)
+				.build();
 		FirebaseMessaging.getInstance().send(message);
 	}
 

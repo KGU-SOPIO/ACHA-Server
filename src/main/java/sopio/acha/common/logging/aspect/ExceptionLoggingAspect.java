@@ -21,23 +21,22 @@ import sopio.acha.common.utils.LoggingUtils;
 public class ExceptionLoggingAspect {
 
 	@Pointcut("execution(* sopio.acha.domain..application..*(..)) && "
-		+ "!execution(* sopio.acha.common..*(..)) && "
-		+ "!@annotation(sopio.acha.common.logging.annotation.NoLogging) && "
-		+ "!@annotation(org.springframework.boot.context.properties.ConfigurationProperties)"
-	)
+			+ "!execution(* sopio.acha.common..*(..)) && "
+			+ "!@annotation(sopio.acha.common.logging.annotation.NoLogging) && "
+			+ "!@annotation(org.springframework.boot.context.properties.ConfigurationProperties)")
 	private void logPointcut() {
 	}
 
 	@AfterThrowing(value = "logPointcut()", throwing = "exception")
 	public void logAfterThrowing(JoinPoint joinPoint, CustomException exception) {
-		MethodSignature signature = (MethodSignature)joinPoint.getSignature();
+		MethodSignature signature = (MethodSignature) joinPoint.getSignature();
 		String className = signature.getDeclaringType().getSimpleName();
 
 		List<String> arguments = LoggingUtils.getArguments(joinPoint);
 		String parameterMessage = LoggingUtils.getParameterMessage(arguments);
 
 		log.error("[ERROR] POINT : {} || EXCEPTION : {} || ARGUMENTS : {}", className, exception.getCode().getCode(),
-			parameterMessage);
+				parameterMessage);
 		log.error("[ERROR] FINAL POINT : {}", exception.getStackTrace()[0]);
 		log.error("[ERROR] MESSAGE : {}", exception.getMessage());
 	}

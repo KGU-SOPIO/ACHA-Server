@@ -1,6 +1,7 @@
 package sopio.acha.domain.notification.application;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,37 +20,34 @@ import sopio.acha.domain.notification.presentation.response.NotificationListResp
 public class NotificationService {
 	private final NotificationRepository notificationRepository;
 
+	/// 공지사항 데이터를 조회하여 존재하면 업데이트하고, 존재하지 않으면 새로 생성합니다.
+	/// title, link, courseId를 기준으로 공지사항을 조회합니다.
 	@Transactional
-	public void extractNotifications(List<NotificationScrapingResponse> notifications, Course course) {
-		List<Notification> notificationList = notifications.stream()
-				.map(notificationResponse -> {
-					String title = notificationResponse.title();
-					return notificationRepository.findByTitleAndCourseId(title, course.getId())
-							.map(existingNotification -> {
-								existingNotification.update(
-										Integer.parseInt(notificationResponse.index()),
-										notificationResponse.title(),
-										notificationResponse.date(),
-										notificationResponse.content(),
-										notificationResponse.link()
-								);
-								return existingNotification;
-							})
-							.orElseGet(() -> Notification.save(
-                                    Integer.parseInt(notificationResponse.index()),
-                                    title,
-                                    notificationResponse.date(),
-                                    notificationResponse.content(),
-                                    notificationResponse.link(),
-                                    course
-                            ));
-				}).toList();
-		notificationRepository.saveAll(notificationList);
+	public void saveOrUpdateNotification(List<NotificationScrapingResponse> notifications, Course course) {
+		notifications.forEach(notificationObject -> {
+			Optional<Notification> optionalNotification = notificationRepository
+					.findByTitleAndLinkAndCourseId(notificationObject.title(), notificationObject.link(),
+							course.getId());
+
+			int index = Integer.parseInt(notificationObject.index());
+			String title = notificationObject.title();
+			String date = notificationObject.date();
+			String content = notificationObject.content();
+			String link = notificationObject.link();
+
+			if (optionalNotification.isPresent()) {
+				optionalNotification.get().update(index, title, date, content, link);
+			} else {
+				Notification newNotification = Notification.save(index, title, date, content, link, course);
+				notificationRepository.save(newNotification);
+			}
+		});
 	}
 
 	@Transactional(readOnly = true)
 	public NotificationListResponse getNotifications(String code) {
 		List<Notification> notifications = notificationRepository.findAllByCourseCodeOrderByIndexDesc(code);
+
 		if (notifications.isEmpty())
 			throw new NotificationNotFoundException();
 		return NotificationListResponse.from(notifications.getFirst().getCourse().getTitle(), notifications);
@@ -58,13 +56,13 @@ public class NotificationService {
 	@Transactional(readOnly = true)
 	public NotificationDetailResponse getNotificationDetail(Long notificationId) {
 		Notification currentNotification = notificationRepository.findById(notificationId)
-			.orElseThrow(NotificationNotFoundException::new);
+				.orElseThrow(NotificationNotFoundException::new);
 		Notification prevNotification = notificationRepository.findByIndexAndCourseId(
-			currentNotification.getIndex() - 1, currentNotification.getCourse().getId())
-			.orElse(null);
+				currentNotification.getIndex() - 1, currentNotification.getCourse().getId())
+				.orElse(null);
 		Notification nextNotification = notificationRepository.findByIndexAndCourseId(
-			currentNotification.getIndex() + 1, currentNotification.getCourse().getId())
-			.orElse(null);
+				currentNotification.getIndex() + 1, currentNotification.getCourse().getId())
+				.orElse(null);
 		return NotificationDetailResponse.of(currentNotification, prevNotification, nextNotification);
 	}
 }

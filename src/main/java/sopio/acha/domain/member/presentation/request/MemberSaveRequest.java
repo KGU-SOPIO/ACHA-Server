@@ -21,13 +21,13 @@ public record MemberSaveRequest(
 	@Schema(description = "대학", requiredMode = REQUIRED)
 	String college,
 
-	@Schema(description = "학과", requiredMode = REQUIRED)
+	@Schema(description = "학부", requiredMode = REQUIRED)
 	String department,
 
 	@Schema(description = "전공", requiredMode = NOT_REQUIRED)
 	String major,
 
-	@Schema(description = "디바이스 토큰", requiredMode = NOT_REQUIRED)
+	@Schema(description = "기기 고유 토큰", requiredMode = NOT_REQUIRED)
 	String deviceToken
 ) {
 }

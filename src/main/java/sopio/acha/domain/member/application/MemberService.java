@@ -57,11 +57,11 @@ public class MemberService {
 		RefreshToken refreshToken = refreshTokenService.getExistingToken(request.studentId());
 		if (refreshToken != null) {
 			AccessToken accessToken = AccessToken.of(jwtCreator.generateToken(loginMember, Duration.ofHours(2)));
-			return MemberTokenResponse.of(accessToken.getAccessToken(), refreshToken.getRefreshToken(), loginMember.getExtract());
+			return MemberTokenResponse.of(accessToken.getAccessToken(), refreshToken.getRefreshToken(),
+					loginMember.getExtract());
 		}
 		return issueAndSaveMemberToken(loginMember);
 	}
-
 
 	public MemberSummaryResponse getNewMemberDataFromLMS(MemberRequest request) {
 		JSONObject json = new JSONObject(requestAuthenticationAndUserInfo(request.studentId(), request.password()));
@@ -69,7 +69,7 @@ public class MemberService {
 			throw new InvalidStudentIdOrPasswordException();
 		try {
 			return new ObjectMapper().readValue(
-				json.getJSONObject("userData").toString(), MemberSummaryResponse.class);
+					json.getJSONObject("userData").toString(), MemberSummaryResponse.class);
 		} catch (JsonProcessingException e) {
 			throw new FailedParsingMemberDataException();
 		}
@@ -77,9 +77,8 @@ public class MemberService {
 
 	public MemberTokenResponse saveMemberAndLogin(MemberSaveRequest request) {
 		Member savedMember = memberRepository.save(
-			Member.save(request.studentId(), request.password(), request.name(), request.college(),
-				request.department(), request.major())
-		);
+				Member.save(request.studentId(), request.password(), request.name(), request.college(),
+						request.department(), request.major()));
 		if (request.deviceToken() != null) {
 			saveNewDeviceToken(request.deviceToken(), savedMember);
 		}
@@ -92,7 +91,7 @@ public class MemberService {
 			throw new InvalidStudentIdOrPasswordException();
 		try {
 			MemberSummaryResponse response = new ObjectMapper().readValue(
-				json.getJSONObject("userData").toString(), MemberSummaryResponse.class);
+					json.getJSONObject("userData").toString(), MemberSummaryResponse.class);
 			Member member = getMemberById(studentId);
 			member.updatePassword(password);
 			member.updateBasicInformation(response.name(), response.college(), response.department(), response.major());
@@ -105,13 +104,14 @@ public class MemberService {
 	public AccessTokenResponse reissueAccessToken(RefreshTokenRequest request) {
 		RefreshToken refreshToken = refreshTokenService.getRefreshTokenObject(request);
 		Member loginMember = getMemberById(refreshToken.getStudentId());
-		if (loginMember.getDeletedAt() != null) throw new MemberNotAuthenticatedException();
+		if (loginMember.getDeletedAt() != null)
+			throw new MemberNotAuthenticatedException();
 		return AccessTokenResponse.of(issueAndSaveMemberToken(loginMember).accessToken());
 	}
 
 	public Member getMemberById(String studentId) {
 		return memberRepository.findMemberById(studentId)
-			.orElseThrow(MemberNotFoundException::new);
+				.orElseThrow(MemberNotFoundException::new);
 	}
 
 	@Transactional
@@ -120,10 +120,10 @@ public class MemberService {
 
 		List<Device> deviceList = deviceRepository.findAllByMemberId(currentMember.getId());
 		if (!deviceList.isEmpty()) {
-            deviceRepository.deleteAll(deviceList);
+			deviceRepository.deleteAll(deviceList);
 		}
 
-		currentMember.updateExtract(false);
+		currentMember.setExtract(false);
 		currentMember.delete();
 
 		RefreshToken refreshToken = refreshTokenService.getExistingToken(currentMember.getId());
@@ -139,7 +139,7 @@ public class MemberService {
 
 	private void findByMemberIdAndDeviceToken(Member currentMember, String deviceToken) {
 		deviceRepository.findByMemberIdAndDeviceToken(currentMember.getId(), deviceToken)
-			.ifPresent(deviceRepository::delete);
+				.ifPresent(deviceRepository::delete);
 	}
 
 	private void saveNewDeviceToken(String deviceToken, Member member) {
@@ -149,14 +149,16 @@ public class MemberService {
 	}
 
 	private MemberTokenResponse issueAndSaveMemberToken(Member member) {
-		if (member.getDeletedAt() != null) throw new MemberNotAuthenticatedException();
+		if (member.getDeletedAt() != null)
+			throw new MemberNotAuthenticatedException();
 		AccessToken accessToken = AccessToken.of(jwtCreator.generateToken(member, Duration.ofHours(2)));
 		RefreshToken refreshToken = refreshTokenService.getExistingToken(member.getId());
 		if (refreshToken == null) {
 			refreshToken = RefreshToken.of(member.getId(), jwtCreator.generateToken(member, Duration.ofDays(7)));
 			refreshTokenService.saveRefreshToken(refreshToken);
 		}
-		return MemberTokenResponse.of(accessToken.getAccessToken(), refreshToken.getRefreshToken(), member.getExtract());
+		return MemberTokenResponse.of(accessToken.getAccessToken(), refreshToken.getRefreshToken(),
+				member.getExtract());
 	}
 
 	private void validateIsAchaMember(final String studentId) {

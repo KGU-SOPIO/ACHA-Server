@@ -20,8 +20,8 @@ public class LoggingUtils {
 
 	public static List<String> getArguments(JoinPoint joinPoint) {
 		return Arrays.stream(joinPoint.getArgs())
-			.map(LoggingUtils::getObjectFields)
-			.toList();
+				.map(LoggingUtils::getObjectFields)
+				.toList();
 	}
 
 	public static String getObjectFields(Object obj) {
@@ -43,7 +43,7 @@ public class LoggingUtils {
 			fields[i].setAccessible(true);
 			try {
 				result.append(fields[i].getName()).append(" = ")
-					.append(fields[i].get(obj));
+						.append(fields[i].get(obj));
 			} catch (IllegalAccessException | RuntimeException e) {
 				result.append(fields[i].getName()).append("=ACCESS_DENIED");
 			}
@@ -64,9 +64,9 @@ public class LoggingUtils {
 
 	public static void logRequest() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		String userId =
-			(authentication == null || Objects.equals(authentication.getName(), "anonymousUser")) ? "anonymous" :
-				authentication.getName();
+		String userId = (authentication == null || Objects.equals(authentication.getName(), "anonymousUser"))
+				? "anonymous"
+				: authentication.getName();
 		String clientIp = HttpReqResUtils.getClientIpAddressIfServletRequestExist();
 
 		log.info("[REQUEST] CLIENT IP : {} || USER ID : {}", clientIp, userId);
@@ -77,16 +77,16 @@ public class LoggingUtils {
 		String httpMethod = request.getMethod();
 		int httpStatus = response.getStatus();
 
-		long startTime = (Long)request.getAttribute("startTime");
+		long startTime = (Long) request.getAttribute("startTime");
 		long endTime = System.currentTimeMillis();
 		long duration = endTime - startTime;
 
 		if (ex == null) {
 			log.info("[DURATION] ENDPOINT : {} {} || STATUS : {} || DURATION : {}ms", httpMethod, requestUrl,
-				httpStatus, duration);
+					httpStatus, duration);
 		} else {
 			log.error("[DURATION] ENDPOINT : {} {} || STATUS : {} || DURATION : {}ms || EXCEPTION : {}",
-				httpMethod, requestUrl, httpStatus, duration, ex.getMessage());
+					httpMethod, requestUrl, httpStatus, duration, ex.getMessage());
 		}
 	}
 }

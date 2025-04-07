@@ -32,7 +32,8 @@ public class DateHandler {
 	}
 
 	public static LocalDateTime parseDateTime(String dateTimeStr) {
-		if (dateTimeStr == null || dateTimeStr.isBlank()) return null;
+		if (dateTimeStr == null || dateTimeStr.isBlank())
+			return null;
 		try {
 			String fixedDateTimeStr = fixDateTimeFormat(dateTimeStr);
 			return LocalDateTime.parse(fixedDateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
@@ -43,7 +44,8 @@ public class DateHandler {
 
 	private static String fixDateTimeFormat(String dateTimeStr) {
 		String[] parts = dateTimeStr.split(" ");
-		if (parts.length < 2) return dateTimeStr;
+		if (parts.length < 2)
+			return dateTimeStr;
 		String datePart = parts[0];
 		String timePart = parts[1];
 		String[] timeParts = timePart.split(":");

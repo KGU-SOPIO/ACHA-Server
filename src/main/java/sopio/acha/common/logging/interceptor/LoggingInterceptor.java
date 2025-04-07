@@ -17,8 +17,9 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, @NotNull HttpServletResponse response,
-		@NotNull Object handler) {
-		if (isNoLogging(handler)) return true;
+			@NotNull Object handler) {
+		if (isNoLogging(handler))
+			return true;
 		request.setAttribute("startTime", System.currentTimeMillis());
 		LoggingUtils.logRequest();
 		return true;
@@ -26,14 +27,15 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
 	@Override
 	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
-		Exception ex) {
-		if (isNoLogging(handler)) return;
+			Exception ex) {
+		if (isNoLogging(handler))
+			return;
 		LoggingUtils.logDuration(request, response, ex);
 	}
 
 	private boolean isNoLogging(Object handler) {
 		if (handler instanceof HandlerMethod) {
-			HandlerMethod handlerMethod = (HandlerMethod)handler;
+			HandlerMethod handlerMethod = (HandlerMethod) handler;
 			Method method = handlerMethod.getMethod();
 			return method.isAnnotationPresent(NoLogging.class);
 		}

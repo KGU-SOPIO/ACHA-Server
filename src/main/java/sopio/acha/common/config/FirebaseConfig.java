@@ -17,11 +17,11 @@ public class FirebaseConfig {
 	private String FirebaseAccountKeyPath;
 
 	@Bean
-	public FirebaseApp firebaseApp() throws IOException {
+	FirebaseApp firebaseApp() throws IOException {
 		FileInputStream serviceAccount = new FileInputStream(FirebaseAccountKeyPath);
 		FirebaseOptions options = FirebaseOptions.builder()
-			.setCredentials(GoogleCredentials.fromStream(serviceAccount))
-			.build();
+				.setCredentials(GoogleCredentials.fromStream(serviceAccount))
+				.build();
 		return FirebaseApp.initializeApp(options);
 	}
 }

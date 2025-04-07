@@ -6,6 +6,4 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EntityScan(basePackages = "sopio.acha")
 @EnableJpaRepositories(basePackages = "sopio.acha")
 public class JpaConfig {
-
 }
-

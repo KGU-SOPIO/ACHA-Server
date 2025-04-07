@@ -18,9 +18,8 @@ import sopio.acha.domain.member.domain.Member;
 
 @Repository
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
-	boolean existsActivityByTitleAndWeekAndMemberAndCourseAndType(String title, int week, Member member, Course course, ActivityType type);
-
-	Optional<Activity> findByTitleAndWeekAndMemberAndCourseAndType(String title, int week, Member memberId, Course course, ActivityType type);
+	Optional<Activity> findByTitleAndWeekAndTypeAndCourseIdAndMemberId(String title, int week, ActivityType type,
+			Long courseId, String memberId);
 
 	@Query("SELECT a FROM Activity a " +
 			"WHERE a.member.id = :memberId " +
@@ -44,9 +43,11 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
 			"AND ((a.type = :assignmentType AND a.submitStatus = :noneSubmitStatus) " +
 			"OR (a.type = :lectureType AND a.attendance = false))")
 	List<Activity> findAllByDeadlineAfter(
-		@Param("now") LocalDateTime now,
-		@Param("end") LocalDateTime end,
-		@Param("assignmentType") ActivityType assignmentType,
-		@Param("lectureType") ActivityType lectureType,
-		@Param("noneSubmitStatus") SubmitType noneSubmitStatus);
+			@Param("now") LocalDateTime now,
+			@Param("end") LocalDateTime end,
+			@Param("assignmentType") ActivityType assignmentType,
+			@Param("lectureType") ActivityType lectureType,
+			@Param("noneSubmitStatus") SubmitType noneSubmitStatus);
+
+	void deleteAllByMemberAndCourse(Member member, Course course);
 }
