@@ -18,7 +18,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import sopio.acha.domain.course.domain.Course;
 import sopio.acha.domain.course.domain.CourseDay;
 
@@ -32,7 +31,6 @@ public class Timetable {
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
-    @Setter
     private String lectureRoom;
 
     @Enumerated(STRING)
@@ -46,20 +44,29 @@ public class Timetable {
             "ELSE 0 END")
     private int dayOrder;
 
-    @Setter
     private int classTime;
 
-    @Setter
     private int startAt;
 
-    @Setter
     private int endAt;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "course_id")
     private Course course;
 
-    public void setCourse(Course course) {
+    public void updateCourse(Course course) {
         this.course = course;
+    }
+
+    public void updateLectureRoom(String lectureRoom) {
+        this.lectureRoom = lectureRoom;
+    }
+
+    public void updateClassTime(int classTime) {
+        this.classTime = classTime;
+    }
+
+    public void updateEndAt(int endAt) {
+        this.endAt = endAt;
     }
 }

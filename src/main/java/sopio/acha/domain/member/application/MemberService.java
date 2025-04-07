@@ -123,7 +123,7 @@ public class MemberService {
 			deviceRepository.deleteAll(deviceList);
 		}
 
-		currentMember.setExtract(false);
+		currentMember.updateExtract(false);
 		currentMember.delete();
 
 		RefreshToken refreshToken = refreshTokenService.getExistingToken(currentMember.getId());

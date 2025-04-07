@@ -19,7 +19,7 @@ public class FcmService {
 	private final DeviceRepository deviceRepository;
 
 	public void setAlertStatus(Member currentMember, AlertRequest alertRequest) {
-		currentMember.setAlert(alertRequest.status());
+		currentMember.updateAlert(alertRequest.status());
 		memberRepository.save(currentMember);
 	}
 

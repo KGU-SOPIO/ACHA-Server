@@ -79,7 +79,7 @@ public class CourseService {
 			// 활동 데이터 저장
 			extractAndSaveActivity(courseMap, member);
 
-			member.setExtract(true);
+			member.updateExtract(true);
 			memberRepository.save(member);
 		} catch (JsonProcessingException e) {
 			throw new FailedParsingCourseDataException();
@@ -125,9 +125,9 @@ public class CourseService {
 							.findFirst();
 					if (existingTimetableOpt.isPresent()) {
 						Timetable existingTimetable = existingTimetableOpt.get();
-						existingTimetable.setClassTime(response.classTime());
-						existingTimetable.setEndAt(response.endAt());
-						existingTimetable.setLectureRoom(response.lectureRoom());
+						existingTimetable.updateClassTime(response.classTime());
+						existingTimetable.updateEndAt(response.endAt());
+						existingTimetable.updateLectureRoom(response.lectureRoom());
 					} else {
 						course.addTimetable(
 								response.day(),

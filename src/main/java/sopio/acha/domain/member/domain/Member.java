@@ -28,7 +28,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import sopio.acha.common.domain.BaseTimeEntity;
 import sopio.acha.domain.fcm.domain.Device;
 import sopio.acha.domain.member.presentation.exception.InvalidPasswordException;
@@ -56,11 +55,9 @@ public class Member extends BaseTimeEntity implements UserDetails {
 
 	private String major;
 
-	@Setter
 	@ColumnDefault("true")
 	private Boolean alert;
 
-	@Setter
 	@ColumnDefault("false")
 	private Boolean extract;
 
@@ -101,6 +98,14 @@ public class Member extends BaseTimeEntity implements UserDetails {
 	public void validatePassword(String password) {
 		if (!Objects.equals(decrypt(this.password), password))
 			throw new InvalidPasswordException();
+	}
+
+	public void updateAlert(boolean alert) {
+		this.alert = alert;
+	}
+
+	public void updateExtract(boolean extract) {
+		this.extract = extract;
 	}
 
 	@Override

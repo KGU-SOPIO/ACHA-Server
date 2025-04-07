@@ -80,7 +80,7 @@ public class Course extends BaseTimeEntity {
 				.endAt(endAt)
 				.lectureRoom(lectureRoom)
 				.build();
-		timetable.setCourse(this);
+		timetable.updateCourse(this);
 		this.timetables.add(timetable);
 	}
 }
