@@ -60,8 +60,9 @@ public class MemberCourseService {
 			try {
 				memberCourseUpdateService.updateMemberCoursesForMember(member, memberCourseList, objectMapper);
 			} catch (Exception e) {
-				System.err.println("[ Scheduled ] 사용자 " + member.getId() + " 업데이트 실패 " + e.getMessage());
+				System.out.println("[ Scheduled ] " + member.getId() + " 사용자 업데이트 실패 " + e.getMessage());
 			}
+			System.out.println("[ Scheduled ] " + member.getId() + " 사용자 업데이트 성공");
 		});
 	}
 
