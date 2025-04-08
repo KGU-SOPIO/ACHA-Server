@@ -84,6 +84,8 @@ public class ExtractorHandler {
 		} catch (HttpClientErrorException e) {
 			if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
 				throw new KutisPasswordErrorException();
+			} else if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+				return "{\"data\": []}";
 			} else {
 				throw e;
 			}
