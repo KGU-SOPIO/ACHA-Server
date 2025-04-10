@@ -84,7 +84,8 @@ public class MemberCourseUpdateService {
                 .map(CourseScrapingResponse::identifier)
                 .collect(Collectors.toSet());
         Set<String> identifiersToRemove = memberCourseList.stream()
-                .map(memberCourse -> memberCourse.getCourse().getIdentifier()).collect(Collectors.toSet());
+                .map(memberCourse -> memberCourse.getCourse().getIdentifier())
+                .collect(Collectors.toSet());
         identifiersToRemove.removeAll(lmsIdentifiers);
         Iterator<MemberCourse> iterator = memberCourseList.iterator();
         while (iterator.hasNext()) {
@@ -100,10 +101,12 @@ public class MemberCourseUpdateService {
         }
 
         // 강좌 상세 데이터 요청 및 공지사항, 활동 업데이트
-        for (CourseScrapingResponse summaryResponse : lmsCourseList) {
+        for (MemberCourse memberCourse : memberCourseList) {
+            Course course = memberCourse.getCourse();
+
             // 강좌 데이터 요청
             CourseScrapingResponse detailedResponse = fetchCourseDetailResponse(member, decryptedPassword,
-                    summaryResponse.code(), objectMapper);
+                    course.getCode(), objectMapper);
             if (detailedResponse == null)
                 continue;
 
@@ -118,12 +121,7 @@ public class MemberCourseUpdateService {
                 for (ActivityScrapingWeekResponse weekResponse : weekResponses) {
                     int week = weekResponse.week();
                     for (ActivityScrapingResponse activityResponse : weekResponse.activities()) {
-                        Optional<Course> optionalCourse = courseRepository
-                                .findByIdentifier(detailedResponse.identifier());
-                        if (optionalCourse.isPresent()) {
-                            Course course = optionalCourse.get();
-                            activityService.saveOrUpdateActivity(course, member, week, activityResponse);
-                        }
+                        activityService.saveOrUpdateActivity(course, member, week, activityResponse);
                     }
                 }
             }
