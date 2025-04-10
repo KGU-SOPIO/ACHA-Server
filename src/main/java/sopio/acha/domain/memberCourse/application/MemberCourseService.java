@@ -38,7 +38,7 @@ public class MemberCourseService {
 
 		// 업데이트 주기가 지난 사용자 강좌 조회
 		List<MemberCourse> allMemberCourseList = memberCourseRepository
-				.findTop70ByCourseYearAndCourseSemesterOrderByUpdatedAtAsc(DateHandler.getCurrentSemesterYear(),
+				.findTop50ByCourseYearAndCourseSemesterOrderByUpdatedAtAsc(DateHandler.getCurrentSemesterYear(),
 						DateHandler.getCurrentSemester())
 				.stream()
 				.filter(MemberCourse::checkLastUpdatedAt)
